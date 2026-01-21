@@ -44,7 +44,6 @@
         .tabs-container::-webkit-scrollbar { height: 3px; }
         .tabs-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
         
-        /* Added flex-shrink-0 to prevent overlapping/squishing */
         .tab-btn { display: inline-block; padding: 0.6rem 1rem; text-align: center; font-weight: 600; color: #6b7280; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s; min-width: 90px; font-size: 0.85rem; flex-shrink: 0; }
         .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; background-color: #eff6ff; }
         .tab-btn:hover:not(.active) { color: #374151; background-color: #f9fafb; }
@@ -89,12 +88,13 @@
         /* Drag and Drop Styles */
         .draggable-item { 
             cursor: grab; 
-            transition: all 0.2s ease; 
+            transition: transform 0.2s ease, box-shadow 0.2s ease; 
             /* Fix: Prevent text selection on mobile so drag works properly */
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            touch-action: none; /* Helps prevent scroll interference when dragging */
         }
         .draggable-item:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .draggable-item.dragging { opacity: 0.5; background: #f0f9ff; border: 2px dashed #3b82f6; cursor: grabbing; }
@@ -333,7 +333,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v2.20";
+        const APP_VERSION = "v2.30";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -783,33 +783,49 @@
             };
 
             // --- Drag and Drop Handlers ---
-            const [draggingIndex, setDraggingIndex] = useState(null);
+            const [draggedItemIndex, setDraggedItemIndex] = useState(null);
 
             const handleDragStart = (e, index) => {
-                setDraggingIndex(index);
+                setDraggedItemIndex(index);
                 e.dataTransfer.effectAllowed = "move";
-                // e.dataTransfer.setData("text/plain", index); // Not strictly needed for react state but good practice
+                e.dataTransfer.setData("text/plain", index);
+                
+                // For mobile styling hook
+                setTimeout(() => {
+                    if (e.target) e.target.classList.add('dragging-active'); 
+                }, 0);
             };
 
-            const handleDragOver = (e, index) => {
-                e.preventDefault(); // Necessary to allow dropping
-                e.dataTransfer.dropEffect = "move";
-            };
-
-            const handleDrop = (e, targetIndex) => {
+            const handleDragEnter = (e, index) => {
                 e.preventDefault();
-                if (draggingIndex === null || draggingIndex === targetIndex) return;
+                // If we are dragging an item and it enters another item's area
+                if (draggedItemIndex === null || draggedItemIndex === index) return;
 
+                // Perform the swap (LIVE REORDERING)
                 const newQueue = [...cartQueue];
-                const [movedItem] = newQueue.splice(draggingIndex, 1);
-                newQueue.splice(targetIndex, 0, movedItem);
-
+                const item = newQueue[draggedItemIndex];
+                
+                // Remove from old pos
+                newQueue.splice(draggedItemIndex, 1);
+                // Insert at new pos
+                newQueue.splice(index, 0, item);
+                
                 setCartQueue(newQueue);
-                setDraggingIndex(null);
+                setDraggedItemIndex(index); // Update index to track the item in its new position
             };
 
-            const handleDragEnd = () => {
-                setDraggingIndex(null);
+            const handleDragOver = (e) => {
+                e.preventDefault(); // Necessary to allow dropping
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                // Logic is handled in Enter, just cleanup here if needed
+            };
+
+            const handleDragEnd = (e) => {
+                setDraggedItemIndex(null);
+                if (e.target) e.target.classList.remove('dragging-active');
             };
 
             const ShopItem = ({ item, category, color }) => {
@@ -862,9 +878,7 @@
                     {/* Top Section */}
                     {/* Modified Header for Mobile: Flex-Col on Mobile */}
                     <div className="flex flex-col md:flex-row justify-between items-center mb-4 pt-2 gap-2">
-                        {/* Mobile Order: 1. Title, 2. Version/Buttons. Desktop Order: Version, Title, Buttons */}
-                        
-                        {/* Version (Hidden on small mobile if needed, or moved) */}
+                        {/* Version */}
                         <div className="text-xs font-bold text-gray-500 font-mono flex items-center w-full md:w-1/4 justify-center md:justify-start order-2 md:order-1">
                             {APP_VERSION} | {APP_AUTHOR}
                         </div>
@@ -938,6 +952,7 @@
                                         <input type="date" value={currentDateInput} onChange={(e) => setCurrentDateInput(e.target.value)} min="2026-01-21" max="2026-02-25" onWheel={(e) => e.target.blur()} />
                                         <span className="text-[10px] text-blue-600 mt-1 block">{t.lbl_remaining.replace('{d}', calculation.daysRemaining).replace('{w}', calculation.weeksRemaining)}</span>
                                     </div>
+                                    {/* Added w-full to ensure it takes full width in flex-col mode */}
                                     <div className="w-full md:col-span-6 bg-white p-1.5 rounded border border-purple-200 shadow-sm">
                                         <div className="text-[14px] font-bold text-purple-900 mb-1">{t.lbl_legend}</div>
                                         <div className="flex justify-between gap-1">
@@ -1104,8 +1119,9 @@
                                                             key={item.uid} 
                                                             draggable="true"
                                                             onDragStart={(e) => handleDragStart(e, index)}
-                                                            onDragOver={(e) => handleDragOver(e, index)}
-                                                            onDrop={(e) => handleDrop(e, index)}
+                                                            onDragEnter={(e) => handleDragEnter(e, index)} // Use Enter for live reordering
+                                                            onDragOver={handleDragOver}
+                                                            onDrop={handleDrop}
                                                             onDragEnd={handleDragEnd}
                                                             className={`border-b border-gray-50 draggable-item ${draggingIndex === index ? 'dragging' : 'hover:bg-gray-50'}`}
                                                         >
