@@ -155,7 +155,7 @@
                 row_conv: "隨機轉化",
                 row_synth: "碎片合成",
                 total_est: "總計預估",
-                exchange_ref: "🔄 最終兌換參考 (2:1)",
+                exchange_ref: "🔄 屬性2換通用1 通用1換屬性1",
                 exchange_all_attr: "全轉換：屬性", // Updated Text
                 exchange_all_univ: "全轉換：通用", // Updated Text
                 
@@ -346,7 +346,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v2.61";
+        const APP_VERSION = "v2.70";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -505,7 +505,7 @@
                 const shopCostAttrTotal = shopCostFire + shopCostWater + shopCostWind + shopCostThunder;
 
                 // 價值兌換
-                const allAsAttr = grandTotalAttr + (grandTotalUniv * 2);
+                const allAsAttr = grandTotalAttr + grandTotalUniv; // Changed from * 2 to 1:1 based on user feedback
                 const allAsUniv = grandTotalUniv + Math.floor(grandTotalAttr / 2);
 
                 // 商店總需求 - FIX: Changed to 1:1 ratio for shopCostAsUniv per user request
@@ -1228,10 +1228,10 @@
                                         <div className="text-[10px] text-gray-400 text-right mt-0.5 space-x-1 border-t border-dashed border-gray-100 pt-0.5">
                                             <span className="inline-block">{t.dtl_detail}:</span>
                                             {calculation.shopCostUniv > 0 && <span className="text-green-500">{t.attr_univ}{calculation.shopCostUniv}</span>}
-                                            {calculation.shopCostFire > 0 && <span className="text-red-300">{t.attr_fire}{calculation.shopCostFire}</span>}
-                                            {calculation.shopCostWater > 0 && <span className="text-blue-300">{t.attr_water}{calculation.shopCostWater}</span>}
-                                            {calculation.shopCostWind > 0 && <span className="text-green-300">{t.attr_wind}{calculation.shopCostWind}</span>}
-                                            {calculation.shopCostThunder > 0 && <span className="text-purple-300">{t.attr_thunder}{calculation.shopCostThunder}</span>}
+                                            {calculation.shopCostFire > 0 && <span className="text-red-300">{t.attr_fire}{Math.ceil(calculation.shopCostFire/2)}</span>}
+                                            {calculation.shopCostWater > 0 && <span className="text-blue-300">{t.attr_water}{Math.ceil(calculation.shopCostWater/2)}</span>}
+                                            {calculation.shopCostWind > 0 && <span className="text-green-300">{t.attr_wind}{Math.ceil(calculation.shopCostWind/2)}</span>}
+                                            {calculation.shopCostThunder > 0 && <span className="text-purple-300">{t.attr_thunder}{Math.ceil(calculation.shopCostThunder/2)}</span>}
                                             {calculation.shopCostAsUniv === 0 && <span>-</span>}
                                         </div>
 
