@@ -44,6 +44,7 @@
         .tabs-container::-webkit-scrollbar { height: 3px; }
         .tabs-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
         
+        /* Added flex-shrink-0 to prevent overlapping/squishing */
         .tab-btn { display: inline-block; padding: 0.6rem 1rem; text-align: center; font-weight: 600; color: #6b7280; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s; min-width: 90px; font-size: 0.85rem; flex-shrink: 0; }
         .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; background-color: #eff6ff; }
         .tab-btn:hover:not(.active) { color: #374151; background-color: #f9fafb; }
@@ -1123,7 +1124,7 @@
                                                             onDragOver={handleDragOver}
                                                             onDrop={handleDrop}
                                                             onDragEnd={handleDragEnd}
-                                                            className={`border-b border-gray-50 draggable-item ${draggingIndex === index ? 'dragging' : 'hover:bg-gray-50'}`}
+                                                            className={`border-b border-gray-50 draggable-item ${draggedItemIndex === index ? 'dragging' : 'hover:bg-gray-50'}`}
                                                         >
                                                             <td className="py-2 text-center text-gray-400 text-xs cursor-move">
                                                                 ☰
