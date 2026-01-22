@@ -44,7 +44,6 @@
         .tabs-container::-webkit-scrollbar { height: 3px; }
         .tabs-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
         
-        /* Added flex-shrink-0 to prevent overlapping/squishing */
         .tab-btn { display: inline-block; padding: 0.6rem 1rem; text-align: center; font-weight: 600; color: #6b7280; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s; min-width: 90px; font-size: 0.85rem; flex-shrink: 0; }
         .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; background-color: #eff6ff; }
         .tab-btn:hover:not(.active) { color: #374151; background-color: #f9fafb; }
@@ -185,7 +184,7 @@
                 help_h1: "1. 通用卡片結餘邏輯 (現在 vs 未來)",
                 help_p2: "在「兌換商店規劃」頁面中，通用殘捲的供給計算方式已改為「僅計算庫存」。",
                 help_li1: "意義：這能反映您「當下」的購買力。如果結餘顯示為負數，代表您現在身上的錢不夠買，請勿衝動消費。",
-                help_li2: "如何看未來？：請參考上方「全轉換」或「收益預估」頁面，那裡包含了活動結束前的預期總收益。",
+                help_li2: "如何看未來？：請參考上方「全轉換轉換」或「收益預估」頁面，那裡包含了活動結束前的預期總收益。",
                 help_h2: "2. 建議日常使用流程",
                 help_s1: "歸零與更新 (Tab 1)",
                 help_d1: "每天開啟工具，先按「清除」按鈕清空昨日數據，再填入今日遊戲內的最新庫存（殘捲、成品、碎片）。",
@@ -338,7 +337,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v2.40";
+        const APP_VERSION = "v2.41";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -1350,6 +1349,97 @@
                                              <ShopItem key={item.id} item={item} category="univ" color="text-green-600" />
                                         ))}
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tab 4: 每日獲取明細 */}
+                    {(viewMode === 'single' || activeTab === 'daily') && (
+                        <div className={`card p-4 border-t-4 border-teal-500 overflow-x-auto mx-1 ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
+                            <table className="w-full min-w-[700px]">
+                                <thead>
+                                    <tr>
+                                        <th className="w-16 text-xs">{t.th_day}</th>
+                                        <th className="w-32 text-xs">{t.th_date}</th>
+                                        <th className="text-xs">{t.th_gain}</th>
+                                        <th className="text-xs">{t.th_acc}</th>
+                                        <th className="text-xs">{t.th_frag}</th>
+                                        <th className="text-xs">{t.th_note}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dailyTable.map((row) => (
+                                        <tr key={row.day} className={row.date.startsWith(currentDateInput.slice(5)) ? "bg-blue-100 border-l-4 border-blue-500" : ""}>
+                                            <td className="font-medium text-gray-600 text-xs">{row.day}</td>
+                                            <td className="text-xs">{row.date}</td>
+                                            <td className="text-xs text-gray-600">{row.dayAttr} / {row.dayUniv} / <span className="text-yellow-600 font-bold">{row.dayRandom}</span></td>
+                                            <td className="text-xs"><span className="text-blue-600 font-bold">{row.accAttr}</span> / <span className="text-green-600 font-bold">{row.accUniv}</span></td>
+                                            <td className="text-xs"><span className="text-yellow-800 font-bold bg-yellow-100 px-2 py-1 rounded">{row.accRandom}</span></td>
+                                            <td className="text-[10px] text-gray-500">{row.notes.map((note, idx) => (<span key={idx} className={note.style}>{idx>0 && ", "}{note.text}</span>))}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {(viewMode === 'single' || activeTab === 'sources') && (
+                        <div className={`card p-4 border-t-4 border-yellow-500 mx-1 ${viewMode === 'tabs' ? '' : ''}`}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="border rounded-lg p-3 bg-yellow-50 border-yellow-200">
+                                    <h3 className="font-bold text-yellow-800 mb-2 border-b border-yellow-300 pb-1">{t.src_fixed_title}</h3>
+                                    <ul className="space-y-2 text-sm">
+                                        <li className="flex justify-between items-center"><span className="text-red-700 font-bold">{t.qual_god}</span><span className="bg-white px-2 py-0.5 rounded-full text-red-600 font-bold shadow-sm">4 {t.unit_frag}</span></li>
+                                        <li className="flex justify-between items-center"><span className="text-purple-700 font-bold">{t.qual_peerless}</span><span className="bg-white px-2 py-0.5 rounded-full text-purple-600 font-bold shadow-sm">5 {t.unit_frag}</span></li>
+                                        <li className="flex justify-between items-center"><span className="text-indigo-700 font-bold">{t.qual_rare}</span><span className="bg-white px-2 py-0.5 rounded-full text-indigo-600 font-bold shadow-sm">9 {t.unit_frag}</span></li>
+                                        <li className="flex justify-between items-center"><span className="text-green-700 font-bold">{t.qual_common}</span><span className="bg-white px-2 py-0.5 rounded-full text-green-600 font-bold shadow-sm">8 {t.unit_frag}</span></li>
+                                        <li className="flex justify-between items-center"><span className="text-yellow-700 font-bold">{t.qual_random}</span><span className="bg-white px-2 py-0.5 rounded-full text-yellow-600 font-bold shadow-sm">20 {t.unit_frag}</span></li>
+                                    </ul>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
+                                        <h3 className="font-bold text-blue-800 mb-2 border-b border-blue-300 pb-1">{t.src_weekly_title}</h3>
+                                        <div className="space-y-2 text-sm">
+                                            <div><div className="text-xs font-bold text-gray-700 mb-1">{t.src_weekly_sub}</div><div className="flex justify-between items-center bg-white p-1.5 rounded border border-blue-100"><span className="text-red-600">{t.qual_god}</span><span className="font-bold">3 {t.unit_frag} {t.unit_week}</span></div></div>
+                                            <div><div className="text-xs font-bold text-gray-700 mb-1">{t.src_daily_sub}</div><div className="flex justify-between items-center bg-white p-1.5 rounded border border-blue-100"><span className="text-yellow-600">{t.qual_random}</span><span className="font-bold">19 {t.unit_frag} {t.unit_day}</span></div><div className="text-[10px] text-gray-400 mt-0.5 text-right">{t.src_daily_note}</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* New Rewards Reference Section */}
+                            <div className="mt-4 border rounded-lg p-3 bg-indigo-50 border-indigo-200">
+                                <h3 className="font-bold text-indigo-800 mb-2 border-b border-indigo-300 pb-1">{t.src_rewards_title}</h3>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs text-left">
+                                        <thead className="bg-indigo-100 text-indigo-900">
+                                            <tr>
+                                                <th className="p-1">{t.reward_header_qual}</th>
+                                                <th className="p-1">{t.reward_header_role}</th>
+                                                <th className="p-1 text-right">{t.reward_header_attr}</th>
+                                                <th className="p-1 text-right">{t.reward_header_univ}</th>
+                                                <th className="p-1 text-right">{t.reward_header_refund}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-indigo-100">
+                                            {/* God */}
+                                            <tr className="bg-white"><td className="p-1 font-bold text-red-700">{t.qual_god}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">30</td><td className="p-1 text-right text-green-600">40</td><td className="p-1 text-right">-</td></tr>
+                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">15</td><td className="p-1 text-right text-green-600">20</td><td className="p-1 text-right">-</td></tr>
+                                            {/* Peerless */}
+                                            <tr className="bg-white"><td className="p-1 font-bold text-purple-700">{t.qual_peerless}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">16</td><td className="p-1 text-right text-green-600">20</td><td className="p-1 text-right">1</td></tr>
+                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">8</td><td className="p-1 text-right text-green-600">10</td><td className="p-1 text-right">-</td></tr>
+                                            {/* Rare */}
+                                            <tr className="bg-white"><td className="p-1 font-bold text-indigo-700">{t.qual_rare}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">8</td><td className="p-1 text-right text-green-600">10</td><td className="p-1 text-right">1</td></tr>
+                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">4</td><td className="p-1 text-right text-green-600">5</td><td className="p-1 text-right">-</td></tr>
+                                            {/* Common */}
+                                            <tr className="bg-white"><td className="p-1 font-bold text-green-700">{t.qual_common}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">4</td><td className="p-1 text-right text-green-600">5</td><td className="p-1 text-right">1</td></tr>
+                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">2</td><td className="p-1 text-right text-green-600">3</td><td className="p-1 text-right">-</td></tr>
+                                            {/* Legend */}
+                                            <tr className="bg-white"><td className="p-1 font-bold text-purple-900">{t.qual_legend}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">-</td><td className="p-1 text-right text-green-600">150</td><td className="p-1 text-right">-</td></tr>
+                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">-</td><td className="p-1 text-right text-green-600">75</td><td className="p-1 text-right">-</td></tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
