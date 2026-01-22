@@ -88,16 +88,20 @@
     
         /* Drag and Drop Styles */
         .draggable-item { 
-            cursor: grab; 
+            cursor: pointer; 
             transition: transform 0.2s ease, box-shadow 0.2s ease; 
             /* Fix: Prevent text selection on mobile so drag works properly */
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            touch-action: none; /* Helps prevent scroll interference when dragging */
+            touch-action: pan-y; /* Allow vertical scroll but handle horizontal/selection */
         }
-        .draggable-item:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .draggable-item.selected {
+            background-color: #eff6ff; /* blue-50 */
+            border-color: #3b82f6; /* blue-500 */
+        }
+        .draggable-item:hover:not(.selected) { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .draggable-item.dragging { opacity: 0.5; background: #f0f9ff; border: 2px dashed #3b82f6; cursor: grabbing; }
         
         /* Mobile Dnd Fixes */
@@ -195,7 +199,7 @@
 
                 // Priority Logic
                 prio_title: "🏆 動態購物隊列與缺口分析",
-                prio_subtitle: "由上而下依序計算，長按可拖曳調整順序",
+                prio_subtitle: "由上而下依序計算，點擊選取可移動或刪除",
                 prio_header_item: "兌換項目",
                 prio_header_calc: "扣除來源",
                 prio_header_status: "狀態",
@@ -294,7 +298,7 @@
 
                 // Priority Logic
                 prio_title: "🏆 Dynamic Shopping Queue",
-                prio_subtitle: "Calculated top-to-bottom. Long-press to drag.",
+                prio_subtitle: "Calculated top-to-bottom. Tap to select/move.",
                 prio_header_item: "Item",
                 prio_header_calc: "Source",
                 prio_header_status: "Status",
@@ -334,7 +338,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v2.30";
+        const APP_VERSION = "v2.40";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -381,6 +385,9 @@
             const [shopCart, setShopCart] = useState({
                 fire: {}, water: {}, wind: {}, thunder: {}, univ: {}
             });
+
+            // Selected Item in Queue for Mobile Actions
+            const [selectedQueueIndex, setSelectedQueueIndex] = useState(null);
 
             // --- Enable Mobile Drag Polyfill ---
             useEffect(() => {
@@ -783,6 +790,54 @@
                 setCartQueue(prev => prev.filter(item => item.category !== category));
             };
 
+            // --- Manual Control Handlers (Click/Touch) ---
+            const handleQueueItemClick = (index) => {
+                // Toggle selection
+                if (selectedQueueIndex === index) {
+                    setSelectedQueueIndex(null);
+                } else {
+                    setSelectedQueueIndex(index);
+                }
+            };
+
+            const handleMoveUp = (index, e) => {
+                e.stopPropagation();
+                if (index === 0) return;
+                const newQueue = [...cartQueue];
+                [newQueue[index - 1], newQueue[index]] = [newQueue[index], newQueue[index - 1]];
+                setCartQueue(newQueue);
+                setSelectedQueueIndex(index - 1); // Follow item
+            };
+
+            const handleMoveDown = (index, e) => {
+                e.stopPropagation();
+                if (index === cartQueue.length - 1) return;
+                const newQueue = [...cartQueue];
+                [newQueue[index + 1], newQueue[index]] = [newQueue[index], newQueue[index + 1]];
+                setCartQueue(newQueue);
+                setSelectedQueueIndex(index + 1); // Follow item
+            };
+
+            const handleDeleteItem = (index, e) => {
+                e.stopPropagation();
+                const itemToRemove = cartQueue[index];
+                
+                // Update Queue
+                const newQueue = [...cartQueue];
+                newQueue.splice(index, 1);
+                setCartQueue(newQueue);
+                setSelectedQueueIndex(null); // Deselect
+
+                // Sync with ShopCart counts (Legacy support for bottom buttons)
+                setShopCart(prev => {
+                    const cat = itemToRemove.category;
+                    const id = itemToRemove.id;
+                    const currentCount = prev[cat][id] || 0;
+                    const newCount = Math.max(0, currentCount - 1);
+                    return { ...prev, [cat]: { ...prev[cat], [id]: newCount } };
+                });
+            };
+
             // --- Drag and Drop Handlers ---
             const [draggedItemIndex, setDraggedItemIndex] = useState(null);
 
@@ -790,8 +845,9 @@
                 setDraggedItemIndex(index);
                 e.dataTransfer.effectAllowed = "move";
                 e.dataTransfer.setData("text/plain", index);
+                // Auto select on drag start for feedback
+                setSelectedQueueIndex(index);
                 
-                // For mobile styling hook
                 setTimeout(() => {
                     if (e.target) e.target.classList.add('dragging-active'); 
                 }, 0);
@@ -799,29 +855,24 @@
 
             const handleDragEnter = (e, index) => {
                 e.preventDefault();
-                // If we are dragging an item and it enters another item's area
                 if (draggedItemIndex === null || draggedItemIndex === index) return;
 
-                // Perform the swap (LIVE REORDERING)
                 const newQueue = [...cartQueue];
                 const item = newQueue[draggedItemIndex];
-                
-                // Remove from old pos
                 newQueue.splice(draggedItemIndex, 1);
-                // Insert at new pos
                 newQueue.splice(index, 0, item);
                 
                 setCartQueue(newQueue);
-                setDraggedItemIndex(index); // Update index to track the item in its new position
+                setDraggedItemIndex(index);
+                setSelectedQueueIndex(index); 
             };
 
             const handleDragOver = (e) => {
-                e.preventDefault(); // Necessary to allow dropping
+                e.preventDefault(); 
             };
 
             const handleDrop = (e) => {
                 e.preventDefault();
-                // Logic is handled in Enter, just cleanup here if needed
             };
 
             const handleDragEnd = (e) => {
@@ -839,7 +890,6 @@
                             <div className={`shop-item-cost-large ${costStyle}`}>{item.cost} 捲</div>
                         </div>
                         <div className="flex items-center gap-1">
-                            {/* Pass full item object to updateShop */}
                             <button onClick={() => updateShop(category, item, -1)} disabled={count <= 0}>-</button>
                             <span className={`text-sm font-bold w-6 text-center ${count > 0 ? color : 'text-gray-400'}`}>{count}</span>
                             <button onClick={() => updateShop(category, item, 1)}>+</button>
@@ -869,7 +919,6 @@
                 );
             };
 
-            // Helper for Priority Display
             const getAttrLabel = (key) => t[`attr_${key}`];
             const getAttrColorText = (key) => `color-${key}`;
             const getAttrBg = (key) => `bg-${key}-light`;
@@ -877,20 +926,14 @@
             return (
                 <div className="max-w-5xl mx-auto p-2 md:p-6 flex flex-col min-h-screen relative">
                     {/* Top Section */}
-                    {/* Modified Header for Mobile: Flex-Col on Mobile */}
                     <div className="flex flex-col md:flex-row justify-between items-center mb-4 pt-2 gap-2">
-                        {/* Version */}
                         <div className="text-xs font-bold text-gray-500 font-mono flex items-center w-full md:w-1/4 justify-center md:justify-start order-2 md:order-1">
                             {APP_VERSION} | {APP_AUTHOR}
                         </div>
-
-                        {/* Title */}
                         <div className="text-center flex-grow w-full md:w-auto order-1 md:order-2">
                             <h1 className="text-2xl font-bold text-indigo-900 mb-0 leading-tight">{t.title}</h1>
                             <p className="text-gray-500 text-[10px]">{t.period}</p>
                         </div>
-
-                        {/* Buttons */}
                         <div className="flex gap-2 w-full md:w-1/4 justify-center md:justify-end order-3 md:order-3">
                             <button onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')} className="bg-white text-indigo-600 px-3 py-1 rounded-full shadow-sm text-xs font-bold hover:bg-indigo-50 transition border border-indigo-200 h-[30px] flex items-center">
                                 {lang === 'zh' ? 'EN' : '中'}
@@ -946,14 +989,13 @@
                         <div className={`grid grid-cols-1 lg:grid-cols-12 gap-4 mx-1 h-full ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
                             {/* Left Col: Settings (5 cols wide) */}
                             <div className={`lg:col-span-5 card p-4 bg-white border-t-4 border-blue-500 flex flex-col h-full`}>
-                                {/* Date & Legend - FIXED: Flex col on mobile */}
+                                {/* Date & Legend */}
                                 <div className="flex flex-col md:grid md:grid-cols-10 gap-2 mb-2 md:items-end">
                                     <div className="w-full md:col-span-4 input-group">
                                         <label>{t.lbl_date}</label>
                                         <input type="date" value={currentDateInput} onChange={(e) => setCurrentDateInput(e.target.value)} min="2026-01-21" max="2026-02-25" onWheel={(e) => e.target.blur()} />
                                         <span className="text-[10px] text-blue-600 mt-1 block">{t.lbl_remaining.replace('{d}', calculation.daysRemaining).replace('{w}', calculation.weeksRemaining)}</span>
                                     </div>
-                                    {/* Added w-full to ensure it takes full width in flex-col mode */}
                                     <div className="w-full md:col-span-6 bg-white p-1.5 rounded border border-purple-200 shadow-sm">
                                         <div className="text-[14px] font-bold text-purple-900 mb-1">{t.lbl_legend}</div>
                                         <div className="flex justify-between gap-1">
@@ -1124,10 +1166,19 @@
                                                             onDragOver={handleDragOver}
                                                             onDrop={handleDrop}
                                                             onDragEnd={handleDragEnd}
-                                                            className={`border-b border-gray-50 draggable-item ${draggedItemIndex === index ? 'dragging' : 'hover:bg-gray-50'}`}
+                                                            onClick={() => handleQueueItemClick(index)} // Manual Select for Mobile Actions
+                                                            className={`border-b border-gray-50 draggable-item ${draggedItemIndex === index ? 'dragging' : 'hover:bg-gray-50'} ${selectedQueueIndex === index ? 'selected' : ''}`}
                                                         >
                                                             <td className="py-2 text-center text-gray-400 text-xs cursor-move">
-                                                                ☰
+                                                                {/* Only show manual controls when selected */}
+                                                                {selectedQueueIndex === index ? (
+                                                                    <div className="flex flex-col gap-1 items-center">
+                                                                        <button onClick={(e) => handleMoveUp(index, e)} className="text-blue-500 hover:text-blue-700 bg-blue-100 rounded px-1 text-[10px]">▲</button>
+                                                                        <button onClick={(e) => handleMoveDown(index, e)} className="text-blue-500 hover:text-blue-700 bg-blue-100 rounded px-1 text-[10px]">▼</button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span>☰</span>
+                                                                )}
                                                             </td>
                                                             <td className="py-2">
                                                                 <div className="flex items-center gap-2">
@@ -1167,33 +1218,48 @@
                                                                 </div>
                                                             </td>
                                                             <td className="py-2 text-right">
-                                                                {item.status === 'stock' && (
-                                                                    <span className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold border border-blue-100">
-                                                                        {t.prio_status_stock}
-                                                                    </span>
-                                                                )}
-                                                                {item.status === 'univ' && (
-                                                                    <span className="inline-block bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-bold border border-green-100">
-                                                                        {t.prio_status_univ}
-                                                                    </span>
-                                                                )}
-                                                                {item.status === 'convert' && (
-                                                                    <span className="inline-block bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-xs font-bold border border-indigo-100">
-                                                                        {t.prio_status_convert}
-                                                                    </span>
-                                                                )}
-                                                                {item.status === 'gap' && (
-                                                                    <div className="flex flex-col items-end gap-1">
-                                                                        <span className="inline-block bg-red-50 text-red-700 px-2 py-1 rounded text-xs font-bold border border-red-100">
-                                                                            {t.prio_status_gap}
-                                                                        </span>
-                                                                        {item.category !== 'univ' && (
-                                                                             <span className="text-[10px] text-red-500 font-bold animate-pulse">
-                                                                                 {t.prio_farm.replace('{attr}', getAttrLabel(item.category))}
-                                                                             </span>
+                                                                <div className="flex justify-end items-center gap-2">
+                                                                    <div className="flex flex-col items-end">
+                                                                        {item.status === 'stock' && (
+                                                                            <span className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold border border-blue-100">
+                                                                                {t.prio_status_stock}
+                                                                            </span>
+                                                                        )}
+                                                                        {item.status === 'univ' && (
+                                                                            <span className="inline-block bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-bold border border-green-100">
+                                                                                {t.prio_status_univ}
+                                                                            </span>
+                                                                        )}
+                                                                        {item.status === 'convert' && (
+                                                                            <span className="inline-block bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-xs font-bold border border-indigo-100">
+                                                                                {t.prio_status_convert}
+                                                                            </span>
+                                                                        )}
+                                                                        {item.status === 'gap' && (
+                                                                            <div className="flex flex-col items-end gap-1">
+                                                                                <span className="inline-block bg-red-50 text-red-700 px-2 py-1 rounded text-xs font-bold border border-red-100">
+                                                                                    {t.prio_status_gap}
+                                                                                </span>
+                                                                                {item.category !== 'univ' && (
+                                                                                    <span className="text-[10px] text-red-500 font-bold animate-pulse">
+                                                                                        {t.prio_farm.replace('{attr}', getAttrLabel(item.category))}
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
                                                                         )}
                                                                     </div>
-                                                                )}
+                                                                    
+                                                                    {/* Delete Button (Visible when selected) */}
+                                                                    {selectedQueueIndex === index && (
+                                                                        <button 
+                                                                            onClick={(e) => handleDeleteItem(index, e)}
+                                                                            className="ml-2 bg-red-100 text-red-600 rounded-full w-6 h-6 flex items-center justify-center font-bold hover:bg-red-200 transition-colors"
+                                                                            title="Delete"
+                                                                        >
+                                                                            ✕
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -1284,97 +1350,6 @@
                                              <ShopItem key={item.id} item={item} category="univ" color="text-green-600" />
                                         ))}
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Tab 4: 每日獲取明細 */}
-                    {(viewMode === 'single' || activeTab === 'daily') && (
-                        <div className={`card p-4 border-t-4 border-teal-500 overflow-x-auto mx-1 ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
-                            <table className="w-full min-w-[700px]">
-                                <thead>
-                                    <tr>
-                                        <th className="w-16 text-xs">{t.th_day}</th>
-                                        <th className="w-32 text-xs">{t.th_date}</th>
-                                        <th className="text-xs">{t.th_gain}</th>
-                                        <th className="text-xs">{t.th_acc}</th>
-                                        <th className="text-xs">{t.th_frag}</th>
-                                        <th className="text-xs">{t.th_note}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {dailyTable.map((row) => (
-                                        <tr key={row.day} className={row.date.startsWith(currentDateInput.slice(5)) ? "bg-blue-100 border-l-4 border-blue-500" : ""}>
-                                            <td className="font-medium text-gray-600 text-xs">{row.day}</td>
-                                            <td className="text-xs">{row.date}</td>
-                                            <td className="text-xs text-gray-600">{row.dayAttr} / {row.dayUniv} / <span className="text-yellow-600 font-bold">{row.dayRandom}</span></td>
-                                            <td className="text-xs"><span className="text-blue-600 font-bold">{row.accAttr}</span> / <span className="text-green-600 font-bold">{row.accUniv}</span></td>
-                                            <td className="text-xs"><span className="text-yellow-800 font-bold bg-yellow-100 px-2 py-1 rounded">{row.accRandom}</span></td>
-                                            <td className="text-[10px] text-gray-500">{row.notes.map((note, idx) => (<span key={idx} className={note.style}>{idx>0 && ", "}{note.text}</span>))}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-
-                    {(viewMode === 'single' || activeTab === 'sources') && (
-                        <div className={`card p-4 border-t-4 border-yellow-500 mx-1 ${viewMode === 'tabs' ? '' : ''}`}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="border rounded-lg p-3 bg-yellow-50 border-yellow-200">
-                                    <h3 className="font-bold text-yellow-800 mb-2 border-b border-yellow-300 pb-1">{t.src_fixed_title}</h3>
-                                    <ul className="space-y-2 text-sm">
-                                        <li className="flex justify-between items-center"><span className="text-red-700 font-bold">{t.qual_god}</span><span className="bg-white px-2 py-0.5 rounded-full text-red-600 font-bold shadow-sm">4 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center"><span className="text-purple-700 font-bold">{t.qual_peerless}</span><span className="bg-white px-2 py-0.5 rounded-full text-purple-600 font-bold shadow-sm">5 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center"><span className="text-indigo-700 font-bold">{t.qual_rare}</span><span className="bg-white px-2 py-0.5 rounded-full text-indigo-600 font-bold shadow-sm">9 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center"><span className="text-green-700 font-bold">{t.qual_common}</span><span className="bg-white px-2 py-0.5 rounded-full text-green-600 font-bold shadow-sm">8 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center"><span className="text-yellow-700 font-bold">{t.qual_random}</span><span className="bg-white px-2 py-0.5 rounded-full text-yellow-600 font-bold shadow-sm">20 {t.unit_frag}</span></li>
-                                    </ul>
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
-                                        <h3 className="font-bold text-blue-800 mb-2 border-b border-blue-300 pb-1">{t.src_weekly_title}</h3>
-                                        <div className="space-y-2 text-sm">
-                                            <div><div className="text-xs font-bold text-gray-700 mb-1">{t.src_weekly_sub}</div><div className="flex justify-between items-center bg-white p-1.5 rounded border border-blue-100"><span className="text-red-600">{t.qual_god}</span><span className="font-bold">3 {t.unit_frag} {t.unit_week}</span></div></div>
-                                            <div><div className="text-xs font-bold text-gray-700 mb-1">{t.src_daily_sub}</div><div className="flex justify-between items-center bg-white p-1.5 rounded border border-blue-100"><span className="text-yellow-600">{t.qual_random}</span><span className="font-bold">19 {t.unit_frag} {t.unit_day}</span></div><div className="text-[10px] text-gray-400 mt-0.5 text-right">{t.src_daily_note}</div></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {/* New Rewards Reference Section */}
-                            <div className="mt-4 border rounded-lg p-3 bg-indigo-50 border-indigo-200">
-                                <h3 className="font-bold text-indigo-800 mb-2 border-b border-indigo-300 pb-1">{t.src_rewards_title}</h3>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-xs text-left">
-                                        <thead className="bg-indigo-100 text-indigo-900">
-                                            <tr>
-                                                <th className="p-1">{t.reward_header_qual}</th>
-                                                <th className="p-1">{t.reward_header_role}</th>
-                                                <th className="p-1 text-right">{t.reward_header_attr}</th>
-                                                <th className="p-1 text-right">{t.reward_header_univ}</th>
-                                                <th className="p-1 text-right">{t.reward_header_refund}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-indigo-100">
-                                            {/* God */}
-                                            <tr className="bg-white"><td className="p-1 font-bold text-red-700">{t.qual_god}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">30</td><td className="p-1 text-right text-green-600">40</td><td className="p-1 text-right">-</td></tr>
-                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">15</td><td className="p-1 text-right text-green-600">20</td><td className="p-1 text-right">-</td></tr>
-                                            {/* Peerless */}
-                                            <tr className="bg-white"><td className="p-1 font-bold text-purple-700">{t.qual_peerless}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">16</td><td className="p-1 text-right text-green-600">20</td><td className="p-1 text-right">1</td></tr>
-                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">8</td><td className="p-1 text-right text-green-600">10</td><td className="p-1 text-right">-</td></tr>
-                                            {/* Rare */}
-                                            <tr className="bg-white"><td className="p-1 font-bold text-indigo-700">{t.qual_rare}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">8</td><td className="p-1 text-right text-green-600">10</td><td className="p-1 text-right">1</td></tr>
-                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">4</td><td className="p-1 text-right text-green-600">5</td><td className="p-1 text-right">-</td></tr>
-                                            {/* Common */}
-                                            <tr className="bg-white"><td className="p-1 font-bold text-green-700">{t.qual_common}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">4</td><td className="p-1 text-right text-green-600">5</td><td className="p-1 text-right">1</td></tr>
-                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">2</td><td className="p-1 text-right text-green-600">3</td><td className="p-1 text-right">-</td></tr>
-                                            {/* Legend */}
-                                            <tr className="bg-white"><td className="p-1 font-bold text-purple-900">{t.qual_legend}</td><td className="p-1">{t.role_capt}</td><td className="p-1 text-right text-blue-600">-</td><td className="p-1 text-right text-green-600">150</td><td className="p-1 text-right">-</td></tr>
-                                            <tr className="bg-gray-50"><td className="p-1"></td><td className="p-1">{t.role_memb}</td><td className="p-1 text-right text-blue-600">-</td><td className="p-1 text-right text-green-600">75</td><td className="p-1 text-right">-</td></tr>
-                                        </tbody>
-                                    </table>
                                 </div>
                             </div>
                         </div>
