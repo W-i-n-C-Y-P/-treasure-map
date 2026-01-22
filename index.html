@@ -39,6 +39,7 @@
         .tabs-container::-webkit-scrollbar { height: 3px; }
         .tabs-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
         
+        /* Added flex-shrink-0 to prevent overlapping/squishing */
         .tab-btn { display: inline-block; padding: 0.6rem 1rem; text-align: center; font-weight: 600; color: #6b7280; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s; min-width: 90px; font-size: 0.85rem; flex-shrink: 0; }
         .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; background-color: #eff6ff; }
         .tab-btn:hover:not(.active) { color: #374151; background-color: #f9fafb; }
@@ -155,8 +156,8 @@
                 row_synth: "碎片合成",
                 total_est: "總計預估",
                 exchange_ref: "🔄 最終兌換參考 (2:1)",
-                exchange_all_attr: "全部換屬性",
-                exchange_all_univ: "全部換通用",
+                exchange_all_attr: "全轉換：屬性", // Updated Text
+                exchange_all_univ: "全轉換：通用", // Updated Text
                 
                 prog_title: "碎片合成進度盤點",
                 prog_syn: "合", prog_need: "差",
@@ -189,10 +190,10 @@
                 
                 help_title: "使用指南",
                 help_p1: "請輸入您的庫存與碎片，系統將自動計算未來總收益與商店規劃。",
-                help_h1: "1. 通用卡片結餘邏輯 (現在 vs 未來)", // Modified
+                help_h1: "1. 通用卡片結餘邏輯 (現在 vs 未來)", // Modified Text
                 help_p2: "在「兌換商店規劃」頁面中，通用殘捲的供給計算方式已改為「僅計算庫存」。",
                 help_li1: "意義：這能反映您「當下」的購買力。如果結餘顯示為負數，代表您現在身上的錢不夠買，請勿衝動消費。",
-                help_li2: "如何看未來？：請參考上方「全轉換」或「收益預估」頁面，那裡包含了活動結束前的預期總收益。", // Modified
+                help_li2: "如何看未來？：請參考上方「全轉換」或「收益預估」頁面，那裡包含了活動結束前的預期總收益。", // Modified Text
                 help_h2: "2. 建議日常使用流程",
                 help_s1: "歸零與更新 (Tab 1)",
                 help_d1: "每天開啟工具，先按「清除」按鈕清空昨日數據，再填入今日遊戲內的最新庫存（殘捲、成品、碎片）。",
@@ -288,7 +289,7 @@
                 
                 help_title: "User Guide",
                 help_p1: "Enter your stock and fragments, the system calculates future income and shop planning.",
-                help_h1: "1. Universal Card Balance Logic (Spot vs Futures)",
+                help_h1: "1. Universal Card Balance Logic (Spot vs Futures)", // Modified
                 help_p2: "In 'Shop Plan', the Universal Scroll supply is calculated based on **'Current Stock Only'**.",
                 help_li1: "Meaning: Refects your current purchasing power. Negative balance means you can't afford it NOW.",
                 help_li2: "Future View: Check 'Total Estimate' or 'Exchange Ref' tabs for expected totals by event end.",
@@ -345,7 +346,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v2.60";
+        const APP_VERSION = "v2.61";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -507,9 +508,9 @@
                 const allAsAttr = grandTotalAttr + (grandTotalUniv * 2);
                 const allAsUniv = grandTotalUniv + Math.floor(grandTotalAttr / 2);
 
-                // 商店總需求
+                // 商店總需求 - FIX: Changed to 1:1 ratio for shopCostAsUniv per user request
                 const shopCostAsAttr = shopCostAttrTotal + (shopCostUniv * 2);
-                const shopCostAsUniv = shopCostUniv + Math.ceil(shopCostAttrTotal / 2);
+                const shopCostAsUniv = shopCostUniv + shopCostAttrTotal; // Modified from ceil(attr/2) to raw sum
 
                 return {
                     daysRemaining, weeksRemaining, legendUniv,
@@ -1227,10 +1228,10 @@
                                         <div className="text-[10px] text-gray-400 text-right mt-0.5 space-x-1 border-t border-dashed border-gray-100 pt-0.5">
                                             <span className="inline-block">{t.dtl_detail}:</span>
                                             {calculation.shopCostUniv > 0 && <span className="text-green-500">{t.attr_univ}{calculation.shopCostUniv}</span>}
-                                            {calculation.shopCostFire > 0 && <span className="text-red-300">{t.attr_fire}{Math.ceil(calculation.shopCostFire/2)}</span>}
-                                            {calculation.shopCostWater > 0 && <span className="text-blue-300">{t.attr_water}{Math.ceil(calculation.shopCostWater/2)}</span>}
-                                            {calculation.shopCostWind > 0 && <span className="text-green-300">{t.attr_wind}{Math.ceil(calculation.shopCostWind/2)}</span>}
-                                            {calculation.shopCostThunder > 0 && <span className="text-purple-300">{t.attr_thunder}{Math.ceil(calculation.shopCostThunder/2)}</span>}
+                                            {calculation.shopCostFire > 0 && <span className="text-red-300">{t.attr_fire}{calculation.shopCostFire}</span>}
+                                            {calculation.shopCostWater > 0 && <span className="text-blue-300">{t.attr_water}{calculation.shopCostWater}</span>}
+                                            {calculation.shopCostWind > 0 && <span className="text-green-300">{t.attr_wind}{calculation.shopCostWind}</span>}
+                                            {calculation.shopCostThunder > 0 && <span className="text-purple-300">{t.attr_thunder}{calculation.shopCostThunder}</span>}
                                             {calculation.shopCostAsUniv === 0 && <span>-</span>}
                                         </div>
 
