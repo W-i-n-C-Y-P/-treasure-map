@@ -11,6 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
+        /* #region CSS Styles */
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #f3f4f6;
@@ -386,6 +387,8 @@
             background-color: #fef2f2;
             border-color: #fecaca;
         }
+
+        /* #endregion */
     </style>
 </head>
 
@@ -396,6 +399,7 @@
         const { useState, useEffect, useMemo, useCallback } = React;
 
         // --- 多語言設定 ---
+        // #region 多語言設定 (I18N)
         const I18N = {
             zh: {
                 title: "藏寶圖活動收益計算機",
@@ -455,6 +459,7 @@
                 src_weekly_sub: "每週任務 (週日重置)",
                 src_daily_sub: "每日獲取 (隨機+任務)",
                 src_daily_note: "(每日隨機 15 + 每日任務 4)",
+                src_art_reward: "可選 0~25 通用",
                 unit_frag: "片", unit_week: "週", unit_day: "天",
 
                 src_rewards_title: "🎁 藏寶圖討伐獎勵對照表",
@@ -562,6 +567,7 @@
                 src_weekly_sub: "Weekly Tasks (Reset Sun)",
                 src_daily_sub: "Daily (Random+Task)",
                 src_daily_note: "(Daily Random 15 + Task 4)",
+                src_art_reward: "Select 0-25 Univ",
                 unit_frag: "pcs", unit_week: "/wk", unit_day: "/day",
 
                 src_rewards_title: "🎁 Map Rewards Table",
@@ -612,8 +618,10 @@
                 prio_rem_univ: "Univ Rem:",
             }
         };
+        // #endregion
 
         // --- 常數設定 ---
+        // #region 常數與配置 (Constants)
         const START_DATE = new Date("2026-01-21T12:00:00+08:00");
         const END_DATE = new Date("2026-02-25T00:00:00+08:00");
 
@@ -635,7 +643,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v2.90";
+        const APP_VERSION = "v3.00";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -651,8 +659,10 @@
             { id: 3, name: "III", cost: 750 },
             { id: 4, name: "IV", cost: 500 },
         ];
+        // #endregion
 
         function App() {
+            // #region 狀態管理 (State)
             const [activeTab, setActiveTab] = useState('main');
             const [viewMode, setViewMode] = useState('tabs');
             const [showHelp, setShowHelp] = useState(false);
@@ -705,7 +715,7 @@
                 godFrags: 0, peerlessFrags: 0, rareFrags: 0, commonFrags: 0, randomFrags: 0
             });
 
-            const [legendOptions, setLegendOptions] = useState({ includeMember: false, includeCaptain: false, includeArtEvent: false });
+            const [legendOptions, setLegendOptions] = useState({ includeMember: false, includeCaptain: false, artEventAmount: 0 });
 
             // Using cartQueue as the Source of Truth for the order of items
             const [cartQueue, setCartQueue] = useState([]);
@@ -717,8 +727,10 @@
 
             // Selected Item in Queue for Mobile Actions
             const [selectedQueueIndex, setSelectedQueueIndex] = useState(null);
+            // #endregion
 
             // --- 輔助函式 ---
+            // #region 輔助函式 (Utils)
             const getDaysDiff = (start, end) => {
                 const s = new Date(start); s.setHours(0, 0, 0, 0);
                 const e = new Date(end); e.setHours(0, 0, 0, 0);
@@ -734,8 +746,10 @@
                 }
                 return count;
             };
+            // #endregion
 
             // --- 主要計算 ---
+            // #region 核心計算邏輯 (Calculation)
             const calculation = useMemo(() => {
                 const totalDays = 35;
                 const totalWeeks = 6;
@@ -752,7 +766,7 @@
                 const futureFixedUniv = (DAILY_MEMBER_REWARD.univ * daysRemaining) + (WEEKLY_MEMBER_REWARD.univ * weeksRemaining);
                 const legendUniv = (legendOptions.includeMember ? LEGEND_REWARD_MEMBER.univ : 0) +
                     (legendOptions.includeCaptain ? LEGEND_REWARD_CAPTAIN.univ : 0) +
-                    (legendOptions.includeArtEvent ? 5 : 0);
+                    (parseInt(legendOptions.artEventAmount) || 0);
 
                 const inventoryAttrTotal = parseInt(inventory.attrFire || 0) + parseInt(inventory.attrWater || 0) +
                     parseInt(inventory.attrWind || 0) + parseInt(inventory.attrThunder || 0);
@@ -1024,6 +1038,7 @@
                     return result;
                 });
             }, [cartQueue, calculation.grandTotalUniv, calculation.futureAttrPool, inventory]);
+            // #endregion
 
 
             function analyzeFragment(count, refund = 0) {
@@ -1086,6 +1101,7 @@
                 return rows;
             }, [legendOptions, lang]);
 
+            // #region 事件處理 (Event Handlers)
             const updateInv = (field, val) => {
                 let numVal = parseInt(val);
                 if (val === "") {
@@ -1205,7 +1221,9 @@
                     setSelectedQueueIndex(null);
                 }
             };
+            // #endregion
 
+            // #region 介面輔助元件 (UI Components)
             const ShopItem = ({ item, category, color }) => {
                 const count = shopCart[category][item.id] || 0;
                 const costStyle = category === 'univ' ? "text-green-600" : "text-blue-600";
@@ -1245,7 +1263,9 @@
             const getAttrLabel = (key) => t[`attr_${key}`];
             const getAttrColorText = (key) => `color-${key}`;
             const getAttrBg = (key) => `bg-${key}-light`;
+            // #endregion
 
+            // #region 介面佈局 (UI Layout)
             return (
                 <div className="max-w-5xl xl:max-w-7xl mx-auto p-2 md:p-6 flex flex-col min-h-screen relative">
                     {/* Top Section */}
@@ -1370,9 +1390,20 @@
                                     <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100 flex flex-wrap items-center justify-between gap-2 shadow-sm">
                                         <div className="text-orange-900 font-bold text-[0.6875rem] flex items-center gap-1 min-w-[5rem]">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</div>
                                         <div className="flex-grow flex items-center min-w-[8rem]">
-                                            <div className="checkbox-group flex items-center gap-1">
-                                                <input type="checkbox" id="legArt" checked={legendOptions.includeArtEvent} onChange={() => toggleLegend('includeArtEvent')} className="w-4 h-4 cursor-pointer" />
-                                                <label htmlFor="legArt" className="text-gray-700 text-[0.625rem] sm:text-[0.75rem] cursor-pointer">{lang === 'zh' ? '(+5通用)' : '(+5U)'}</label>
+                                            <div className="flex items-center gap-1">
+                                                <select
+                                                    id="legArt"
+                                                    value={legendOptions.artEventAmount}
+                                                    onChange={(e) => setLegendOptions(prev => ({ ...prev, artEventAmount: parseInt(e.target.value) }))}
+                                                    className="border-orange-200 rounded px-1 text-[0.75rem] h-7 w-full shadow-inner bg-white"
+                                                >
+                                                    <option value="0">{lang === 'zh' ? '無' : 'None'}</option>
+                                                    <option value="5">5 {t.unit_frag}</option>
+                                                    <option value="10">10 {t.unit_frag}</option>
+                                                    <option value="15">15 {t.unit_frag}</option>
+                                                    <option value="20">20 {t.unit_frag}</option>
+                                                    <option value="25">25 {t.unit_frag}</option>
+                                                </select>
                                             </div>
                                         </div>
                                         <div className="flex-shrink-0">
@@ -1482,11 +1513,21 @@
                                             </div>
                                         </div>
                                         <div className="bg-orange-50 p-2 rounded-lg border border-orange-100 flex-1 flex flex-col justify-center">
-                                            <div className="text-[0.625rem] text-orange-800 font-bold mb-1 italic opacity-75">
-                                                {lang === 'zh' ? '💡 提示：使用通用捲可以 1:1 替代屬性捲。其他屬性間可透過 2:1 轉化彌補缺口。' : '💡 Proip: Universal scrolls substitute attributes 1:1. Attributes convert 2:1.'}
+                                            <div className="text-[0.825rem] text-orange-800 font-bold mb-1 italic opacity-85 leading-tight">
+                                                {lang === 'zh' ? (
+                                                    <React.Fragment>
+                                                        <div>💡 提示：使用通用捲可以 1:1 替代屬性捲。</div>
+                                                        <div>其他屬性間可透過 2:1 轉化彌補缺口。</div>
+                                                    </React.Fragment>
+                                                ) : (
+                                                    <React.Fragment>
+                                                        <div>💡 Protip: Universal scrolls substitute 1:1.</div>
+                                                        <div>Attributes convert 2:1 for gaps.</div>
+                                                    </React.Fragment>
+                                                )}
                                             </div>
-                                            <div className="text-[0.5625rem] text-orange-600">
-                                                {lang === 'zh' ? '詳細規劃請至「商店」分頁查看優先隊列分析。' : 'Go to "Shop" tab for detailed priority queue analysis.'}
+                                            <div className="text-[0.7rem] text-orange-600 mt-1">
+                                                {lang === 'zh' ? '詳細規劃請至「商店」分頁查看優先隊列分析。' : 'Check "Shop" tab for priority analysis.'}
                                             </div>
                                         </div>
                                     </div>
@@ -1762,7 +1803,10 @@
                                         <li className="flex justify-between items-center"><span className="text-indigo-700 font-bold">{t.qual_rare}</span><span className="bg-white px-2 py-0.5 rounded-full text-indigo-600 font-bold shadow-sm">9 {t.unit_frag}</span></li>
                                         <li className="flex justify-between items-center"><span className="text-green-700 font-bold">{t.qual_common}</span><span className="bg-white px-2 py-0.5 rounded-full text-green-600 font-bold shadow-sm">8 {t.unit_frag}</span></li>
                                         <li className="flex justify-between items-center"><span className="text-yellow-700 font-bold">{t.qual_random}</span><span className="bg-white px-2 py-0.5 rounded-full text-yellow-600 font-bold shadow-sm">20 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center border-t border-yellow-200 pt-1.5 mt-1.5"><span className="text-orange-700 font-bold">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</span><span className="bg-white px-2 py-0.5 rounded-full text-orange-600 font-bold shadow-sm">+5 通用</span></li>
+                                        <li className="flex justify-between items-center border-t border-yellow-200 pt-1.5 mt-1.5">
+                                            <span className="text-orange-700 font-bold">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</span>
+                                            <span className="bg-white px-2 py-0.5 rounded-full text-orange-600 font-bold shadow-sm">{t.src_art_reward}</span>
+                                        </li>
                                     </ul>
                                 </div>
                                 <div className="space-y-4">
@@ -1843,6 +1887,7 @@
                     </div>
                 </div>
             );
+            // #endregion
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
