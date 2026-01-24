@@ -36,7 +36,7 @@
 
         .input-group input[type="date"] {
             width: 100%;
-            max-width: 140px;
+            max-width: 8.75rem;
             border: 1px solid #d1d5db;
             border-radius: 0.3rem;
             padding: 0.2rem 0.4rem;
@@ -47,7 +47,7 @@
 
         .input-group input[type="number"] {
             width: 100%;
-            max-width: 90px;
+            max-width: 5.625rem;
             border: 1px solid #d1d5db;
             border-radius: 0.3rem;
             padding: 0.2rem 0.4rem;
@@ -59,9 +59,10 @@
         .input-group input:focus {
             outline: none;
             border-color: #3b82f6;
-            ring: 2px solid #93c5fd;
+            box-shadow: 0 0 0 2px #93c5fd;
             background-color: white;
         }
+
 
         th,
         td {
@@ -123,8 +124,8 @@
         }
 
         .shop-counter button {
-            width: 18px;
-            height: 18px;
+            width: 1.125rem;
+            height: 1.125rem;
             border-radius: 3px;
             background: #e5e7eb;
             color: #374151;
@@ -469,7 +470,10 @@
                 help_h2: "2. 碎片合成遞迴邏輯",
                 help_p3: "本工具模擬了「討伐絕/珍/凡品圖後退還 1 片碎片」的規則：",
                 help_li3: "當您輸入 10 片時，進度會顯示「合 1 / 差 9」，因為系統預知您打完後會剩 1 片。",
-                help_h3: "3. 建議每日使用流程",
+                help_h3: "3. 縮放與便捷操作 (New!)",
+                help_p4: "● **縮放操作**：您可以點擊右下角的 [+] 或 [-] 進行縮放，點擊中央百分比可重置為 100%。",
+                help_li4: "● **快捷鍵**：支援 `Ctrl` + `+`/`-` 縮放，以及 `Ctrl` + `0` 重置。",
+                help_h4: "4. 建議每日使用流程",
                 help_s1: "每日更新庫存 (庫存與收益總覽)",
                 help_d1: "填入今日最新的殘捲、成品圖與碎片數量。",
                 help_s2: "查看合成進度 (庫存與收益總覽 右側)",
@@ -573,7 +577,10 @@
                 help_h2: "2. Recursive Synthesis",
                 help_p3: "The tool simulates the '1-fragment refund after Superior/Epic/Common runs' rule:",
                 help_li3: "Entering 10 fragments shows '1 Craft / 9 Needed' because 1 is returned after usage.",
-                help_h3: "3. Recommended Routine",
+                help_h3: "3. Zoom & Shortcuts (New!)",
+                help_p4: "● **Zoom Console**: Use [+] or [-] in the bottom right. Tap the percentage to reset to 100%.",
+                help_li4: "● **Shortcuts**: Supports `Ctrl` + `+`/`-` zoom, and `Ctrl` + `0` to reset.",
+                help_h4: "4. Recommended Routine",
                 help_s1: "Daily Stock Update (Tab 1)",
                 help_d1: "Fill in your latest scrolls, maps, and fragments.",
                 help_s2: "Check Synthesis (Tab 1 Bottom Right)",
@@ -628,7 +635,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v2.81";
+        const APP_VERSION = "v2.90";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -650,6 +657,35 @@
             const [viewMode, setViewMode] = useState('tabs');
             const [showHelp, setShowHelp] = useState(false);
             const [lang, setLang] = useState('zh');
+            const [zoomLevel, setZoomLevel] = useState(() => {
+                const saved = localStorage.getItem('treasure-zoom');
+                return saved ? parseInt(saved) : 100;
+            });
+
+            useEffect(() => {
+                document.documentElement.style.fontSize = `${zoomLevel}%`;
+                localStorage.setItem('treasure-zoom', zoomLevel.toString());
+            }, [zoomLevel]);
+
+            // --- 新增：快捷鍵支援 ---
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        if (e.key === '=' || e.key === '+') {
+                            e.preventDefault();
+                            setZoomLevel(prev => Math.min(250, prev + 10));
+                        } else if (e.key === '-') {
+                            e.preventDefault();
+                            setZoomLevel(prev => Math.max(50, prev - 10));
+                        } else if (e.key === '0') {
+                            e.preventDefault();
+                            setZoomLevel(100);
+                        }
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, []);
 
             const t = I18N[lang];
 
@@ -657,7 +693,10 @@
                 const now = new Date();
                 if (now < START_DATE) return "2026-01-21";
                 if (now > END_DATE) return "2026-02-25";
-                return now.toISOString().split('T')[0];
+                const y = now.getFullYear();
+                const m = String(now.getMonth() + 1).padStart(2, '0');
+                const d = String(now.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
             });
 
             const [inventory, setInventory] = useState({
@@ -1190,8 +1229,8 @@
 
                 return (
                     <div className={`p-2 rounded-lg border ${bgColorClass} ${net >= 0 ? 'border-gray-200' : 'border-red-500 border-2'}`}>
-                        <div className={`font-bold text-xs mb-1 ${textColor}`}>{label}</div>
-                        <div className="space-y-1 text-[10px] text-gray-600">
+                        <div className={`font-bold text-[0.75rem] mb-1 ${textColor}`}>{label}</div>
+                        <div className="space-y-1 text-[0.625rem] text-gray-600">
                             <div className="flex justify-between"><span>{t.card_inv}:</span> <span>{inv.toLocaleString()}</span></div>
                             <div className="flex justify-between text-pink-600"><span>{t.card_cost}:</span> <span>-{cost.toLocaleString()}</span></div>
                             <div className="border-t border-gray-200 my-0.5 pt-0.5 flex justify-between items-center">
@@ -1208,22 +1247,22 @@
             const getAttrBg = (key) => `bg-${key}-light`;
 
             return (
-                <div className="max-w-5xl mx-auto p-2 md:p-6 flex flex-col min-h-screen relative">
+                <div className="max-w-5xl xl:max-w-7xl mx-auto p-2 md:p-6 flex flex-col min-h-screen relative">
                     {/* Top Section */}
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-4 pt-2 gap-2">
-                        <div className="text-xs font-bold text-gray-500 font-mono flex items-center w-full md:w-1/4 justify-center md:justify-start order-2 md:order-1">
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-4 pt-2 gap-3">
+                        <div className="text-[0.75rem] font-bold text-gray-500 font-mono flex items-center justify-center md:justify-start order-2 md:order-1 flex-shrink-0">
                             {APP_VERSION} | {APP_AUTHOR}
                         </div>
-                        <div className="text-center flex-grow w-full md:w-auto order-1 md:order-2">
-                            <h1 className="text-2xl font-bold text-indigo-900 mb-0 leading-tight">{t.title}</h1>
-                            <p className="text-gray-500 text-[10px]">{t.period}</p>
+                        <div className="text-center order-1 md:order-2 px-2">
+                            <h1 className="text-2xl font-bold text-indigo-900 mb-0 leading-tight whitespace-nowrap">{t.title}</h1>
+                            <p className="text-gray-500 text-[0.625rem]">{t.period}</p>
                         </div>
-                        <div className="flex gap-2 w-full md:w-1/4 justify-center md:justify-end order-3 md:order-3">
-                            <button onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')} className="bg-white text-indigo-600 px-3 py-1 rounded-full shadow-sm text-xs font-bold hover:bg-indigo-50 transition border border-indigo-200 h-[30px] flex items-center">
+                        <div className="flex flex-wrap gap-2 justify-center md:justify-end order-3 md:order-3 flex-grow md:flex-grow-0">
+                            <button onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')} className="bg-white text-indigo-600 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-indigo-50 transition border border-indigo-200 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">
                                 {lang === 'zh' ? 'EN' : '中'}
                             </button>
-                            <button onClick={() => setShowHelp(true)} className="bg-white text-gray-600 px-3 py-1 rounded-full shadow-sm text-xs font-bold hover:bg-gray-50 transition border border-gray-200 h-[30px] flex items-center">{t.btn_help}</button>
-                            <button onClick={() => setViewMode(prev => prev === 'tabs' ? 'single' : 'tabs')} className="bg-white text-indigo-600 px-3 py-1 rounded-full shadow-sm text-xs font-bold hover:bg-indigo-50 transition border border-indigo-100 flex items-center gap-1 h-[30px]">
+                            <button onClick={() => setShowHelp(true)} className="bg-white text-gray-600 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-gray-50 transition border border-gray-200 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">{t.btn_help}</button>
+                            <button onClick={() => setViewMode(prev => prev === 'tabs' ? 'single' : 'tabs')} className="bg-white text-indigo-600 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-indigo-50 transition border border-indigo-100 flex items-center gap-1 min-h-[1.875rem] flex-shrink-0 whitespace-nowrap">
                                 {viewMode === 'tabs' ? t.btn_tabs : t.btn_single}
                             </button>
                         </div>
@@ -1257,10 +1296,17 @@
 
                                     {/* Section 3 */}
                                     <h4 className="font-bold text-lg text-indigo-700 border-b pb-1 mt-4">{t.help_h3}</h4>
+                                    <p className="mt-1">{t.help_p4}</p>
+                                    <ul className="list-disc pl-5 space-y-1">
+                                        <li>{t.help_li4}</li>
+                                    </ul>
+
+                                    {/* Section 4 */}
+                                    <h4 className="font-bold text-lg text-indigo-700 border-b pb-1 mt-4">{t.help_h4}</h4>
                                     <ol className="list-decimal pl-5 space-y-2">
-                                        <li><strong>{t.help_s1}</strong>：<p className="text-xs text-gray-500 mt-0.5">{t.help_d1}</p></li>
-                                        <li><strong>{t.help_s2}</strong>：<p className="text-xs text-gray-500 mt-0.5">{t.help_d2}</p></li>
-                                        <li><strong>{t.help_s3}</strong>：<p className="text-xs text-gray-500 mt-0.5">{t.help_d3}</p></li>
+                                        <li><strong>{t.help_s1}</strong>：<p className="text-[0.75rem] text-gray-500 mt-0.5">{t.help_d1}</p></li>
+                                        <li><strong>{t.help_s2}</strong>：<p className="text-[0.75rem] text-gray-500 mt-0.5">{t.help_d2}</p></li>
+                                        <li><strong>{t.help_s3}</strong>：<p className="text-[0.75rem] text-gray-500 mt-0.5">{t.help_d3}</p></li>
                                     </ol>
                                 </div>
                                 <div className="mt-6 text-center"><button onClick={() => setShowHelp(false)} className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition">{t.btn_gotit}</button></div>
@@ -1286,51 +1332,51 @@
                                 {/* 3-Row Header Layout - Consistent 3-Part Alignment & Compact */}
                                 <div className="flex flex-col gap-1.5 mb-3">
                                     {/* Row 1: Date Selection */}
-                                    <div className="bg-blue-50/50 p-1 rounded-lg border border-blue-100 grid grid-cols-10 items-center gap-2">
-                                        <div className="col-span-3 text-blue-900 font-bold text-[11px] flex items-center gap-1">📅 {t.lbl_date}</div>
-                                        <div className="col-span-4 flex items-center">
-                                            <input type="date" value={currentDateInput} onChange={(e) => setCurrentDateInput(e.target.value)} min="2026-01-21" max="2026-02-25" className="border-blue-200 rounded px-1 text-xs h-6 w-full max-w-[120px]" onWheel={(e) => e.target.blur()} />
+                                    <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+                                        <div className="text-blue-900 font-bold text-[0.6875rem] flex items-center gap-1 min-w-[5rem]">📅 {t.lbl_date}</div>
+                                        <div className="flex-grow flex items-center min-w-[8rem]">
+                                            <input type="date" value={currentDateInput} onChange={(e) => setCurrentDateInput(e.target.value)} min="2026-01-21" max="2026-02-25" className="border-blue-200 rounded px-1 text-[0.75rem] h-7 w-full shadow-inner" onWheel={(e) => e.target.blur()} />
                                         </div>
-                                        <div className="col-span-3 text-right">
-                                            <span className="text-xs sm:text-sm text-blue-700 font-bold whitespace-nowrap bg-white px-1.5 py-0.5 rounded shadow-sm border border-blue-100">
+                                        <div className="flex-shrink-0">
+                                            <span className="text-[0.75rem] sm:text-[0.875rem] text-blue-700 font-bold whitespace-nowrap bg-white px-2 py-0.5 rounded shadow-sm border border-blue-100 block">
                                                 {t.lbl_remaining.replace('{d}', calculation.daysRemaining).replace('{w}', calculation.weeksRemaining)}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Row 2: Legend Rewards */}
-                                    <div className="bg-purple-50/50 p-1 rounded-lg border border-purple-100 grid grid-cols-10 items-center gap-2">
-                                        <div className="col-span-3 text-purple-900 font-bold text-[11px] flex items-center gap-1">
+                                    <div className="bg-purple-50/50 p-2 rounded-lg border border-purple-100 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+                                        <div className="text-purple-900 font-bold text-[0.6875rem] flex items-center gap-1 min-w-[5rem]">
                                             📜 {lang === 'zh' ? '傳頌' : 'Legend'}
                                         </div>
-                                        <div className="col-span-4 flex flex-col gap-0.5">
+                                        <div className="flex-grow flex flex-row flex-wrap gap-2 items-center min-w-[8rem]">
                                             <div className="checkbox-group flex items-center gap-1">
-                                                <input type="checkbox" id="legCaptain" checked={legendOptions.includeCaptain} onChange={() => toggleLegend('includeCaptain')} className="w-3.5 h-3.5 cursor-pointer" />
-                                                <label htmlFor="legCaptain" className="text-gray-700 text-[10px] sm:text-xs cursor-pointer truncate">{t.lbl_leg_captain}</label>
+                                                <input type="checkbox" id="legCaptain" checked={legendOptions.includeCaptain} onChange={() => toggleLegend('includeCaptain')} className="w-4 h-4 cursor-pointer" />
+                                                <label htmlFor="legCaptain" className="text-gray-700 text-[0.625rem] sm:text-[0.75rem] cursor-pointer truncate">{t.lbl_leg_captain}</label>
                                             </div>
                                             <div className="checkbox-group flex items-center gap-1">
-                                                <input type="checkbox" id="legMember" checked={legendOptions.includeMember} onChange={() => toggleLegend('includeMember')} className="w-3.5 h-3.5 cursor-pointer" />
-                                                <label htmlFor="legMember" className="text-gray-700 text-[10px] sm:text-xs cursor-pointer truncate">{t.lbl_leg_member}</label>
+                                                <input type="checkbox" id="legMember" checked={legendOptions.includeMember} onChange={() => toggleLegend('includeMember')} className="w-4 h-4 cursor-pointer" />
+                                                <label htmlFor="legMember" className="text-gray-700 text-[0.625rem] sm:text-[0.75rem] cursor-pointer truncate">{t.lbl_leg_member}</label>
                                             </div>
                                         </div>
-                                        <div className="col-span-3 text-right">
-                                            <span className="text-[9px] sm:text-[10px] text-purple-600 italic whitespace-nowrap bg-purple-100/50 px-1.5 py-0.5 rounded">
+                                        <div className="flex-shrink-0">
+                                            <span className="text-[0.5625rem] sm:text-[0.625rem] text-purple-600 italic whitespace-nowrap bg-purple-100/50 px-2 py-0.5 rounded border border-purple-100 block">
                                                 {lang === 'zh' ? '收益計入預估' : 'Est. Inc.'}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Row 3: Limited Events */}
-                                    <div className="bg-orange-50/50 p-1 rounded-lg border border-orange-100 grid grid-cols-10 items-center gap-2">
-                                        <div className="col-span-3 text-orange-900 font-bold text-[11px] flex items-center gap-1">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</div>
-                                        <div className="col-span-4 flex items-center">
+                                    <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+                                        <div className="text-orange-900 font-bold text-[0.6875rem] flex items-center gap-1 min-w-[5rem]">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</div>
+                                        <div className="flex-grow flex items-center min-w-[8rem]">
                                             <div className="checkbox-group flex items-center gap-1">
-                                                <input type="checkbox" id="legArt" checked={legendOptions.includeArtEvent} onChange={() => toggleLegend('includeArtEvent')} className="w-3.5 h-3.5 cursor-pointer" />
-                                                <label htmlFor="legArt" className="text-gray-700 text-[10px] sm:text-xs cursor-pointer">{lang === 'zh' ? '(+5通用)' : '(+5U)'}</label>
+                                                <input type="checkbox" id="legArt" checked={legendOptions.includeArtEvent} onChange={() => toggleLegend('includeArtEvent')} className="w-4 h-4 cursor-pointer" />
+                                                <label htmlFor="legArt" className="text-gray-700 text-[0.625rem] sm:text-[0.75rem] cursor-pointer">{lang === 'zh' ? '(+5通用)' : '(+5U)'}</label>
                                             </div>
                                         </div>
-                                        <div className="col-span-3 text-right">
-                                            <span className="text-[9px] sm:text-[10px] text-orange-600 italic whitespace-nowrap bg-orange-100/50 px-1.5 py-0.5 rounded">
+                                        <div className="flex-shrink-0">
+                                            <span className="text-[0.5625rem] sm:text-[0.625rem] text-orange-600 italic whitespace-nowrap bg-orange-100/50 px-2 py-0.5 rounded border border-orange-100 block">
                                                 {lang === 'zh' ? '收益計入預估' : 'Est. Inc.'}
                                             </span>
                                         </div>
@@ -1340,8 +1386,8 @@
                                 {/* Scrolls */}
                                 <div className="bg-blue-50 p-2 rounded-lg border border-blue-200 mb-2">
                                     <div className="flex justify-between items-center mb-1">
-                                        <label className="text-xs font-bold text-gray-700">{t.lbl_scrolls}</label>
-                                        <button onClick={clearScrolls} className="text-[10px] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
+                                        <label className="text-[0.75rem] font-bold text-gray-700">{t.lbl_scrolls}</label>
+                                        <button onClick={clearScrolls} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
                                     </div>
                                     <div className="grid grid-cols-5 gap-1">
                                         <div className="input-group"><label className="color-wind">{t.attr_wind}</label><input type="number" min="0" value={inventory.attrWind} onChange={(e) => updateInv('attrWind', e.target.value)} className="border-wind focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
@@ -1355,8 +1401,8 @@
                                 {/* Maps */}
                                 <div className="bg-orange-50 p-2 rounded-lg border border-orange-200 mb-2">
                                     <div className="flex justify-between items-center mb-1">
-                                        <label className="text-xs font-bold text-gray-700">{t.lbl_maps}</label>
-                                        <button onClick={clearMaps} className="text-[10px] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
+                                        <label className="text-[0.75rem] font-bold text-gray-700">{t.lbl_maps}</label>
+                                        <button onClick={clearMaps} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
                                     </div>
                                     <div className="grid grid-cols-5 gap-1">
                                         <div className="input-group"><label className="text-red-800">{t.qual_god}</label><input type="number" min="0" value={inventory.godMaps} onChange={(e) => updateInv('godMaps', e.target.value)} className="bg-red-50" onWheel={(e) => e.target.blur()} /></div>
@@ -1370,8 +1416,8 @@
                                 {/* Frags */}
                                 <div className="bg-indigo-50 p-2 rounded-lg border border-indigo-200">
                                     <div className="flex justify-between items-center mb-1">
-                                        <label className="text-xs font-bold text-gray-700">{t.lbl_frags}</label>
-                                        <button onClick={clearFrags} className="text-[10px] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
+                                        <label className="text-[0.75rem] font-bold text-gray-700">{t.lbl_frags}</label>
+                                        <button onClick={clearFrags} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
                                     </div>
                                     <div className="grid grid-cols-5 gap-1">
                                         <div className="input-group"><label className="text-god">{t.qual_god}</label><input type="number" min="0" value={inventory.godFrags} onChange={(e) => updateInv('godFrags', e.target.value)} className="bg-red-50" onWheel={(e) => e.target.blur()} /></div>
@@ -1390,13 +1436,13 @@
                                     {/* Source Details */}
                                     <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
                                         <div className="flex justify-between items-center mb-2 border-b pb-1">
-                                            <div className="font-bold text-gray-700 text-xs">{t.sec_details_title}</div>
-                                            <div className="flex gap-4 w-full justify-end text-xs font-normal">
+                                            <div className="font-bold text-gray-700 text-[0.75rem]">{t.sec_details_title}</div>
+                                            <div className="flex gap-4 w-full justify-end text-[0.75rem] font-normal">
                                                 <span className="text-blue-600">● {lang === 'zh' ? '屬性' : 'Attr'}</span>
                                                 <span className="text-green-600">● {lang === 'zh' ? '通用' : 'Univ'}</span>
                                             </div>
                                         </div>
-                                        <div className="space-y-1.5 text-xs">
+                                        <div className="space-y-1.5 text-[0.75rem]">
                                             <div className="grid grid-cols-3 gap-1 items-center py-1 border-b border-gray-200 bg-blue-50 px-1 rounded">
                                                 <div className="text-gray-600 font-bold">{t.row_base}</div>
                                                 <div className="text-right text-blue-600 font-bold">{calculation.totalEstFixedAttr.toLocaleString()}</div>
@@ -1423,23 +1469,23 @@
                                     {/* Total & Exchange */}
                                     <div className="flex flex-col gap-2">
                                         <div className="bg-white p-2 rounded-lg border-2 border-indigo-100 flex-1 flex flex-col justify-center items-center shadow-sm">
-                                            <div className="text-gray-400 text-[10px] font-bold tracking-wider uppercase mb-1">{t.total_est}</div>
+                                            <div className="text-gray-400 text-[0.625rem] font-bold tracking-wider uppercase mb-1">{t.total_est}</div>
                                             <div className="flex gap-4 items-end">
                                                 <div className="text-center">
                                                     <div className="text-2xl font-bold text-blue-600 tracking-tighter">{calculation.grandTotalAttr.toLocaleString()}</div>
-                                                    <div className="text-[10px] text-blue-400 font-bold">{lang === 'zh' ? '屬性' : 'Attr'}</div>
+                                                    <div className="text-[0.625rem] text-blue-400 font-bold">{lang === 'zh' ? '屬性' : 'Attr'}</div>
                                                 </div>
                                                 <div className="text-center">
                                                     <div className="text-2xl font-bold text-green-600 tracking-tighter">{calculation.grandTotalUniv.toLocaleString()}</div>
-                                                    <div className="text-[10px] text-green-400 font-bold">{lang === 'zh' ? '通用' : 'Univ'}</div>
+                                                    <div className="text-[0.625rem] text-green-400 font-bold">{lang === 'zh' ? '通用' : 'Univ'}</div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="bg-orange-50 p-2 rounded-lg border border-orange-100 flex-1 flex flex-col justify-center">
-                                            <div className="text-[10px] text-orange-800 font-bold mb-1 italic opacity-75">
+                                            <div className="text-[0.625rem] text-orange-800 font-bold mb-1 italic opacity-75">
                                                 {lang === 'zh' ? '💡 提示：使用通用捲可以 1:1 替代屬性捲。其他屬性間可透過 2:1 轉化彌補缺口。' : '💡 Proip: Universal scrolls substitute attributes 1:1. Attributes convert 2:1.'}
                                             </div>
-                                            <div className="text-[9px] text-orange-600">
+                                            <div className="text-[0.5625rem] text-orange-600">
                                                 {lang === 'zh' ? '詳細規劃請至「商店」分頁查看優先隊列分析。' : 'Go to "Shop" tab for detailed priority queue analysis.'}
                                             </div>
                                         </div>
@@ -1449,7 +1495,7 @@
                                 {/* Progress Section */}
                                 <div>
                                     <h3 className="font-bold text-gray-700 mb-2 text-sm border-b pb-1">{t.prog_title}</h3>
-                                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                    <div className="grid grid-cols-2 gap-2 text-[0.6875rem]">
                                         <div className="flex justify-between p-1 bg-red-50 rounded border border-red-100"><span className="text-red-900 font-bold">{t.qual_god} ({calculation.totalGodPool})</span><span className="text-red-600">{t.prog_syn}{calculation.godStatus.maps} / {t.prog_need}{calculation.godStatus.needed}</span></div>
                                         <div className="flex justify-between p-1 bg-purple-50 rounded border border-purple-100"><span className="text-purple-900 font-bold">{t.qual_peerless} ({calculation.totalPeerlessPool})</span><span className="text-purple-600">{t.prog_syn}{calculation.peerlessStatus.maps} / {t.prog_need}{calculation.peerlessStatus.needed}</span></div>
                                         <div className="flex justify-between p-1 bg-indigo-50 rounded border border-indigo-100"><span className="text-indigo-900 font-bold">{t.qual_rare} ({calculation.totalRarePool})</span><span className="text-indigo-600">{t.prog_syn}{calculation.rareStatus.maps} / {t.prog_need}{calculation.rareStatus.needed}</span></div>
@@ -1470,13 +1516,13 @@
                                 {/* Left: Dynamic Priority Queue */}
                                 <div className="lg:col-span-9 border-2 border-indigo-100 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
                                     <div className="bg-gradient-to-r from-indigo-50 to-white p-2 border-b border-indigo-100 flex justify-between items-center h-10 px-3">
-                                        <div className="text-xs text-indigo-500 font-bold">{t.prio_subtitle}</div>
-                                        <div className="text-right text-xs">
+                                        <div className="text-[0.75rem] text-indigo-500 font-bold">{t.prio_subtitle}</div>
+                                        <div className="text-right text-[0.75rem]">
                                             <span className="block text-green-600 font-bold">{t.prio_rem_univ} {priorityQueueAnalysis.length > 0 ? (priorityQueueAnalysis[priorityQueueAnalysis.length - 1].remainingUnivPool || 0).toLocaleString() : (calculation.grandTotalUniv || 0).toLocaleString()}</span>
                                         </div>
                                     </div>
 
-                                    <div className="flex h-full min-h-[300px] max-h-[300px]">
+                                    <div className="flex h-full min-h-[18.75rem] max-h-[18.75rem]">
                                         {/* Control Panel (Fixed Left Sidebar) */}
                                         <div className="w-14 bg-gray-50 border-r border-indigo-100 flex flex-col items-center justify-center gap-3 p-1 flex-shrink-0">
                                             <button className="ctrl-btn up" onClick={handleMoveUp} disabled={selectedQueueIndex === null || selectedQueueIndex === 0}>▲</button>
@@ -1495,7 +1541,7 @@
                                             ) : (
                                                 <table className="w-full text-sm">
                                                     <thead>
-                                                        <tr className="text-gray-500 text-xs border-b border-gray-100 bg-white sticky top-0 z-10 shadow-sm">
+                                                        <tr className="text-gray-500 text-[0.75rem] border-b border-gray-100 bg-white sticky top-0 z-10 shadow-sm">
                                                             <th className="py-2 pl-3 text-left">{t.prio_header_item}</th>
                                                             <th className="py-2 text-left">{t.prio_header_calc}</th>
                                                             <th className="py-2 pr-2 text-right w-28">{t.prio_header_status}</th>
@@ -1513,12 +1559,12 @@
                                                                         <span className={`inline-block w-1.5 h-8 rounded-sm ${getAttrBg(item.category)}`}></span>
                                                                         <div>
                                                                             <div className={`font-bold ${getAttrColorText(item.category)}`}>{getAttrLabel(item.category)} {item.name}</div>
-                                                                            <div className="text-[10px] text-gray-400">{item.cost}</div>
+                                                                            <div className="text-[0.625rem] text-gray-400">{item.cost}</div>
                                                                         </div>
                                                                     </div>
                                                                 </td>
                                                                 <td className="py-3">
-                                                                    <div className="flex flex-col gap-1 text-[10px] md:text-xs">
+                                                                    <div className="flex flex-col gap-1 text-[0.625rem] md:text-[0.75rem]">
                                                                         {item.stockUsed > 0 && (
                                                                             <div className="flex items-center gap-1 text-gray-600">
                                                                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
@@ -1566,27 +1612,27 @@
                                                                 <td className="py-3 pr-2 text-right align-top">
                                                                     <div className="flex flex-col items-end gap-1">
                                                                         {item.status === 'stock' && (
-                                                                            <span className="inline-block bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-bold border border-blue-100 whitespace-nowrap">
+                                                                            <span className="inline-block bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[0.625rem] font-bold border border-blue-100 whitespace-nowrap">
                                                                                 {t.prio_status_stock}
                                                                             </span>
                                                                         )}
                                                                         {item.status === 'univ' && (
-                                                                            <span className="inline-block bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[10px] font-bold border border-green-100 whitespace-nowrap">
+                                                                            <span className="inline-block bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[0.625rem] font-bold border border-green-100 whitespace-nowrap">
                                                                                 {t.prio_status_univ}
                                                                             </span>
                                                                         )}
                                                                         {item.status === 'convert' && (
-                                                                            <span className="inline-block bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] font-bold border border-indigo-100 whitespace-nowrap">
+                                                                            <span className="inline-block bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[0.625rem] font-bold border border-indigo-100 whitespace-nowrap">
                                                                                 {t.prio_status_convert}
                                                                             </span>
                                                                         )}
                                                                         {item.status === 'gap' && (
                                                                             <>
-                                                                                <span className="inline-block bg-red-50 text-red-700 px-1.5 py-0.5 rounded text-[10px] font-bold border border-red-100 whitespace-nowrap">
+                                                                                <span className="inline-block bg-red-50 text-red-700 px-1.5 py-0.5 rounded text-[0.625rem] font-bold border border-red-100 whitespace-nowrap">
                                                                                     {t.prio_status_gap}
                                                                                 </span>
                                                                                 {item.category !== 'univ' && (
-                                                                                    <span className="text-[9px] text-red-500 font-bold animate-pulse whitespace-nowrap">
+                                                                                    <span className="text-[0.5625rem] text-red-500 font-bold animate-pulse whitespace-nowrap">
                                                                                         {t.prio_farm.replace('{attr}', getAttrLabel(item.category))}
                                                                                     </span>
                                                                                 )}
@@ -1606,23 +1652,23 @@
                                 {/* Right: Summary Cards Stack */}
                                 <div className="lg:col-span-3 flex flex-col gap-4">
                                     <div className="bg-white p-4 rounded-xl shadow-sm border-2 border-indigo-50 flex-1 flex flex-col">
-                                        <div className="text-indigo-900 font-bold text-xs mb-4 flex items-center gap-2 border-b border-indigo-50 pb-2">
+                                        <div className="text-indigo-900 font-bold text-[0.75rem] mb-4 flex items-center gap-2 border-b border-indigo-50 pb-2">
                                             <span>📊</span> {lang === 'zh' ? '預估殘捲總量' : 'Est. Total Scrolls'}
                                         </div>
 
                                         <div className="space-y-4 flex-1 flex flex-col justify-center">
                                             <div className="bg-blue-50 p-2 rounded-lg border border-blue-100 flex flex-col items-center text-center">
-                                                <div className="text-[15px] text-blue-600 font-bold mb-1 uppercase">{lang === 'zh' ? '屬性捲' : 'Attr'}</div>
+                                                <div className="text-[0.9375rem] text-blue-600 font-bold mb-1 uppercase">{lang === 'zh' ? '屬性捲' : 'Attr'}</div>
                                                 <div className="text-xl font-black text-blue-700">{calculation.grandTotalAttr.toLocaleString()}</div>
                                             </div>
 
                                             <div className="bg-green-50 p-2 rounded-lg border border-green-100 flex flex-col items-center text-center">
-                                                <div className="text-[15px] text-green-600 font-bold mb-1 uppercase">{lang === 'zh' ? '通用捲' : 'Univ'}</div>
+                                                <div className="text-[0.9375rem] text-green-600 font-bold mb-1 uppercase">{lang === 'zh' ? '通用捲' : 'Univ'}</div>
                                                 <div className="text-xl font-black text-green-700">{calculation.grandTotalUniv.toLocaleString()}</div>
                                             </div>
                                         </div>
 
-                                        <div className="mt-6 text-[8px] text-gray-400 italic text-center leading-tight">
+                                        <div className="mt-6 text-[0.5rem] text-gray-400 italic text-center leading-tight">
                                             {lang === 'zh' ? '隊列已考慮未來收益' : 'Queue includes future'}
                                         </div>
                                     </div>
@@ -1648,9 +1694,9 @@
 
                                     return (
                                         <div key={element} className={`border rounded p-2 shadow-sm ${bgColorClass[element]}`}>
-                                            <div className={`font-bold mb-1 text-center border-b pb-1 ${textColor[element]} ${borderColor[element]} flex justify-between items-center text-xs`}>
+                                            <div className={`font-bold mb-1 text-center border-b pb-1 ${textColor[element]} ${borderColor[element]} flex justify-between items-center text-[0.75rem]`}>
                                                 <span>{labels[element]}屬性</span>
-                                                <button onClick={() => clearShopCategory(element)} className="text-[10px] bg-white border border-gray-300 rounded px-1 hover:bg-gray-100" title={t.btn_clear}>{t.btn_clear.split(' ')[0]}</button>
+                                                <button onClick={() => clearShopCategory(element)} className="text-[0.625rem] bg-white border border-gray-300 rounded px-1 hover:bg-gray-100" title={t.btn_clear}>{t.btn_clear.split(' ')[0]}</button>
                                             </div>
                                             <div className="space-y-1">
                                                 {ATTR_SHOP_ITEMS.map(item => (
@@ -1661,9 +1707,9 @@
                                     );
                                 })}
                                 <div className="border rounded p-2 shadow-sm bg-univ-light">
-                                    <div className="font-bold mb-1 text-center border-b pb-1 text-green-600 border-green-200 flex justify-between items-center text-xs">
+                                    <div className="font-bold mb-1 text-center border-b pb-1 text-green-600 border-green-200 flex justify-between items-center text-[0.75rem]">
                                         <span>{t.attr_univ}</span>
-                                        <button onClick={() => clearShopCategory('univ')} className="text-[10px] bg-white border border-gray-300 rounded px-1 hover:bg-gray-100" title={t.btn_clear}>{t.btn_clear.split(' ')[0]}</button>
+                                        <button onClick={() => clearShopCategory('univ')} className="text-[0.625rem] bg-white border border-gray-300 rounded px-1 hover:bg-gray-100" title={t.btn_clear}>{t.btn_clear.split(' ')[0]}</button>
                                     </div>
                                     <div className="space-y-1">
                                         {UNIV_SHOP_ITEMS.map(item => (
@@ -1681,23 +1727,23 @@
                             <table className="w-full min-w-[700px]">
                                 <thead>
                                     <tr>
-                                        <th className="w-16 text-xs">{t.th_day}</th>
-                                        <th className="w-32 text-xs">{t.th_date}</th>
-                                        <th className="text-xs">{t.th_gain}</th>
-                                        <th className="text-xs">{t.th_acc}</th>
-                                        <th className="text-xs">{t.th_frag}</th>
-                                        <th className="text-xs">{t.th_note}</th>
+                                        <th className="w-16 text-[0.75rem]">{t.th_day}</th>
+                                        <th className="w-32 text-[0.75rem]">{t.th_date}</th>
+                                        <th className="text-[0.75rem]">{t.th_gain}</th>
+                                        <th className="text-[0.75rem]">{t.th_acc}</th>
+                                        <th className="text-[0.75rem]">{t.th_frag}</th>
+                                        <th className="text-[0.75rem]">{t.th_note}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {dailyTable.map((row) => (
                                         <tr key={row.day} className={row.date.startsWith(currentDateInput.slice(5)) ? "bg-blue-100 border-l-4 border-blue-500" : ""}>
-                                            <td className="font-medium text-gray-600 text-xs">{row.day}</td>
-                                            <td className="text-xs">{row.date}</td>
-                                            <td className="text-xs text-gray-600">{row.dayAttr} / {row.dayUniv} / <span className="text-yellow-600 font-bold">{row.dayRandom}</span></td>
-                                            <td className="text-xs"><span className="text-blue-600 font-bold">{row.accAttr}</span> / <span className="text-green-600 font-bold">{row.accUniv}</span></td>
-                                            <td className="text-xs"><span className="text-yellow-800 font-bold bg-yellow-100 px-2 py-1 rounded">{row.accRandom}</span></td>
-                                            <td className="text-[10px] text-gray-500">{row.notes.map((note, idx) => (<span key={idx} className={note.style}>{idx > 0 && ", "}{note.text}</span>))}</td>
+                                            <td className="font-medium text-gray-600 text-[0.75rem]">{row.day}</td>
+                                            <td className="text-[0.75rem]">{row.date}</td>
+                                            <td className="text-[0.75rem] text-gray-600">{row.dayAttr} / {row.dayUniv} / <span className="text-yellow-600 font-bold">{row.dayRandom}</span></td>
+                                            <td className="text-[0.75rem]"><span className="text-blue-600 font-bold">{row.accAttr}</span> / <span className="text-green-600 font-bold">{row.accUniv}</span></td>
+                                            <td className="text-[0.75rem]"><span className="text-yellow-800 font-bold bg-yellow-100 px-2 py-1 rounded">{row.accRandom}</span></td>
+                                            <td className="text-[0.625rem] text-gray-500">{row.notes.map((note, idx) => (<span key={idx} className={note.style}>{idx > 0 && ", "}{note.text}</span>))}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -1710,7 +1756,7 @@
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="border rounded-lg p-3 bg-yellow-50 border-yellow-200">
                                     <h3 className="font-bold text-yellow-800 mb-2 border-b border-yellow-300 pb-1">{t.src_fixed_title}</h3>
-                                    <ul className="space-y-1.5 text-xs">
+                                    <ul className="space-y-1.5 text-[0.75rem]">
                                         <li className="flex justify-between items-center"><span className="text-red-700 font-bold">{t.qual_god}</span><span className="bg-white px-2 py-0.5 rounded-full text-red-600 font-bold shadow-sm">4 {t.unit_frag}</span></li>
                                         <li className="flex justify-between items-center"><span className="text-purple-700 font-bold">{t.qual_peerless}</span><span className="bg-white px-2 py-0.5 rounded-full text-purple-600 font-bold shadow-sm">5 {t.unit_frag}</span></li>
                                         <li className="flex justify-between items-center"><span className="text-indigo-700 font-bold">{t.qual_rare}</span><span className="bg-white px-2 py-0.5 rounded-full text-indigo-600 font-bold shadow-sm">9 {t.unit_frag}</span></li>
@@ -1722,9 +1768,9 @@
                                 <div className="space-y-4">
                                     <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
                                         <h3 className="font-bold text-blue-800 mb-2 border-b border-blue-300 pb-1">{t.src_weekly_title}</h3>
-                                        <div className="space-y-2 text-xs">
-                                            <div><div className="text-[10px] font-bold text-gray-700 mb-1">{t.src_weekly_sub}</div><div className="flex justify-between items-center bg-white p-1 rounded border border-blue-100"><span className="text-red-600 font-bold">{t.qual_god}</span><span className="font-bold">3 {t.unit_frag} {t.unit_week}</span></div></div>
-                                            <div><div className="text-[10px] font-bold text-gray-700 mb-1">{t.src_daily_sub}</div><div className="flex justify-between items-center bg-white p-1 rounded border border-blue-100"><span className="text-yellow-600 font-bold">{t.qual_random}</span><span className="font-bold">19 {t.unit_frag} {t.unit_day}</span></div><div className="text-[11px] text-orange-600 font-bold mt-1 text-right italic">{t.src_daily_note}</div></div>
+                                        <div className="space-y-2 text-[0.75rem]">
+                                            <div><div className="text-[0.625rem] font-bold text-gray-700 mb-1">{t.src_weekly_sub}</div><div className="flex justify-between items-center bg-white p-1 rounded border border-blue-100"><span className="text-red-600 font-bold">{t.qual_god}</span><span className="font-bold">3 {t.unit_frag} {t.unit_week}</span></div></div>
+                                            <div><div className="text-[0.625rem] font-bold text-gray-700 mb-1">{t.src_daily_sub}</div><div className="flex justify-between items-center bg-white p-1 rounded border border-blue-100"><span className="text-yellow-600 font-bold">{t.qual_random}</span><span className="font-bold">19 {t.unit_frag} {t.unit_day}</span></div><div className="text-[0.6875rem] text-orange-600 font-bold mt-1 text-right italic">{t.src_daily_note}</div></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1734,7 +1780,7 @@
                             <div className="mt-4 border rounded-lg p-3 bg-indigo-50 border-indigo-200">
                                 <h3 className="font-bold text-indigo-800 mb-2 border-b border-indigo-300 pb-1">{t.src_rewards_title}</h3>
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-xs text-left">
+                                    <table className="w-full text-[0.75rem] text-left">
                                         <thead className="bg-indigo-100 text-indigo-900">
                                             <tr>
                                                 <th className="p-1">{t.reward_header_qual}</th>
@@ -1766,6 +1812,35 @@
                             </div>
                         </div>
                     )}
+                    {/* Floating Zoom Console - Fixed Units to Prevent Jumping */}
+                    <div style={{
+                        position: 'fixed',
+                        bottom: '20px',
+                        right: '20px',
+                        zIndex: 9999,
+                        display: 'flex',
+                        alignItems: 'center',
+                        backgroundColor: 'white',
+                        padding: '4px 8px',
+                        borderRadius: '999px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        border: '1px solid #e0e7ff',
+                        gap: '6px',
+                        height: '36px'
+                    }}>
+                        <button
+                            onClick={() => setZoomLevel(prev => Math.max(50, prev - 10))}
+                            style={{ width: '28px', height: '28px', border: 'none', background: '#f5f7ff', color: '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >-</button>
+                        <button
+                            onClick={() => setZoomLevel(100)}
+                            style={{ border: 'none', background: 'transparent', color: '#6366f1', fontSize: '12px', fontWeight: '900', cursor: 'pointer', padding: '0 4px', fontFormat: 'monospace' }}
+                        >{zoomLevel}%</button>
+                        <button
+                            onClick={() => setZoomLevel(prev => Math.min(250, prev + 10))}
+                            style={{ width: '28px', height: '28px', border: 'none', background: '#f5f7ff', color: '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >+</button>
+                    </div>
                 </div>
             );
         }
