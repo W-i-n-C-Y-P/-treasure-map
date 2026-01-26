@@ -467,11 +467,11 @@
                 role_capt: "隊長", role_memb: "隊員",
 
                 help_title: "使用指南",
-                help_p1: "請輸入您的庫存與碎片，系統將自動計算未來總收益與商店規劃。",
+                help_p1: "請輸入您的庫存（含成品圖屬性）與碎片，系統將自動計算未來總收益與商店規劃。",
                 help_h1: "1. 購買力判斷 (現在 vs 未來)",
-                help_p2: "「兌換商店規劃」採用雙重判斷機制：",
-                help_li1: "● **現在 (下方小卡)**：僅計算「現有庫存」。顯示為負數代表您現金不足，現在買不起。",
-                help_li2: "● **未來 (上方隊列)**：動態計算「未來總收益」(含固定收益、妙手丹青與碎片合成)。",
+                help_p2: "「兌換商店規劃」採用多重判斷機制：",
+                help_li1: "● **現在**：僅計算「現有庫存」。顯示為負數代表您現金不足。",
+                help_li2: "● **未來**：優先使用「持有屬性圖」產出的殘捲，再計算通用/隨機收益。",
                 help_h2: "2. 碎片合成遞迴邏輯",
                 help_p3: "本工具模擬了「討伐絕/珍/凡品圖後退還 1 片碎片」的規則：",
                 help_li3: "當您輸入 10 片時，進度會顯示「合 1 / 差 9」，因為系統預知您打完後會剩 1 片。",
@@ -575,11 +575,11 @@
                 role_capt: "Captain", role_memb: "Member",
 
                 help_title: "User Guide",
-                help_p1: "Enter your stock and fragments, the system calculates future income and shop planning.",
+                help_p1: "Enter your stock (including map attributes) and fragments to calculate future income.",
                 help_h1: "1. Purchasing Power (Now vs. Future)",
-                help_p2: "Shop Planning uses dual-view logic:",
-                help_li1: "● **Now (Bottom Cards)**: Uses 'Current Stock Only'. Negative means you can't afford it yet.",
-                help_li2: "● **Future (Top Queue)**: Dynamic calculation includes 'Future Income' (Daily, Art Event, Synthesis).",
+                help_p2: "Shop Planning uses multi-stage logic:",
+                help_li1: "● **Now**: Uses 'Current Stock Only'. Negative means unaffordable.",
+                help_li2: "● **Future**: Prioritizes specific scrolls from 'Owned Maps', then uses flexible income.",
                 help_h2: "2. Recursive Synthesis",
                 help_p3: "The tool simulates the '1-fragment refund after Superior/Epic/Common runs' rule:",
                 help_li3: "Entering 10 fragments shows '1 Craft / 9 Needed' because 1 is returned after usage.",
@@ -643,7 +643,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.00";
+        const APP_VERSION = "v3.10";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -711,7 +711,13 @@
 
             const [inventory, setInventory] = useState({
                 attrFire: 0, attrWater: 0, attrWind: 0, attrThunder: 0, univScrolls: 0,
-                godMaps: 0, peerlessMaps: 0, rareMaps: 0, commonMaps: 0,
+
+                // Maps: Quality x Attribute (16 fields)
+                godMapsWind: 0, godMapsThunder: 0, godMapsWater: 0, godMapsFire: 0,
+                peerlessMapsWind: 0, peerlessMapsThunder: 0, peerlessMapsWater: 0, peerlessMapsFire: 0,
+                rareMapsWind: 0, rareMapsThunder: 0, rareMapsWater: 0, rareMapsFire: 0,
+                commonMapsWind: 0, commonMapsThunder: 0, commonMapsWater: 0, commonMapsFire: 0,
+
                 godFrags: 0, peerlessFrags: 0, rareFrags: 0, commonFrags: 0, randomFrags: 0
             });
 
@@ -774,20 +780,48 @@
                 const totalEstFixedAttr = inventoryAttrTotal + futureFixedAttr;
                 const totalEstFixedUniv = parseInt(inventory.univScrolls || 0) + futureFixedUniv + legendUniv;
 
-                // 成品圖收益
-                const mapRewards = (type, count) => ({
+                // 成品圖收益 (Updated for Attribute Specifics)
+                const getMapStats = (type, count) => ({
                     attr: count * CAPTAIN_REWARDS[type].attr,
                     univ: count * CAPTAIN_REWARDS[type].univ,
                     refund: count * CAPTAIN_REWARDS[type].refundFrag
                 });
 
-                const godR = mapRewards('god', parseInt(inventory.godMaps || 0));
-                const peerlessR = mapRewards('peerless', parseInt(inventory.peerlessMaps || 0));
-                const rareR = mapRewards('rare', parseInt(inventory.rareMaps || 0));
-                const commonR = mapRewards('common', parseInt(inventory.commonMaps || 0));
+                // Calculate rewards for each attribute series
+                const calcAttrSeries = (attrKey) => {
+                    const god = parseInt(inventory[`godMaps${attrKey}`] || 0);
+                    const peerless = parseInt(inventory[`peerlessMaps${attrKey}`] || 0);
+                    const rare = parseInt(inventory[`rareMaps${attrKey}`] || 0);
+                    const common = parseInt(inventory[`commonMaps${attrKey}`] || 0);
 
-                const inventoryMapAttr = godR.attr + peerlessR.attr + rareR.attr + commonR.attr;
-                const inventoryMapUniv = godR.univ + peerlessR.univ + rareR.univ + commonR.univ;
+                    const gR = getMapStats('god', god);
+                    const pR = getMapStats('peerless', peerless);
+                    const rR = getMapStats('rare', rare);
+                    const cR = getMapStats('common', common);
+
+                    return {
+                        attr: gR.attr + pR.attr + rR.attr + cR.attr,
+                        univ: gR.univ + pR.univ + rR.univ + cR.univ,
+                        refund: gR.refund + pR.refund + rR.refund + cR.refund
+                    };
+                };
+
+                const fireMaps = calcAttrSeries('Fire');
+                const waterMaps = calcAttrSeries('Water');
+                const windMaps = calcAttrSeries('Wind');
+                const thunderMaps = calcAttrSeries('Thunder');
+
+                const inventoryMapAttr = fireMaps.attr + waterMaps.attr + windMaps.attr + thunderMaps.attr;
+                const inventoryMapUniv = fireMaps.univ + waterMaps.univ + windMaps.univ + thunderMaps.univ;
+
+                // Future Fixed Income per Attribute (For Shop Queue)
+                // Keys must match item categories (lowercase)
+                const futureMapsIncome = {
+                    fire: fireMaps.attr,
+                    water: waterMaps.attr,
+                    wind: windMaps.attr,
+                    thunder: thunderMaps.attr
+                };
 
                 // 隨機轉化
                 const isStart = userDate <= START_DATE;
@@ -800,10 +834,29 @@
                 const refundedCommonFrags = randomToMapsCount * RANDOM_CONVERSION.refundCommonFrag;
 
                 // 碎片合成收益
+                // Note: Refunds from Owned Maps (Fire/Water/etc) are added to the Fragment Pools here
+                // We sum up refunds from all attributes
+                const totalMapRefunds = fireMaps.refund + waterMaps.refund + windMaps.refund + thunderMaps.refund;
+
+                // Assuming all refunds go to Peerless/Rare/Common pools respectively, but the code above sums them up.
+                // Wait, logic check: 'god' has 0 refund. 'peerless'/'rare'/'common' have 1 refund.
+                // The refund type depends on the map type. We need to sum by quality, not just total.
+
+                const getCountByQual = (qual) => {
+                    return (parseInt(inventory[`${qual}MapsFire`] || 0)) +
+                        (parseInt(inventory[`${qual}MapsWater`] || 0)) +
+                        (parseInt(inventory[`${qual}MapsWind`] || 0)) +
+                        (parseInt(inventory[`${qual}MapsThunder`] || 0));
+                };
+
+                const totalPeerlessRefunds = getCountByQual('peerless') * CAPTAIN_REWARDS.peerless.refundFrag;
+                const totalRareRefunds = getCountByQual('rare') * CAPTAIN_REWARDS.rare.refundFrag;
+                const totalCommonRefunds = getCountByQual('common') * CAPTAIN_REWARDS.common.refundFrag;
+
                 const totalGodPool = parseInt(inventory.godFrags || 0) + ((FRAG_SOURCES.weeklyGod * weeksRemaining) + (isStart ? FRAG_SOURCES.fixedGod : 0));
-                const totalPeerlessPool = parseInt(inventory.peerlessFrags || 0) + ((isStart ? FRAG_SOURCES.fixedPeerless : 0) + peerlessR.refund);
-                const totalRarePool = parseInt(inventory.rareFrags || 0) + ((isStart ? FRAG_SOURCES.fixedRare : 0) + rareR.refund);
-                const totalCommonPoolFinal = parseInt(inventory.commonFrags || 0) + ((isStart ? FRAG_SOURCES.fixedCommon : 0) + commonR.refund + refundedCommonFrags);
+                const totalPeerlessPool = parseInt(inventory.peerlessFrags || 0) + ((isStart ? FRAG_SOURCES.fixedPeerless : 0) + totalPeerlessRefunds);
+                const totalRarePool = parseInt(inventory.rareFrags || 0) + ((isStart ? FRAG_SOURCES.fixedRare : 0) + totalRareRefunds);
+                const totalCommonPoolFinal = parseInt(inventory.commonFrags || 0) + ((isStart ? FRAG_SOURCES.fixedCommon : 0) + totalCommonRefunds + refundedCommonFrags);
 
                 const mapsFromGod = analyzeFragment(totalGodPool, CAPTAIN_REWARDS.god.refundFrag).maps;
                 const mapsFromPeerless = analyzeFragment(totalPeerlessPool, CAPTAIN_REWARDS.peerless.refundFrag).maps;
@@ -821,7 +874,17 @@
 
                 const futureAttrPool = grandTotalAttr - inventoryAttrTotal;
 
-                // 商店消耗計算 (Derived from cartQueue for accuracy in waterfall, but we use shopCart state for legacy)
+                // Future Flexible Amount (Daily Fixed + Random Convert + Frag Synth)
+                // This is the pool used for "Future Choice" in shop, after Fixed Maps are used.
+                // Logic: Flexible = GrandTotal - InventoryStock - FixedMapsIncome
+                // But InventoryStock is already excluded from grandTotalAttr usually?
+                // Wait, grandTotalAttr INCLUDES inventory stock.
+                // So FutureAttrPool = FixedMaps + Flexible.
+                // Flexible = FutureAttrPool - FixedMaps.
+                const totalFixedMapsAttr = futureMapsIncome.fire + futureMapsIncome.water + futureMapsIncome.wind + futureMapsIncome.thunder;
+                const futureFlexibleIncome = Math.max(0, futureAttrPool - totalFixedMapsAttr);
+
+                // 商店消耗計算
                 const calcCategoryCost = (category) => {
                     let cost = 0;
                     const items = category === 'univ' ? UNIV_SHOP_ITEMS : ATTR_SHOP_ITEMS;
@@ -841,12 +904,11 @@
                 const shopCostAttrTotal = shopCostFire + shopCostWater + shopCostWind + shopCostThunder;
 
                 // 價值兌換
-                const allAsAttr = grandTotalAttr + grandTotalUniv; // Changed from * 2 to 1:1 based on user feedback
+                const allAsAttr = grandTotalAttr + grandTotalUniv;
                 const allAsUniv = grandTotalUniv + Math.floor(grandTotalAttr / 2);
 
-                // 商店總需求 - FIX: Consistent 1:1 for Attr View and 2:1 for Univ View
-                const shopCostAsAttr = shopCostAttrTotal + shopCostUniv; // Modified from * 2 to 1:1
-                const shopCostAsUniv = shopCostUniv + Math.ceil(shopCostAttrTotal / 2); // Modified back to 2:1 ratio
+                const shopCostAsAttr = shopCostAttrTotal + shopCostUniv;
+                const shopCostAsUniv = shopCostUniv + Math.ceil(shopCostAttrTotal / 2);
 
                 return {
                     daysRemaining, weeksRemaining, legendUniv,
@@ -856,6 +918,8 @@
                     fragSynthAttr, fragSynthUniv,
                     grandTotalAttr, grandTotalUniv,
                     futureAttrPool,
+                    futureMapsIncome,      // NEW
+                    futureFlexibleIncome,  // NEW
                     allAsAttr, allAsUniv,
                     shopCostFire, shopCostWater, shopCostWind, shopCostThunder, shopCostUniv,
                     shopCostAttrTotal,
@@ -876,8 +940,21 @@
             const priorityQueueAnalysis = useMemo(() => {
                 // Initial Pools
                 let currentUnivStock = parseInt(inventory.univScrolls || 0);
+                // Future Univ Reward includes Fixed Univ from maps + Daily Univ.
+                // Logic: GrandTotalUniv includes InventoryUniv. So Future = GrandTotal - Inventory.
                 let futureUnivReward = (calculation.grandTotalUniv || 0) - currentUnivStock;
-                let futureChoicePool = calculation.futureAttrPool || 0;
+
+                // Future Choice Pool (Flexible)
+                let futureFlexiblePool = calculation.futureFlexibleIncome || 0;
+
+                // Future Fixed Maps Income (Specific Attribute)
+                // We clone it to mutate during calculation
+                let futureFixedMaps = {
+                    fire: calculation.futureMapsIncome?.fire || 0,
+                    water: calculation.futureMapsIncome?.water || 0,
+                    wind: calculation.futureMapsIncome?.wind || 0,
+                    thunder: calculation.futureMapsIncome?.thunder || 0
+                };
 
                 // Create a temporary inventory map for calculation (starting with current stock)
                 let tempInv = {
@@ -891,7 +968,8 @@
                     const result = {
                         ...item,
                         stockUsed: 0,
-                        futureAttrUsed: 0,
+                        futureFixedUsed: 0, // NEW
+                        futureAttrUsed: 0, // Flexible
                         univStockUsed: 0,
                         futureUnivRewardUsed: 0,
                         choiceToUnivUsed: 0,
@@ -920,64 +998,91 @@
                             costRemaining -= tempInv[item.category];
                             tempInv[item.category] = 0;
 
-                            // 2. Future choice pool (1:1)
-                            if (futureChoicePool >= costRemaining) {
-                                futureChoicePool -= costRemaining;
-                                result.futureAttrUsed = costRemaining;
+                            // 2. Future Fixed Maps Income (NEW)
+                            // "User holds Wind Map -> Gets Wind Scroll" logic
+                            const fixedAvailable = futureFixedMaps[item.category];
+                            if (fixedAvailable >= costRemaining) {
+                                futureFixedMaps[item.category] -= costRemaining;
+                                result.futureFixedUsed = costRemaining;
                                 costRemaining = 0;
-                                result.status = 'stock';
+                                result.status = 'stock'; // Technically still "stock" or "future fixed"
                             } else {
-                                result.futureAttrUsed = futureChoicePool;
-                                costRemaining -= futureChoicePool;
-                                futureChoicePool = 0;
+                                result.futureFixedUsed = fixedAvailable;
+                                costRemaining -= fixedAvailable;
+                                futureFixedMaps[item.category] = 0;
 
-                                // 3. Current Universal Stock
-                                if (currentUnivStock >= costRemaining) {
-                                    currentUnivStock -= costRemaining;
-                                    result.univStockUsed = costRemaining;
+                                // 3. Future Flexible Pool (1:1)
+                                if (futureFlexiblePool >= costRemaining) {
+                                    futureFlexiblePool -= costRemaining;
+                                    result.futureAttrUsed = costRemaining;
                                     costRemaining = 0;
-                                    result.status = 'univ';
+                                    result.status = 'stock';
                                 } else {
-                                    result.univStockUsed = currentUnivStock;
-                                    costRemaining -= currentUnivStock;
-                                    currentUnivStock = 0;
+                                    result.futureAttrUsed = futureFlexiblePool;
+                                    costRemaining -= futureFlexiblePool;
+                                    futureFlexiblePool = 0;
 
-                                    // 4. Future Universal Reward
-                                    if (futureUnivReward >= costRemaining) {
-                                        futureUnivReward -= costRemaining;
-                                        result.futureUnivRewardUsed = costRemaining;
+                                    // 4. Current Universal Stock
+                                    if (currentUnivStock >= costRemaining) {
+                                        currentUnivStock -= costRemaining;
+                                        result.univStockUsed = costRemaining;
                                         costRemaining = 0;
                                         result.status = 'univ';
                                     } else {
-                                        result.futureUnivRewardUsed = futureUnivReward;
-                                        costRemaining -= futureUnivReward;
-                                        futureUnivReward = 0;
+                                        result.univStockUsed = currentUnivStock;
+                                        costRemaining -= currentUnivStock;
+                                        currentUnivStock = 0;
 
-                                        // 5. Conversion from other attributes (2:1)
-                                        let neededAttr = costRemaining * 2;
-                                        let attrConsumed = 0;
-                                        const attrTypes = ['fire', 'water', 'wind', 'thunder'];
-                                        for (let type of attrTypes) {
-                                            if (neededAttr <= 0) break;
-                                            const available = tempInv[type];
-                                            const toTake = Math.min(available, neededAttr);
-                                            tempInv[type] -= toTake;
-                                            attrConsumed += toTake;
-                                            neededAttr -= toTake;
+                                        // 5. Future Universal Reward
+                                        if (futureUnivReward >= costRemaining) {
+                                            futureUnivReward -= costRemaining;
+                                            result.futureUnivRewardUsed = costRemaining;
+                                            costRemaining = 0;
+                                            result.status = 'univ';
+                                        } else {
+                                            result.futureUnivRewardUsed = futureUnivReward;
+                                            costRemaining -= futureUnivReward;
+                                            futureUnivReward = 0;
+
+                                            // 6. Conversion from other attributes (2:1)
+                                            // Can convert: Stock, FutureFixedMaps
+                                            let neededAttr = costRemaining * 2;
+                                            let attrConsumed = 0;
+                                            const attrTypes = ['fire', 'water', 'wind', 'thunder'];
+                                            for (let type of attrTypes) {
+                                                if (neededAttr <= 0) break;
+
+                                                // 1. Convert from Stock
+                                                const availableStock = tempInv[type];
+                                                const takeStock = Math.min(availableStock, neededAttr);
+                                                tempInv[type] -= takeStock;
+                                                attrConsumed += takeStock;
+                                                neededAttr -= takeStock;
+
+                                                if (neededAttr <= 0) break;
+
+                                                // 2. Convert from Future Fixed Maps
+                                                const availableFixed = futureFixedMaps[type];
+                                                const takeFixed = Math.min(availableFixed, neededAttr);
+                                                futureFixedMaps[type] -= takeFixed;
+                                                attrConsumed += takeFixed;
+                                                neededAttr -= takeFixed;
+                                            }
+
+                                            const convertedUniv = Math.floor(attrConsumed / 2);
+                                            result.attrConverted = convertedUniv;
+                                            result.attrConsumed = attrConsumed;
+                                            costRemaining -= convertedUniv;
+
+                                            if (costRemaining <= 0) result.status = 'convert';
+                                            else { result.status = 'gap'; result.gap = costRemaining; }
                                         }
-
-                                        const convertedUniv = Math.floor(attrConsumed / 2);
-                                        result.attrConverted = convertedUniv;
-                                        result.attrConsumed = attrConsumed;
-                                        costRemaining -= convertedUniv;
-
-                                        if (costRemaining <= 0) result.status = 'convert';
-                                        else { result.status = 'gap'; result.gap = costRemaining; }
                                     }
                                 }
                             }
                         }
                     } else {
+                        // Universal Items
                         let costRemaining = cost;
                         // 1. Current Universal stock
                         if (currentUnivStock >= costRemaining) {
@@ -1000,10 +1105,10 @@
                                 costRemaining -= futureUnivReward;
                                 futureUnivReward = 0;
 
-                                // 3. Future Choice Pool (2:1 to Universal)
+                                // 3. Future Flexible Pool (2:1 to Univ)
                                 let neededChoice = costRemaining * 2;
-                                let choiceTaken = Math.min(futureChoicePool, neededChoice);
-                                futureChoicePool -= choiceTaken;
+                                let choiceTaken = Math.min(futureFlexiblePool, neededChoice);
+                                futureFlexiblePool -= choiceTaken;
                                 const choiceConverted = Math.floor(choiceTaken / 2);
                                 result.choiceToUnivUsed = choiceConverted;
                                 result.choiceRawConsumed = choiceTaken;
@@ -1011,17 +1116,28 @@
 
                                 if (costRemaining <= 0) result.status = 'convert';
                                 else {
-                                    // 4. Other Stocks (2:1)
+                                    // 4. Other Stocks & Future Fixed Maps (2:1)
                                     let neededAttr = costRemaining * 2;
                                     let attrConsumedTotal = 0;
                                     const attrTypes = ['fire', 'water', 'wind', 'thunder'];
                                     for (let type of attrTypes) {
                                         if (neededAttr <= 0) break;
-                                        const available = tempInv[type];
-                                        const toTake = Math.min(available, neededAttr);
-                                        tempInv[type] -= toTake;
-                                        attrConsumedTotal += toTake;
-                                        neededAttr -= toTake;
+
+                                        // 1. Convert from Stock
+                                        const availableStock = tempInv[type];
+                                        const takeStock = Math.min(availableStock, neededAttr);
+                                        tempInv[type] -= takeStock;
+                                        attrConsumedTotal += takeStock;
+                                        neededAttr -= takeStock;
+
+                                        if (neededAttr <= 0) break;
+
+                                        // 2. Convert from Future Fixed Maps
+                                        const availableFixed = futureFixedMaps[type];
+                                        const takeFixed = Math.min(availableFixed, neededAttr);
+                                        futureFixedMaps[type] -= takeFixed;
+                                        attrConsumedTotal += takeFixed;
+                                        neededAttr -= takeFixed;
                                     }
                                     const convertedStock = Math.floor(attrConsumedTotal / 2);
                                     result.attrConverted = convertedStock;
@@ -1037,7 +1153,7 @@
                     result.remainingUnivPool = currentUnivStock + futureUnivReward;
                     return result;
                 });
-            }, [cartQueue, calculation.grandTotalUniv, calculation.futureAttrPool, inventory]);
+            }, [cartQueue, calculation, inventory]);
             // #endregion
 
 
@@ -1115,7 +1231,13 @@
             const toggleLegend = (field) => setLegendOptions(prev => ({ ...prev, [field]: !prev[field] }));
 
             const clearScrolls = () => setInventory(prev => ({ ...prev, attrFire: 0, attrWater: 0, attrWind: 0, attrThunder: 0, univScrolls: 0 }));
-            const clearMaps = () => setInventory(prev => ({ ...prev, godMaps: 0, peerlessMaps: 0, rareMaps: 0, commonMaps: 0 }));
+            const clearMaps = () => setInventory(prev => ({
+                ...prev,
+                godMapsWind: 0, godMapsThunder: 0, godMapsWater: 0, godMapsFire: 0,
+                peerlessMapsWind: 0, peerlessMapsThunder: 0, peerlessMapsWater: 0, peerlessMapsFire: 0,
+                rareMapsWind: 0, rareMapsThunder: 0, rareMapsWater: 0, rareMapsFire: 0,
+                commonMapsWind: 0, commonMapsThunder: 0, commonMapsWater: 0, commonMapsFire: 0
+            }));
             const clearFrags = () => setInventory(prev => ({ ...prev, godFrags: 0, peerlessFrags: 0, rareFrags: 0, commonFrags: 0, randomFrags: 0 }));
 
             // --- Updated Shop Logic with Queue ---
@@ -1429,18 +1551,56 @@
                                     </div>
                                 </div>
 
-                                {/* Maps */}
+                                {/* Maps (Matrix Layout) */}
                                 <div className="bg-orange-50 p-2 rounded-lg border border-orange-200 mb-2">
                                     <div className="flex justify-between items-center mb-1">
                                         <label className="text-[0.75rem] font-bold text-gray-700">{t.lbl_maps}</label>
                                         <button onClick={clearMaps} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
                                     </div>
-                                    <div className="grid grid-cols-5 gap-1">
-                                        <div className="input-group"><label className="text-red-800">{t.qual_god}</label><input type="number" min="0" value={inventory.godMaps} onChange={(e) => updateInv('godMaps', e.target.value)} className="bg-red-50" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-purple-800">{t.qual_peerless}</label><input type="number" min="0" value={inventory.peerlessMaps} onChange={(e) => updateInv('peerlessMaps', e.target.value)} className="bg-purple-50" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-indigo-800">{t.qual_rare}</label><input type="number" min="0" value={inventory.rareMaps} onChange={(e) => updateInv('rareMaps', e.target.value)} className="bg-indigo-50" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-green-800">{t.qual_common}</label><input type="number" min="0" value={inventory.commonMaps} onChange={(e) => updateInv('commonMaps', e.target.value)} className="bg-green-50" onWheel={(e) => e.target.blur()} /></div>
+
+                                    {/* Header Row */}
+                                    <div className="grid grid-cols-5 gap-1 mb-1 text-[0.625rem] font-bold text-center">
                                         <div></div>
+                                        <div className="color-wind">{t.attr_wind}</div>
+                                        <div className="color-thunder">{t.attr_thunder}</div>
+                                        <div className="color-water">{t.attr_water}</div>
+                                        <div className="color-fire">{t.attr_fire}</div>
+                                    </div>
+
+                                    {/* God Row */}
+                                    <div className="grid grid-cols-5 gap-1 mb-1">
+                                        <div className="text-[0.625rem] font-bold text-red-800 flex items-center justify-center bg-red-50 rounded border border-red-100">{t.qual_god}</div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.godMapsWind} onChange={(e) => updateInv('godMapsWind', e.target.value)} className="bg-red-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.godMapsThunder} onChange={(e) => updateInv('godMapsThunder', e.target.value)} className="bg-red-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.godMapsWater} onChange={(e) => updateInv('godMapsWater', e.target.value)} className="bg-red-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.godMapsFire} onChange={(e) => updateInv('godMapsFire', e.target.value)} className="bg-red-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                    </div>
+
+                                    {/* Peerless Row */}
+                                    <div className="grid grid-cols-5 gap-1 mb-1">
+                                        <div className="text-[0.625rem] font-bold text-purple-800 flex items-center justify-center bg-purple-50 rounded border border-purple-100">{t.qual_peerless}</div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.peerlessMapsWind} onChange={(e) => updateInv('peerlessMapsWind', e.target.value)} className="bg-purple-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.peerlessMapsThunder} onChange={(e) => updateInv('peerlessMapsThunder', e.target.value)} className="bg-purple-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.peerlessMapsWater} onChange={(e) => updateInv('peerlessMapsWater', e.target.value)} className="bg-purple-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.peerlessMapsFire} onChange={(e) => updateInv('peerlessMapsFire', e.target.value)} className="bg-purple-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                    </div>
+
+                                    {/* Rare Row */}
+                                    <div className="grid grid-cols-5 gap-1 mb-1">
+                                        <div className="text-[0.625rem] font-bold text-indigo-800 flex items-center justify-center bg-indigo-50 rounded border border-indigo-100">{t.qual_rare}</div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.rareMapsWind} onChange={(e) => updateInv('rareMapsWind', e.target.value)} className="bg-indigo-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.rareMapsThunder} onChange={(e) => updateInv('rareMapsThunder', e.target.value)} className="bg-indigo-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.rareMapsWater} onChange={(e) => updateInv('rareMapsWater', e.target.value)} className="bg-indigo-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.rareMapsFire} onChange={(e) => updateInv('rareMapsFire', e.target.value)} className="bg-indigo-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                    </div>
+
+                                    {/* Common Row */}
+                                    <div className="grid grid-cols-5 gap-1">
+                                        <div className="text-[0.625rem] font-bold text-green-800 flex items-center justify-center bg-green-50 rounded border border-green-100">{t.qual_common}</div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.commonMapsWind} onChange={(e) => updateInv('commonMapsWind', e.target.value)} className="bg-green-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.commonMapsThunder} onChange={(e) => updateInv('commonMapsThunder', e.target.value)} className="bg-green-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.commonMapsWater} onChange={(e) => updateInv('commonMapsWater', e.target.value)} className="bg-green-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><input type="number" min="0" value={inventory.commonMapsFire} onChange={(e) => updateInv('commonMapsFire', e.target.value)} className="bg-green-50 text-center" onWheel={(e) => e.target.blur()} /></div>
                                     </div>
                                 </div>
 
@@ -1610,6 +1770,13 @@
                                                                             <div className="flex items-center gap-1 text-gray-600">
                                                                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                                                                                 <span>{t.prio_stock_used}: {item.stockUsed} (= {item.stockUsed} x 1.0)</span>
+                                                                            </div>
+                                                                        )}
+                                                                        {/* Fixed Maps Income Display */}
+                                                                        {item.futureFixedUsed > 0 && (
+                                                                            <div className="flex items-center gap-1 text-purple-600 font-bold">
+                                                                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                                                                                <span>{lang === 'zh' ? '預計獲得: 成品圖' : 'Future: Map Drops'}: {item.futureFixedUsed} (= {item.futureFixedUsed} x 1.0)</span>
                                                                             </div>
                                                                         )}
                                                                         {item.futureAttrUsed > 0 && item.choiceToUnivUsed === 0 && (
