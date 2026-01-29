@@ -459,7 +459,7 @@
                 src_weekly_sub: "每週任務 (週日重置)",
                 src_daily_sub: "每日獲取 (隨機+任務)",
                 src_daily_note: "(每日隨機 15 + 每日任務 4)",
-                src_art_reward: "可選 0~25 通用",
+                src_art_reward: "可選 0~25 隨機碎片",
                 unit_frag: "片", unit_week: "週", unit_day: "天",
 
                 src_rewards_title: "🎁 藏寶圖討伐獎勵對照表",
@@ -567,7 +567,7 @@
                 src_weekly_sub: "Weekly Tasks (Reset Sun)",
                 src_daily_sub: "Daily (Random+Task)",
                 src_daily_note: "(Daily Random 15 + Task 4)",
-                src_art_reward: "Select 0-25 Univ",
+                src_art_reward: "Select 0-25 Random Frag",
                 unit_frag: "pcs", unit_week: "/wk", unit_day: "/day",
 
                 src_rewards_title: "🎁 Map Rewards Table",
@@ -643,7 +643,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.10";
+        const APP_VERSION = "v3.11";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -771,8 +771,8 @@
                 const futureFixedAttr = (DAILY_MEMBER_REWARD.attr * daysRemaining) + (WEEKLY_MEMBER_REWARD.attr * weeksRemaining);
                 const futureFixedUniv = (DAILY_MEMBER_REWARD.univ * daysRemaining) + (WEEKLY_MEMBER_REWARD.univ * weeksRemaining);
                 const legendUniv = (legendOptions.includeMember ? LEGEND_REWARD_MEMBER.univ : 0) +
-                    (legendOptions.includeCaptain ? LEGEND_REWARD_CAPTAIN.univ : 0) +
-                    (parseInt(legendOptions.artEventAmount) || 0);
+                    (legendOptions.includeCaptain ? LEGEND_REWARD_CAPTAIN.univ : 0);
+                const artEventFrags = (parseInt(legendOptions.artEventAmount) || 0);
 
                 const inventoryAttrTotal = parseInt(inventory.attrFire || 0) + parseInt(inventory.attrWater || 0) +
                     parseInt(inventory.attrWind || 0) + parseInt(inventory.attrThunder || 0);
@@ -825,7 +825,7 @@
 
                 // 隨機轉化
                 const isStart = userDate <= START_DATE;
-                const futureRandomFrags = (FRAG_SOURCES.dailyRandom * daysRemaining) + (isStart ? FRAG_SOURCES.fixedRandom : 0);
+                const futureRandomFrags = (FRAG_SOURCES.dailyRandom * daysRemaining) + (isStart ? FRAG_SOURCES.fixedRandom : 0) + artEventFrags;
 
                 const totalRandomPool = parseInt(inventory.randomFrags || 0) + futureRandomFrags;
                 const randomToMapsCount = Math.floor(totalRandomPool / 10);
@@ -1190,7 +1190,7 @@
                     }
                     if (i === 1) {
                         notes.push({ text: t.note_fixed, style: "text-gray-500" });
-                        accRandom += FRAG_SOURCES.fixedRandom;
+                        accRandom += FRAG_SOURCES.fixedRandom + (parseInt(legendOptions.artEventAmount) || 0);
 
                         let legUniv = 0;
                         if (legendOptions.includeMember) legUniv += LEGEND_REWARD_MEMBER.univ;
