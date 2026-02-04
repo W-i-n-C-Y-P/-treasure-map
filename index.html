@@ -16,6 +16,7 @@
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #f3f4f6;
             touch-action: manipulation;
+            font-size: 17px;
         }
 
         .card {
@@ -27,7 +28,7 @@
         /* 輸入框樣式 */
         .input-group label {
             display: block;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 700;
             margin-bottom: 0.1rem;
             white-space: nowrap;
@@ -171,6 +172,7 @@
 
         /* Added flex-shrink-0 to prevent overlapping/squishing */
         .tab-btn {
+            flex: 1;
             display: inline-block;
             padding: 0.6rem 1rem;
             text-align: center;
@@ -180,7 +182,7 @@
             cursor: pointer;
             transition: all 0.2s;
             min-width: 90px;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             flex-shrink: 0;
         }
 
@@ -414,13 +416,17 @@
                 btn_clear: "🗑️ 清除",
                 lbl_date: "當前日期",
                 lbl_remaining: "剩 {d} 天 / {w} 週",
-                lbl_legend: "傳頌藏寶圖 (各限1次)",
+                lbl_legend: "傳頌藏寶圖 (各限1次 - 若已獲得請勿選)",
                 lbl_leg_captain: "隊長(+150通)",
                 lbl_leg_member: "隊員(+75通)",
-                lbl_scrolls: "持有殘捲",
-                lbl_maps: "持有成品藏寶圖",
-                lbl_frags: "持有碎片數量",
-                attr_fire: "火", attr_water: "水", attr_wind: "風", attr_thunder: "雷", attr_univ: "通用",
+                lbl_scrolls: "持有殘捲庫存 (屬性)",
+                lbl_maps: "持有成品藏寶圖 (不分屬性)",
+                lbl_frags: "持有碎片庫存",
+                lbl_member_frag: "隊員殘捲 (每日與每週)",
+                lbl_leader_frag: "隊長殘捲 (持有圖收益)",
+                lbl_univ_frag: "通用殘捲 (通用與傳頌)",
+                lbl_art_event: "妙手丹青 (若已獲得請勿選)",
+                art_count: "獲得次數", attr_fire: "火", attr_water: "水", attr_wind: "風", attr_thunder: "雷", attr_univ: "通用",
                 qual_god: "神品", qual_peerless: "絕品", qual_rare: "珍品", qual_common: "凡品", qual_random: "隨機",
                 qual_legend: "傳頌",
 
@@ -508,6 +514,19 @@
                 prio_status_gap: "🔴 資源不足",
                 prio_farm: "建議：專攻{attr}圖",
                 prio_rem_univ: "通用池剩餘:",
+
+                // New Labels
+                sec_future_breakdown: "未來預計獲獲取明細 (剩餘次數)",
+                th_source: "來源",
+                th_count: "剩餘",
+                th_attr: "屬性捲",
+                th_univ: "通用捲",
+                th_frag: "碎片",
+                row_daily: "每日隊員獎勵",
+                row_weekly_divine: "每週神品獎勵",
+                row_daily_frag: "日常及任務碎片 (1絕/2珍/3凡)",
+                row_weekly_frag: "每週神品碎片 (神*3)",
+                row_art_event: "妙手丹青 (若已領取請勿輸入)",
             },
             en: {
                 title: "Treasure Map Calculator",
@@ -616,6 +635,18 @@
                 prio_status_gap: "🔴 Shortage",
                 prio_farm: "Advice: Farm {attr}",
                 prio_rem_univ: "Univ Rem:",
+
+                // New Labels
+                sec_future_breakdown: "Future Gain Breakdown (Rem. Counts)",
+                th_source: "Source",
+                th_count: "Rem.",
+                th_attr: "Attr.",
+                th_univ: "Univ.",
+                th_frag: "Frag.",
+                row_daily: "Daily Member",
+                row_weekly_divine: "Weekly Divine",
+                row_daily_frag: "Daily Random Frag",
+                row_weekly_frag: "Weekly Divine Frag",
             }
         };
         // #endregion
@@ -643,7 +674,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.11";
+        const APP_VERSION = "v3.20";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -667,6 +698,7 @@
             const [viewMode, setViewMode] = useState('tabs');
             const [showHelp, setShowHelp] = useState(false);
             const [lang, setLang] = useState('zh');
+            const [targetAttr, setTargetAttr] = useState('none');
             const [zoomLevel, setZoomLevel] = useState(() => {
                 const saved = localStorage.getItem('treasure-zoom');
                 return saved ? parseInt(saved) : 100;
@@ -712,11 +744,8 @@
             const [inventory, setInventory] = useState({
                 attrFire: 0, attrWater: 0, attrWind: 0, attrThunder: 0, univScrolls: 0,
 
-                // Maps: Quality x Attribute (16 fields)
-                godMapsWind: 0, godMapsThunder: 0, godMapsWater: 0, godMapsFire: 0,
-                peerlessMapsWind: 0, peerlessMapsThunder: 0, peerlessMapsWater: 0, peerlessMapsFire: 0,
-                rareMapsWind: 0, rareMapsThunder: 0, rareMapsWater: 0, rareMapsFire: 0,
-                commonMapsWind: 0, commonMapsThunder: 0, commonMapsWater: 0, commonMapsFire: 0,
+                // Maps: Quality only (Combined Attributes)
+                godMaps: 0, peerlessMaps: 0, rareMaps: 0, commonMaps: 0,
 
                 godFrags: 0, peerlessFrags: 0, rareFrags: 0, commonFrags: 0, randomFrags: 0
             });
@@ -763,70 +792,41 @@
                 const daysRemaining = Math.min(getDaysDiff(userDate, END_DATE), totalDays);
                 let weeksRemaining = 0;
                 if (userDate < END_DATE) {
-                    weeksRemaining = 1 + countSundays(userDate, END_DATE);
+                    weeksRemaining = countSundays(userDate, END_DATE);
                     if (weeksRemaining > totalWeeks) weeksRemaining = totalWeeks;
                 }
 
-                // 收益計算
-                const futureFixedAttr = (DAILY_MEMBER_REWARD.attr * daysRemaining) + (WEEKLY_MEMBER_REWARD.attr * weeksRemaining);
-                const futureFixedUniv = (DAILY_MEMBER_REWARD.univ * daysRemaining) + (WEEKLY_MEMBER_REWARD.univ * weeksRemaining);
-                const legendUniv = (legendOptions.includeMember ? LEGEND_REWARD_MEMBER.univ : 0) +
-                    (legendOptions.includeCaptain ? LEGEND_REWARD_CAPTAIN.univ : 0);
-                const artEventFrags = (parseInt(legendOptions.artEventAmount) || 0);
+                // 有效次數計算
+                const effDays = Math.max(0, daysRemaining - 1);
+                const effWeeks = Math.max(0, weeksRemaining);
 
-                const inventoryAttrTotal = parseInt(inventory.attrFire || 0) + parseInt(inventory.attrWater || 0) +
-                    parseInt(inventory.attrWind || 0) + parseInt(inventory.attrThunder || 0);
+                // 1. 隊員殘捲 (Member Fragments)
+                const memberIncomeAttr = (DAILY_MEMBER_REWARD.attr * effDays) + (WEEKLY_MEMBER_REWARD.attr * effWeeks);
+                const memberIncomeUniv = (DAILY_MEMBER_REWARD.univ * effDays) + (WEEKLY_MEMBER_REWARD.univ * effWeeks);
 
-                const totalEstFixedAttr = inventoryAttrTotal + futureFixedAttr;
-                const totalEstFixedUniv = parseInt(inventory.univScrolls || 0) + futureFixedUniv + legendUniv;
-
-                // 成品圖收益 (Updated for Attribute Specifics)
+                // 2. 隊長殘捲 (Leader Fragments from Owned Maps)
                 const getMapStats = (type, count) => ({
                     attr: count * CAPTAIN_REWARDS[type].attr,
                     univ: count * CAPTAIN_REWARDS[type].univ,
                     refund: count * CAPTAIN_REWARDS[type].refundFrag
                 });
 
-                // Calculate rewards for each attribute series
-                const calcAttrSeries = (attrKey) => {
-                    const god = parseInt(inventory[`godMaps${attrKey}`] || 0);
-                    const peerless = parseInt(inventory[`peerlessMaps${attrKey}`] || 0);
-                    const rare = parseInt(inventory[`rareMaps${attrKey}`] || 0);
-                    const common = parseInt(inventory[`commonMaps${attrKey}`] || 0);
+                const godReward = getMapStats('god', parseInt(inventory.godMaps || 0));
+                const peerlessReward = getMapStats('peerless', parseInt(inventory.peerlessMaps || 0));
+                const rareReward = getMapStats('rare', parseInt(inventory.rareMaps || 0));
+                const commonReward = getMapStats('common', parseInt(inventory.commonMaps || 0));
 
-                    const gR = getMapStats('god', god);
-                    const pR = getMapStats('peerless', peerless);
-                    const rR = getMapStats('rare', rare);
-                    const cR = getMapStats('common', common);
+                const leaderIncomeAttr = godReward.attr + peerlessReward.attr + rareReward.attr + commonReward.attr;
+                const leaderIncomeUniv = godReward.univ + peerlessReward.univ + rareReward.univ + commonReward.univ;
 
-                    return {
-                        attr: gR.attr + pR.attr + rR.attr + cR.attr,
-                        univ: gR.univ + pR.univ + rR.univ + cR.univ,
-                        refund: gR.refund + pR.refund + rR.refund + cR.refund
-                    };
-                };
-
-                const fireMaps = calcAttrSeries('Fire');
-                const waterMaps = calcAttrSeries('Water');
-                const windMaps = calcAttrSeries('Wind');
-                const thunderMaps = calcAttrSeries('Thunder');
-
-                const inventoryMapAttr = fireMaps.attr + waterMaps.attr + windMaps.attr + thunderMaps.attr;
-                const inventoryMapUniv = fireMaps.univ + waterMaps.univ + windMaps.univ + thunderMaps.univ;
-
-                // Future Fixed Income per Attribute (For Shop Queue)
-                // Keys must match item categories (lowercase)
-                const futureMapsIncome = {
-                    fire: fireMaps.attr,
-                    water: waterMaps.attr,
-                    wind: windMaps.attr,
-                    thunder: thunderMaps.attr
-                };
+                // 3. 通用殘捲與其餘收益
+                const legendUniv = (legendOptions.includeMember ? LEGEND_REWARD_MEMBER.univ : 0) +
+                    (legendOptions.includeCaptain ? LEGEND_REWARD_CAPTAIN.univ : 0);
+                const artEventFrags = (parseInt(legendOptions.artEventAmount) || 0);
 
                 // 隨機轉化
                 const isStart = userDate <= START_DATE;
-                const futureRandomFrags = (FRAG_SOURCES.dailyRandom * daysRemaining) + (isStart ? FRAG_SOURCES.fixedRandom : 0) + artEventFrags;
-
+                const futureRandomFrags = (FRAG_SOURCES.dailyRandom * effDays) + (isStart ? FRAG_SOURCES.fixedRandom : 0) + artEventFrags;
                 const totalRandomPool = parseInt(inventory.randomFrags || 0) + futureRandomFrags;
                 const randomToMapsCount = Math.floor(totalRandomPool / 10);
                 const convertedAttr = randomToMapsCount * RANDOM_CONVERSION.attr;
@@ -834,29 +834,15 @@
                 const refundedCommonFrags = randomToMapsCount * RANDOM_CONVERSION.refundCommonFrag;
 
                 // 碎片合成收益
-                // Note: Refunds from Owned Maps (Fire/Water/etc) are added to the Fragment Pools here
-                // We sum up refunds from all attributes
-                const totalMapRefunds = fireMaps.refund + waterMaps.refund + windMaps.refund + thunderMaps.refund;
+                const godRefund = 0; // Gods don't refund
+                const peerlessRefund = parseInt(inventory.peerlessMaps || 0) * CAPTAIN_REWARDS.peerless.refundFrag;
+                const rareRefund = parseInt(inventory.rareMaps || 0) * CAPTAIN_REWARDS.rare.refundFrag;
+                const commonRefund = parseInt(inventory.commonMaps || 0) * CAPTAIN_REWARDS.common.refundFrag;
 
-                // Assuming all refunds go to Peerless/Rare/Common pools respectively, but the code above sums them up.
-                // Wait, logic check: 'god' has 0 refund. 'peerless'/'rare'/'common' have 1 refund.
-                // The refund type depends on the map type. We need to sum by quality, not just total.
-
-                const getCountByQual = (qual) => {
-                    return (parseInt(inventory[`${qual}MapsFire`] || 0)) +
-                        (parseInt(inventory[`${qual}MapsWater`] || 0)) +
-                        (parseInt(inventory[`${qual}MapsWind`] || 0)) +
-                        (parseInt(inventory[`${qual}MapsThunder`] || 0));
-                };
-
-                const totalPeerlessRefunds = getCountByQual('peerless') * CAPTAIN_REWARDS.peerless.refundFrag;
-                const totalRareRefunds = getCountByQual('rare') * CAPTAIN_REWARDS.rare.refundFrag;
-                const totalCommonRefunds = getCountByQual('common') * CAPTAIN_REWARDS.common.refundFrag;
-
-                const totalGodPool = parseInt(inventory.godFrags || 0) + ((FRAG_SOURCES.weeklyGod * weeksRemaining) + (isStart ? FRAG_SOURCES.fixedGod : 0));
-                const totalPeerlessPool = parseInt(inventory.peerlessFrags || 0) + ((isStart ? FRAG_SOURCES.fixedPeerless : 0) + totalPeerlessRefunds);
-                const totalRarePool = parseInt(inventory.rareFrags || 0) + ((isStart ? FRAG_SOURCES.fixedRare : 0) + totalRareRefunds);
-                const totalCommonPoolFinal = parseInt(inventory.commonFrags || 0) + ((isStart ? FRAG_SOURCES.fixedCommon : 0) + totalCommonRefunds + refundedCommonFrags);
+                const totalGodPool = parseInt(inventory.godFrags || 0) + ((FRAG_SOURCES.weeklyGod * effWeeks) + (isStart ? FRAG_SOURCES.fixedGod : 0));
+                const totalPeerlessPool = parseInt(inventory.peerlessFrags || 0) + ((isStart ? FRAG_SOURCES.fixedPeerless : 0) + peerlessRefund + (effDays * 1));
+                const totalRarePool = parseInt(inventory.rareFrags || 0) + ((isStart ? FRAG_SOURCES.fixedRare : 0) + rareRefund + (effDays * 2));
+                const totalCommonPoolFinal = parseInt(inventory.commonFrags || 0) + ((isStart ? FRAG_SOURCES.fixedCommon : 0) + commonRefund + refundedCommonFrags + (effDays * 3));
 
                 const mapsFromGod = analyzeFragment(totalGodPool, CAPTAIN_REWARDS.god.refundFrag).maps;
                 const mapsFromPeerless = analyzeFragment(totalPeerlessPool, CAPTAIN_REWARDS.peerless.refundFrag).maps;
@@ -869,22 +855,27 @@
                     (mapsFromRare * CAPTAIN_REWARDS.rare.univ) + (mapsFromCommon * CAPTAIN_REWARDS.common.univ);
 
                 // 總結算
-                const grandTotalAttr = totalEstFixedAttr + inventoryMapAttr + convertedAttr + fragSynthAttr;
-                const grandTotalUniv = totalEstFixedUniv + inventoryMapUniv + convertedUniv + fragSynthUniv;
+                const inventoryAttrTotal = parseInt(inventory.attrFire || 0) + parseInt(inventory.attrWater || 0) +
+                    parseInt(inventory.attrWind || 0) + parseInt(inventory.attrThunder || 0);
 
-                const futureAttrPool = grandTotalAttr - inventoryAttrTotal;
+                // Final Categorized Pools
+                const finalMemberAttr = memberIncomeAttr;
+                const finalLeaderAttr = leaderIncomeAttr;
+                const finalConversionAttr = convertedAttr + fragSynthAttr;
 
-                // Future Flexible Amount (Daily Fixed + Random Convert + Frag Synth)
-                // This is the pool used for "Future Choice" in shop, after Fixed Maps are used.
-                // Logic: Flexible = GrandTotal - InventoryStock - FixedMapsIncome
-                // But InventoryStock is already excluded from grandTotalAttr usually?
-                // Wait, grandTotalAttr INCLUDES inventory stock.
-                // So FutureAttrPool = FixedMaps + Flexible.
-                // Flexible = FutureAttrPool - FixedMaps.
-                const totalFixedMapsAttr = futureMapsIncome.fire + futureMapsIncome.water + futureMapsIncome.wind + futureMapsIncome.thunder;
-                const futureFlexibleIncome = Math.max(0, futureAttrPool - totalFixedMapsAttr);
+                const finalUnivBase = parseInt(inventory.univScrolls || 0) + legendUniv;
+                const finalUnivReward = memberIncomeUniv + leaderIncomeUniv + convertedUniv + fragSynthUniv;
 
-                // 商店消耗計算
+                const grandTotalAttr = inventoryAttrTotal + finalMemberAttr + finalLeaderAttr + finalConversionAttr;
+                const grandTotalUniv = finalUnivBase + finalUnivReward;
+
+                // Waterfall Pools
+                // Separate pools as requested: Member Future Attr vs Leader Future Attr
+                const futureMemberIncomeAttr = memberIncomeAttr;
+                const futureLeaderIncomeAttr = leaderIncomeAttr + convertedAttr + fragSynthAttr;
+                const futureMapsIncome = { fire: 0, water: 0, wind: 0, thunder: 0 }; // No more attribute-specific fixed maps
+
+                // 商店消耗計算 (Legacy helpers)
                 const calcCategoryCost = (category) => {
                     let cost = 0;
                     const items = category === 'univ' ? UNIV_SHOP_ITEMS : ATTR_SHOP_ITEMS;
@@ -895,265 +886,165 @@
                     return cost;
                 };
 
-                const shopCostFire = calcCategoryCost('fire');
-                const shopCostWater = calcCategoryCost('water');
-                const shopCostWind = calcCategoryCost('wind');
-                const shopCostThunder = calcCategoryCost('thunder');
-                const shopCostUniv = calcCategoryCost('univ');
-
-                const shopCostAttrTotal = shopCostFire + shopCostWater + shopCostWind + shopCostThunder;
-
-                // 價值兌換
-                const allAsAttr = grandTotalAttr + grandTotalUniv;
-                const allAsUniv = grandTotalUniv + Math.floor(grandTotalAttr / 2);
-
-                const shopCostAsAttr = shopCostAttrTotal + shopCostUniv;
-                const shopCostAsUniv = shopCostUniv + Math.ceil(shopCostAttrTotal / 2);
-
                 return {
                     daysRemaining, weeksRemaining, legendUniv,
-                    totalEstFixedAttr, totalEstFixedUniv,
-                    inventoryMapAttr, inventoryMapUniv,
+                    memberIncomeAttr, memberIncomeUniv,
+                    leaderIncomeAttr, leaderIncomeUniv,
                     convertedAttr, convertedUniv,
                     fragSynthAttr, fragSynthUniv,
                     grandTotalAttr, grandTotalUniv,
-                    futureAttrPool,
-                    futureMapsIncome,      // NEW
-                    futureFlexibleIncome,  // NEW
-                    allAsAttr, allAsUniv,
-                    shopCostFire, shopCostWater, shopCostWind, shopCostThunder, shopCostUniv,
-                    shopCostAttrTotal,
-                    shopCostAsAttr, shopCostAsUniv,
-                    netAttr: grandTotalAttr - shopCostAttrTotal,
-                    netUniv: grandTotalUniv - shopCostUniv,
+                    univBase: finalUnivBase,
+                    futureMemberIncomeAttr,
+                    futureLeaderIncomeAttr,
+                    futureMapsIncome,
+                    allAsAttr: grandTotalAttr + grandTotalUniv,
+                    allAsUniv: grandTotalUniv + Math.floor(grandTotalAttr / 2),
+                    shopCostFire: calcCategoryCost('fire'), shopCostWater: calcCategoryCost('water'),
+                    shopCostWind: calcCategoryCost('wind'), shopCostThunder: calcCategoryCost('thunder'),
+                    shopCostUniv: calcCategoryCost('univ'),
+                    shopCostAttrTotal: calcCategoryCost('fire') + calcCategoryCost('water') + calcCategoryCost('wind') + calcCategoryCost('thunder'),
                     totalRandomPool,
                     godStatus: analyzeFragment(totalGodPool, CAPTAIN_REWARDS.god.refundFrag),
                     peerlessStatus: analyzeFragment(totalPeerlessPool, CAPTAIN_REWARDS.peerless.refundFrag),
                     rareStatus: analyzeFragment(totalRarePool, CAPTAIN_REWARDS.rare.refundFrag),
                     commonStatus: analyzeFragment(totalCommonPoolFinal, CAPTAIN_REWARDS.common.refundFrag),
                     randomStatus: analyzeFragment(totalRandomPool, 0),
-                    totalGodPool, totalPeerlessPool, totalRarePool, totalCommonPoolFinal
+                    totalGodPool, totalPeerlessPool, totalRarePool, totalCommonPoolFinal,
+                    effDays, effWeeks
                 };
             }, [currentDateInput, inventory, legendOptions, shopCart]);
 
             // --- NEW: Waterfall Queue Calculation ---
-            const priorityQueueAnalysis = useMemo(() => {
-                // Initial Pools
-                let currentUnivStock = parseInt(inventory.univScrolls || 0);
-                // Future Univ Reward includes Fixed Univ from maps + Daily Univ.
-                // Logic: GrandTotalUniv includes InventoryUniv. So Future = GrandTotal - Inventory.
-                let futureUnivReward = (calculation.grandTotalUniv || 0) - currentUnivStock;
+            const priorityQueueAnalysisData = useMemo(() => {
+                // Determine auto-target attribute if set to 'none'
+                let effectiveTargetAttr = targetAttr;
+                if (effectiveTargetAttr === 'none') {
+                    const firstAttrItem = cartQueue.find(it => it.category !== 'univ');
+                    if (firstAttrItem) effectiveTargetAttr = firstAttrItem.category;
+                }
 
-                // Future Choice Pool (Flexible)
-                let futureFlexiblePool = calculation.futureFlexibleIncome || 0;
-
-                // Future Fixed Maps Income (Specific Attribute)
-                // We clone it to mutate during calculation
-                let futureFixedMaps = {
-                    fire: calculation.futureMapsIncome?.fire || 0,
-                    water: calculation.futureMapsIncome?.water || 0,
-                    wind: calculation.futureMapsIncome?.wind || 0,
-                    thunder: calculation.futureMapsIncome?.thunder || 0
+                let pools = {
+                    uStock: { val: parseInt(inventory.univScrolls || 0) },
+                    uReward: { val: Math.max(0, (calculation.grandTotalUniv || 0) - parseInt(inventory.univScrolls || 0)) },
+                    fFlex: { val: (calculation.futureMemberIncomeAttr || 0) + (calculation.futureLeaderIncomeAttr || 0) },
+                    aStock: {
+                        fire: { val: parseInt(inventory.attrFire || 0) }, water: { val: parseInt(inventory.attrWater || 0) },
+                        wind: { val: parseInt(inventory.attrWind || 0) }, thunder: { val: parseInt(inventory.attrThunder || 0) }
+                    }
                 };
 
-                // Create a temporary inventory map for calculation (starting with current stock)
-                let tempInv = {
-                    fire: parseInt(inventory.attrFire || 0),
-                    water: parseInt(inventory.attrWater || 0),
-                    wind: parseInt(inventory.attrWind || 0),
-                    thunder: parseInt(inventory.attrThunder || 0)
-                };
+                // Initialize results
+                const results = cartQueue.map(item => ({
+                    ...item,
+                    nativeUsed: 0,        // 步驟1: 現有 同屬性 (1:1)
+                    nonTargetUniv: 0,     // 步驟2: 非目標 無屬 (1:1)
+                    futureNativeUsed: 0,  // 步驟3: 後續掉落 同屬 (1:1)
+                    futureUnivUsed: 0,    // 步驟3/4: 後續掉落 無屬 (1:1)
+                    nonTargetOtherRaw: 0, // 步驟4: 非目標 不同屬 (2:1)
+                    futureOtherRaw: 0,    // 步驟5: 後續掉落 不同屬 (2:1)
+                    conversionStolenRaw: 0, // 步驟6: 需分解其他
+                    stolenFromMe: 0,      // 被分解
+                    gap: item.cost,
+                    status: 'gap',
+                    reservedNative: 0     // Phase 1 預留的現有庫存
+                }));
 
-                return cartQueue.map((item, index) => {
-                    const result = {
-                        ...item,
-                        stockUsed: 0,
-                        futureFixedUsed: 0, // NEW
-                        futureAttrUsed: 0, // Flexible
-                        univStockUsed: 0,
-                        futureUnivRewardUsed: 0,
-                        choiceToUnivUsed: 0,
-                        choiceRawConsumed: 0,
-                        attrConverted: 0,
-                        attrConsumed: 0,
-                        gap: 0,
-                        status: 'ok',
-                        remainingUnivPool: 0
+                // Phase 1: 預分配現有庫存 (步驟1 - 依兌換順位分配)
+                results.forEach(res => {
+                    const pool = res.category === 'univ' ? pools.uStock : pools.aStock[res.category];
+                    if (pool && pool.val > 0) {
+                        const took = Math.min(res.gap, pool.val);
+                        res.nativeUsed = took;
+                        res.reservedNative = took;
+                        res.gap -= took;
+                        pool.val -= took;
+                    }
+                });
+
+                // Phase 2: 依優先度順序處理每個商品
+                results.forEach((res, i) => {
+                    if (res.gap <= 0) return;
+
+                    const consumeRaw = (field, poolRef, factor) => {
+                        if (res.gap <= 0 || poolRef.val <= 0) return;
+                        const needed = res.gap * factor;
+                        const took = Math.min(poolRef.val, needed);
+                        const gain = Math.floor(took / factor);
+                        if (gain <= 0 && factor > 1) return;
+                        res.gap -= gain;
+                        poolRef.val -= took;
+                        res[field] += took;
                     };
 
-                    const isUnivItem = item.category === 'univ';
-                    const cost = item.cost;
+                    // 步驟2: 非目標 無屬性 (多餘的無屬性殘卷 1:1)
+                    if (res.category !== 'univ') consumeRaw('nonTargetUniv', pools.uStock, 1);
 
-                    if (!isUnivItem) {
-                        let costRemaining = cost;
-
-                        // 1. Current specific attribute stock
-                        if (tempInv[item.category] >= costRemaining) {
-                            tempInv[item.category] -= costRemaining;
-                            result.stockUsed = costRemaining;
-                            costRemaining = 0;
-                            result.status = 'stock';
-                        } else {
-                            result.stockUsed = tempInv[item.category];
-                            costRemaining -= tempInv[item.category];
-                            tempInv[item.category] = 0;
-
-                            // 2. Future Fixed Maps Income (NEW)
-                            // "User holds Wind Map -> Gets Wind Scroll" logic
-                            const fixedAvailable = futureFixedMaps[item.category];
-                            if (fixedAvailable >= costRemaining) {
-                                futureFixedMaps[item.category] -= costRemaining;
-                                result.futureFixedUsed = costRemaining;
-                                costRemaining = 0;
-                                result.status = 'stock'; // Technically still "stock" or "future fixed"
-                            } else {
-                                result.futureFixedUsed = fixedAvailable;
-                                costRemaining -= fixedAvailable;
-                                futureFixedMaps[item.category] = 0;
-
-                                // 3. Future Flexible Pool (1:1)
-                                if (futureFlexiblePool >= costRemaining) {
-                                    futureFlexiblePool -= costRemaining;
-                                    result.futureAttrUsed = costRemaining;
-                                    costRemaining = 0;
-                                    result.status = 'stock';
-                                } else {
-                                    result.futureAttrUsed = futureFlexiblePool;
-                                    costRemaining -= futureFlexiblePool;
-                                    futureFlexiblePool = 0;
-
-                                    // 4. Current Universal Stock
-                                    if (currentUnivStock >= costRemaining) {
-                                        currentUnivStock -= costRemaining;
-                                        result.univStockUsed = costRemaining;
-                                        costRemaining = 0;
-                                        result.status = 'univ';
-                                    } else {
-                                        result.univStockUsed = currentUnivStock;
-                                        costRemaining -= currentUnivStock;
-                                        currentUnivStock = 0;
-
-                                        // 5. Future Universal Reward
-                                        if (futureUnivReward >= costRemaining) {
-                                            futureUnivReward -= costRemaining;
-                                            result.futureUnivRewardUsed = costRemaining;
-                                            costRemaining = 0;
-                                            result.status = 'univ';
-                                        } else {
-                                            result.futureUnivRewardUsed = futureUnivReward;
-                                            costRemaining -= futureUnivReward;
-                                            futureUnivReward = 0;
-
-                                            // 6. Conversion from other attributes (2:1)
-                                            // Can convert: Stock, FutureFixedMaps
-                                            let neededAttr = costRemaining * 2;
-                                            let attrConsumed = 0;
-                                            const attrTypes = ['fire', 'water', 'wind', 'thunder'];
-                                            for (let type of attrTypes) {
-                                                if (neededAttr <= 0) break;
-
-                                                // 1. Convert from Stock
-                                                const availableStock = tempInv[type];
-                                                const takeStock = Math.min(availableStock, neededAttr);
-                                                tempInv[type] -= takeStock;
-                                                attrConsumed += takeStock;
-                                                neededAttr -= takeStock;
-
-                                                if (neededAttr <= 0) break;
-
-                                                // 2. Convert from Future Fixed Maps
-                                                const availableFixed = futureFixedMaps[type];
-                                                const takeFixed = Math.min(availableFixed, neededAttr);
-                                                futureFixedMaps[type] -= takeFixed;
-                                                attrConsumed += takeFixed;
-                                                neededAttr -= takeFixed;
-                                            }
-
-                                            const convertedUniv = Math.floor(attrConsumed / 2);
-                                            result.attrConverted = convertedUniv;
-                                            result.attrConsumed = attrConsumed;
-                                            costRemaining -= convertedUniv;
-
-                                            if (costRemaining <= 0) result.status = 'convert';
-                                            else { result.status = 'gap'; result.gap = costRemaining; }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // Universal Items
-                        let costRemaining = cost;
-                        // 1. Current Universal stock
-                        if (currentUnivStock >= costRemaining) {
-                            currentUnivStock -= costRemaining;
-                            result.univStockUsed = costRemaining;
-                            result.status = 'univ';
-                        } else {
-                            result.univStockUsed = currentUnivStock;
-                            costRemaining -= currentUnivStock;
-                            currentUnivStock = 0;
-
-                            // 2. Future Universal Reward
-                            if (futureUnivReward >= costRemaining) {
-                                futureUnivReward -= costRemaining;
-                                result.futureUnivRewardUsed = costRemaining;
-                                costRemaining = 0;
-                                result.status = 'univ';
-                            } else {
-                                result.futureUnivRewardUsed = futureUnivReward;
-                                costRemaining -= futureUnivReward;
-                                futureUnivReward = 0;
-
-                                // 3. Future Flexible Pool (2:1 to Univ)
-                                let neededChoice = costRemaining * 2;
-                                let choiceTaken = Math.min(futureFlexiblePool, neededChoice);
-                                futureFlexiblePool -= choiceTaken;
-                                const choiceConverted = Math.floor(choiceTaken / 2);
-                                result.choiceToUnivUsed = choiceConverted;
-                                result.choiceRawConsumed = choiceTaken;
-                                costRemaining -= choiceConverted;
-
-                                if (costRemaining <= 0) result.status = 'convert';
-                                else {
-                                    // 4. Other Stocks & Future Fixed Maps (2:1)
-                                    let neededAttr = costRemaining * 2;
-                                    let attrConsumedTotal = 0;
-                                    const attrTypes = ['fire', 'water', 'wind', 'thunder'];
-                                    for (let type of attrTypes) {
-                                        if (neededAttr <= 0) break;
-
-                                        // 1. Convert from Stock
-                                        const availableStock = tempInv[type];
-                                        const takeStock = Math.min(availableStock, neededAttr);
-                                        tempInv[type] -= takeStock;
-                                        attrConsumedTotal += takeStock;
-                                        neededAttr -= takeStock;
-
-                                        if (neededAttr <= 0) break;
-
-                                        // 2. Convert from Future Fixed Maps
-                                        const availableFixed = futureFixedMaps[type];
-                                        const takeFixed = Math.min(availableFixed, neededAttr);
-                                        futureFixedMaps[type] -= takeFixed;
-                                        attrConsumedTotal += takeFixed;
-                                        neededAttr -= takeFixed;
-                                    }
-                                    const convertedStock = Math.floor(attrConsumedTotal / 2);
-                                    result.attrConverted = convertedStock;
-                                    result.attrConsumed = attrConsumedTotal;
-                                    costRemaining -= convertedStock;
-
-                                    if (costRemaining <= 0) result.status = 'convert';
-                                    else { result.gap = costRemaining; result.status = 'gap'; }
-                                }
-                            }
-                        }
+                    // 步驟3: 後續掉落 同屬性*
+                    if (res.category !== 'univ' && res.category === effectiveTargetAttr) {
+                        // 屬性商品且符合目標屬性：使用 fFlex (1:1)
+                        consumeRaw('futureNativeUsed', pools.fFlex, 1);
+                    } else if (res.category === 'univ') {
+                        // 無屬性商品：使用 uReward (1:1)
+                        consumeRaw('futureUnivUsed', pools.uReward, 1);
                     }
-                    result.remainingUnivPool = currentUnivStock + futureUnivReward;
-                    return result;
+
+                    // 步驟3續: 後續掉落 無屬性 (屬性商品也可用 uReward)
+                    if (res.category !== 'univ') consumeRaw('futureUnivUsed', pools.uReward, 1);
+
+                    // 步驟4: 非目標 不同屬性 (多餘的屬性殘卷 2:1)
+                    const others = ['fire', 'water', 'wind', 'thunder'].filter(c => c !== res.category);
+                    others.forEach(cat => consumeRaw('nonTargetOtherRaw', pools.aStock[cat], 2));
+
+                    // 步驟5: 後續掉落 不同屬性 (2:1)
+                    consumeRaw('futureOtherRaw', pools.fFlex, 2);
+
+                    // 步驟6: 需分解其他 (從較後順位奪回現有庫存)
+                    for (let j = i + 1; j < results.length; j++) {
+                        if (res.gap <= 0) break;
+                        const src = results[j];
+                        if (src.reservedNative <= 0) continue;
+
+                        // 同屬性 1:1，不同屬性 2:1
+                        const factor = (src.category === res.category) ? 1 : 2;
+                        const needed = res.gap * factor;
+                        const took = Math.min(src.reservedNative, needed);
+                        const gain = Math.floor(took / factor);
+                        if (gain <= 0) continue;
+
+                        res.gap -= gain;
+                        res.conversionStolenRaw += took;
+                        src.reservedNative -= took;
+                        src.nativeUsed -= took;
+                        src.gap += took;
+                        src.stolenFromMe += took;
+                    }
                 });
-            }, [cartQueue, calculation, inventory]);
+
+                const finalResults = results.map(res => {
+                    const filled = res.cost - res.gap;
+                    res.progress = `${filled}/${res.cost}`;
+                    if (res.gap <= 0) {
+                        if (res.nativeUsed > 0 || res.futureNativeUsed > 0) res.status = 'stock';
+                        else if (res.nonTargetUniv > 0 || res.futureUnivUsed > 0) res.status = 'univ';
+                        else res.status = 'convert';
+                    } else res.status = 'gap';
+
+                    return { ...res };
+                });
+
+                return {
+                    results: finalResults,
+                    remnants: {
+                        univ: pools.uStock.val + pools.uReward.val,
+                        fire: pools.aStock.fire.val, water: pools.aStock.water.val,
+                        wind: pools.aStock.wind.val, thunder: pools.aStock.thunder.val,
+                        flexible: pools.fFlex.val
+                    }
+                };
+            }, [cartQueue, calculation, inventory, targetAttr]);
+
+            const priorityQueueAnalysis = priorityQueueAnalysisData.results;
+            const queueRemnants = priorityQueueAnalysisData.remnants;
             // #endregion
 
 
@@ -1233,10 +1124,7 @@
             const clearScrolls = () => setInventory(prev => ({ ...prev, attrFire: 0, attrWater: 0, attrWind: 0, attrThunder: 0, univScrolls: 0 }));
             const clearMaps = () => setInventory(prev => ({
                 ...prev,
-                godMapsWind: 0, godMapsThunder: 0, godMapsWater: 0, godMapsFire: 0,
-                peerlessMapsWind: 0, peerlessMapsThunder: 0, peerlessMapsWater: 0, peerlessMapsFire: 0,
-                rareMapsWind: 0, rareMapsThunder: 0, rareMapsWater: 0, rareMapsFire: 0,
-                commonMapsWind: 0, commonMapsThunder: 0, commonMapsWater: 0, commonMapsFire: 0
+                godMaps: 0, peerlessMaps: 0, rareMaps: 0, commonMaps: 0
             }));
             const clearFrags = () => setInventory(prev => ({ ...prev, godFrags: 0, peerlessFrags: 0, rareFrags: 0, commonFrags: 0, randomFrags: 0 }));
 
@@ -1371,8 +1259,8 @@
                     <div className={`p-2 rounded-lg border ${bgColorClass} ${net >= 0 ? 'border-gray-200' : 'border-red-500 border-2'}`}>
                         <div className={`font-bold text-[0.75rem] mb-1 ${textColor}`}>{label}</div>
                         <div className="space-y-1 text-[0.625rem] text-gray-600">
-                            <div className="flex justify-between"><span>{t.card_inv}:</span> <span>{inv.toLocaleString()}</span></div>
-                            <div className="flex justify-between text-pink-600"><span>{t.card_cost}:</span> <span>-{cost.toLocaleString()}</span></div>
+                            <div className="flex justify-between"><span>{t.card_inv}:</span> <span>{(inv || 0).toLocaleString()}</span></div>
+                            <div className="flex justify-between text-pink-600"><span>{t.card_cost}:</span> <span>-{(cost || 0).toLocaleString()}</span></div>
                             <div className="border-t border-gray-200 my-0.5 pt-0.5 flex justify-between items-center">
                                 <span className="font-bold">{t.card_bal}:</span>
                                 <span className={`font-bold text-sm ${net >= 0 ? 'text-blue-600' : 'text-red-600 font-extrabold'}`}>{net}</span>
@@ -1469,19 +1357,19 @@
                     {/* Merged Tab 1: 設定庫存與收益預估 */}
                     {(viewMode === 'single' || activeTab === 'main') && (
                         <div className={`grid grid-cols-1 lg:grid-cols-12 gap-4 mx-1 h-full ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
-                            {/* Left Col: Settings (5 cols wide) */}
-                            <div className={`lg:col-span-5 card p-4 bg-white border-t-4 border-blue-500 flex flex-col h-full`}>
+                            {/* Left Col: Settings (6 cols wide) */}
+                            <div className={`lg:col-span-6 card p-4 bg-white border-t-4 border-blue-500 flex flex-col h-full`}>
                                 {/* 3-Row Header Layout - Consistent 3-Part Alignment & Compact */}
                                 <div className="flex flex-col gap-1.5 mb-3">
                                     {/* Row 1: Date Selection */}
                                     <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100 flex flex-wrap items-center justify-between gap-2 shadow-sm">
                                         <div className="text-blue-900 font-bold text-[0.6875rem] flex items-center gap-1 min-w-[5rem]">📅 {t.lbl_date}</div>
                                         <div className="flex-grow flex items-center min-w-[8rem]">
-                                            <input type="date" value={currentDateInput} onChange={(e) => setCurrentDateInput(e.target.value)} min="2026-01-21" max="2026-02-25" className="border-blue-200 rounded px-1 text-[0.75rem] h-7 w-full shadow-inner" onWheel={(e) => e.target.blur()} />
+                                            <input type="date" value={currentDateInput} onChange={(e) => setCurrentDateInput(e.target.value)} min="2026-01-21" max="2026-02-24" className="border-blue-200 rounded px-1 text-[0.75rem] h-7 w-full shadow-inner" onWheel={(e) => e.target.blur()} />
                                         </div>
                                         <div className="flex-shrink-0">
-                                            <span className="text-[0.75rem] sm:text-[0.875rem] text-blue-700 font-bold whitespace-nowrap bg-white px-2 py-0.5 rounded shadow-sm border border-blue-100 block">
-                                                {t.lbl_remaining.replace('{d}', calculation.daysRemaining).replace('{w}', calculation.weeksRemaining)}
+                                            <span className="text-[0.75rem] sm:text-[0.875rem] text-blue-700 font-bold whitespace-nowrap bg-white px-2 py-0.5 rounded shadow-sm border border-blue-100 block text-center min-w-[5.625rem]">
+                                                {t.lbl_remaining.replace('{d}', calculation.effDays).replace('{w}', calculation.effWeeks)}
                                             </span>
                                         </div>
                                     </div>
@@ -1489,7 +1377,7 @@
                                     {/* Row 2: Legend Rewards */}
                                     <div className="bg-purple-50/50 p-2 rounded-lg border border-purple-100 flex flex-wrap items-center justify-between gap-2 shadow-sm">
                                         <div className="text-purple-900 font-bold text-[0.6875rem] flex items-center gap-1 min-w-[5rem]">
-                                            📜 {lang === 'zh' ? '傳頌' : 'Legend'}
+                                            📜 {lang === 'zh' ? '傳頌 (若已獲得請勿勾選)' : 'Legend  (Opt. out if done)'}
                                         </div>
                                         <div className="flex-grow flex flex-row flex-wrap gap-2 items-center min-w-[8rem]">
                                             <div className="checkbox-group flex items-center gap-1">
@@ -1508,29 +1396,32 @@
                                         </div>
                                     </div>
 
-                                    {/* Row 3: Limited Events */}
+                                    {/* Row 3: Limited Events & Target Attr */}
                                     <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100 flex flex-wrap items-center justify-between gap-2 shadow-sm">
-                                        <div className="text-orange-900 font-bold text-[0.6875rem] flex items-center gap-1 min-w-[5rem]">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</div>
-                                        <div className="flex-grow flex items-center min-w-[8rem]">
-                                            <div className="flex items-center gap-1">
-                                                <select
-                                                    id="legArt"
-                                                    value={legendOptions.artEventAmount}
-                                                    onChange={(e) => setLegendOptions(prev => ({ ...prev, artEventAmount: parseInt(e.target.value) }))}
-                                                    className="border-orange-200 rounded px-1 text-[0.75rem] h-7 w-full shadow-inner bg-white"
-                                                >
-                                                    <option value="0">{lang === 'zh' ? '無' : 'None'}</option>
-                                                    <option value="5">5 {t.unit_frag}</option>
-                                                    <option value="10">10 {t.unit_frag}</option>
-                                                    <option value="15">15 {t.unit_frag}</option>
-                                                    <option value="20">20 {t.unit_frag}</option>
-                                                    <option value="25">25 {t.unit_frag}</option>
+                                        <div className="text-orange-900 font-bold text-[0.6875rem] flex items-center gap-1 min-w-[5rem]">✨ {lang === 'zh' ? '設定' : 'Config'}</div>
+                                        <div className="flex-grow flex flex-row flex-wrap gap-2 items-center min-w-[8rem]">
+                                            {/* Art Event Select */}
+                                            <div className="flex items-center gap-1 flex-1 min-w-[6rem]">
+                                                <label className="text-[0.625rem] text-gray-500 whitespace-nowrap">{lang === 'zh' ? '妙手:' : 'Art:'}</label>
+                                                <select value={legendOptions.artEventAmount} onChange={(e) => setLegendOptions(prev => ({ ...prev, artEventAmount: parseInt(e.target.value) }))} className="border-orange-200 rounded px-1 text-[0.7rem] h-6 flex-grow bg-white">
+                                                    <option value="0">0</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option>
+                                                </select>
+                                            </div>
+                                            {/* Target Attr Select */}
+                                            <div className="flex items-center gap-1 flex-1 min-w-[8rem]">
+                                                <label className="text-[0.625rem] text-indigo-600 font-bold whitespace-nowrap">🎯 {lang === 'zh' ? '目標:' : 'Target:'}</label>
+                                                <select value={targetAttr} onChange={(e) => setTargetAttr(e.target.value)} className="border-indigo-200 rounded px-1 text-[0.7rem] h-6 flex-grow bg-white font-bold">
+                                                    <option value="none">{lang === 'zh' ? '無' : 'None'}</option>
+                                                    <option value="wind">{t.attr_wind}</option>
+                                                    <option value="thunder">{t.attr_thunder}</option>
+                                                    <option value="water">{t.attr_water}</option>
+                                                    <option value="fire">{t.attr_fire}</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div className="flex-shrink-0">
                                             <span className="text-[0.5625rem] sm:text-[0.625rem] text-orange-600 italic whitespace-nowrap bg-orange-100/50 px-2 py-0.5 rounded border border-orange-100 block">
-                                                {lang === 'zh' ? '收益計入預估' : 'Est. Inc.'}
+                                                {lang === 'zh' ? '影響分配優先次序' : 'Prio Control'}
                                             </span>
                                         </div>
                                     </div>
@@ -1551,56 +1442,30 @@
                                     </div>
                                 </div>
 
-                                {/* Maps (Matrix Layout) */}
+                                {/* Maps (Simplified: One row for Qualities) */}
                                 <div className="bg-orange-50 p-2 rounded-lg border border-orange-200 mb-2">
                                     <div className="flex justify-between items-center mb-1">
                                         <label className="text-[0.75rem] font-bold text-gray-700">{t.lbl_maps}</label>
                                         <button onClick={clearMaps} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
                                     </div>
 
-                                    {/* Header Row */}
-                                    <div className="grid grid-cols-5 gap-1 mb-1 text-[0.625rem] font-bold text-center">
-                                        <div></div>
-                                        <div className="color-wind">{t.attr_wind}</div>
-                                        <div className="color-thunder">{t.attr_thunder}</div>
-                                        <div className="color-water">{t.attr_water}</div>
-                                        <div className="color-fire">{t.attr_fire}</div>
-                                    </div>
-
-                                    {/* God Row */}
-                                    <div className="grid grid-cols-5 gap-1 mb-1">
-                                        <div className="text-[0.625rem] font-bold text-red-800 flex items-center justify-center bg-red-50 rounded border border-red-100">{t.qual_god}</div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.godMapsWind} onChange={(e) => updateInv('godMapsWind', e.target.value)} className="bg-red-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.godMapsThunder} onChange={(e) => updateInv('godMapsThunder', e.target.value)} className="bg-red-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.godMapsWater} onChange={(e) => updateInv('godMapsWater', e.target.value)} className="bg-red-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.godMapsFire} onChange={(e) => updateInv('godMapsFire', e.target.value)} className="bg-red-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                    </div>
-
-                                    {/* Peerless Row */}
-                                    <div className="grid grid-cols-5 gap-1 mb-1">
-                                        <div className="text-[0.625rem] font-bold text-purple-800 flex items-center justify-center bg-purple-50 rounded border border-purple-100">{t.qual_peerless}</div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.peerlessMapsWind} onChange={(e) => updateInv('peerlessMapsWind', e.target.value)} className="bg-purple-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.peerlessMapsThunder} onChange={(e) => updateInv('peerlessMapsThunder', e.target.value)} className="bg-purple-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.peerlessMapsWater} onChange={(e) => updateInv('peerlessMapsWater', e.target.value)} className="bg-purple-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.peerlessMapsFire} onChange={(e) => updateInv('peerlessMapsFire', e.target.value)} className="bg-purple-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                    </div>
-
-                                    {/* Rare Row */}
-                                    <div className="grid grid-cols-5 gap-1 mb-1">
-                                        <div className="text-[0.625rem] font-bold text-indigo-800 flex items-center justify-center bg-indigo-50 rounded border border-indigo-100">{t.qual_rare}</div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.rareMapsWind} onChange={(e) => updateInv('rareMapsWind', e.target.value)} className="bg-indigo-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.rareMapsThunder} onChange={(e) => updateInv('rareMapsThunder', e.target.value)} className="bg-indigo-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.rareMapsWater} onChange={(e) => updateInv('rareMapsWater', e.target.value)} className="bg-indigo-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.rareMapsFire} onChange={(e) => updateInv('rareMapsFire', e.target.value)} className="bg-indigo-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                    </div>
-
-                                    {/* Common Row */}
-                                    <div className="grid grid-cols-5 gap-1">
-                                        <div className="text-[0.625rem] font-bold text-green-800 flex items-center justify-center bg-green-50 rounded border border-green-100">{t.qual_common}</div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.commonMapsWind} onChange={(e) => updateInv('commonMapsWind', e.target.value)} className="bg-green-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.commonMapsThunder} onChange={(e) => updateInv('commonMapsThunder', e.target.value)} className="bg-green-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.commonMapsWater} onChange={(e) => updateInv('commonMapsWater', e.target.value)} className="bg-green-50 text-center" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><input type="number" min="0" value={inventory.commonMapsFire} onChange={(e) => updateInv('commonMapsFire', e.target.value)} className="bg-green-50 text-center" onWheel={(e) => e.target.blur()} /></div>
+                                    <div className="grid grid-cols-4 gap-2 text-[0.6875rem]">
+                                        <div className="input-group">
+                                            <label className="text-red-600 text-center">{t.qual_god}</label>
+                                            <input type="number" min="0" value={inventory.godMaps} onChange={(e) => updateInv('godMaps', e.target.value)} className="bg-red-50 text-center w-full" onWheel={(e) => e.target.blur()} />
+                                        </div>
+                                        <div className="input-group">
+                                            <label className="text-purple-600 text-center">{t.qual_peerless}</label>
+                                            <input type="number" min="0" value={inventory.peerlessMaps} onChange={(e) => updateInv('peerlessMaps', e.target.value)} className="bg-purple-50 text-center w-full" onWheel={(e) => e.target.blur()} />
+                                        </div>
+                                        <div className="input-group">
+                                            <label className="text-indigo-600 text-center">{t.qual_rare}</label>
+                                            <input type="number" min="0" value={inventory.rareMaps} onChange={(e) => updateInv('rareMaps', e.target.value)} className="bg-indigo-50 text-center w-full" onWheel={(e) => e.target.blur()} />
+                                        </div>
+                                        <div className="input-group">
+                                            <label className="text-green-600 text-center">{t.qual_common}</label>
+                                            <input type="number" min="0" value={inventory.commonMaps} onChange={(e) => updateInv('commonMaps', e.target.value)} className="bg-green-50 text-center w-full" onWheel={(e) => e.target.blur()} />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1618,83 +1483,93 @@
                                         <div className="input-group"><label className="text-random">{t.qual_random}</label><input type="number" min="0" value={inventory.randomFrags} onChange={(e) => updateInv('randomFrags', e.target.value)} className="bg-yellow-50" onWheel={(e) => e.target.blur()} /></div>
                                     </div>
                                 </div>
+
+                                {/* Tip Card moved here (below Frags) */}
+                                <div className="mt-2 bg-orange-50 p-2.5 rounded-lg border border-orange-200 shadow-sm">
+                                    <div className="text-[0.75rem] text-orange-800 font-bold flex flex-col gap-0.5">
+                                        {lang === 'zh' ? (
+                                            <React.Fragment>
+                                                <div className="flex items-center gap-1">💡 提示：使用通用捲可以 1:1 替代屬性捲。</div>
+                                                <div>其他屬性間可透過 2:1 轉化彌補缺口。</div>
+                                                <div className="text-orange-600 mt-0.5 flex items-center gap-1 font-normal opacity-80">
+                                                    詳細規劃請至「商店」分頁查看優先隊列分析。
+                                                </div>
+                                            </React.Fragment>
+                                        ) : (
+                                            <React.Fragment>
+                                                <div className="flex items-center gap-1">💡 Protip: Universal scrolls substitute 1:1.</div>
+                                                <div>Attributes convert 2:1 for gaps.</div>
+                                                <div className="text-orange-600 mt-0.5 flex items-center gap-1 font-normal opacity-80">
+                                                    Check "Shop" tab for priority analysis.
+                                                </div>
+                                            </React.Fragment>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Right Col: Income (7 cols wide) */}
-                            <div className={`lg:col-span-7 card p-4 bg-white border-t-4 border-indigo-600 h-full`}>
-                                {/* Details & Total Row */}
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    {/* Source Details */}
-                                    <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
-                                        <div className="flex justify-between items-center mb-2 border-b pb-1">
-                                            <div className="font-bold text-gray-700 text-[0.75rem]">{t.sec_details_title}</div>
-                                            <div className="flex gap-4 w-full justify-end text-[0.75rem] font-normal">
-                                                <span className="text-blue-600">● {lang === 'zh' ? '屬性' : 'Attr'}</span>
-                                                <span className="text-green-600">● {lang === 'zh' ? '通用' : 'Univ'}</span>
+                            {/* Right Col: Calculations (6 cols wide) */}
+                            <div className="lg:col-span-6 flex flex-col gap-4 overflow-hidden">
+                                {/* Merged Row: Source Details & Grand Total */}
+                                <div className="card p-4 border-t-2 border-indigo-600 bg-white shadow-sm">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        {/* Left part: Source Details */}
+                                        <div className="md:col-span-7">
+                                            <div className="section-title text-indigo-700 text-[0.875rem] font-bold mb-2">
+                                                {t.sec_details_title}
+                                            </div>
+                                            <div className="bg-gray-50 p-2 rounded-lg border border-gray-100 space-y-1.5 text-[0.75rem]">
+                                                <div className="flex justify-between items-center border-b pb-1 text-gray-400 font-bold uppercase text-[0.625rem]">
+                                                    <span>{t.th_source}</span>
+                                                    <div className="flex gap-4">
+                                                        <span className="text-blue-600">屬性</span>
+                                                        <span className="text-green-600">通用</span>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-100 bg-blue-50/30 px-1 rounded">
+                                                    <div className="text-gray-600 font-bold">{t.lbl_member_frag}</div>
+                                                    <div className="text-right text-blue-600 font-bold">{(calculation.memberIncomeAttr || 0).toLocaleString()}</div>
+                                                    <div className="text-right text-green-600 font-bold">{(calculation.memberIncomeUniv || 0).toLocaleString()}</div>
+                                                </div>
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-100 bg-orange-50/30 px-1 rounded">
+                                                    <div className="text-gray-600 font-bold">{t.lbl_leader_frag}</div>
+                                                    <div className="text-right text-blue-600">{(calculation.leaderIncomeAttr || 0).toLocaleString()}</div>
+                                                    <div className="text-right text-green-600">{(calculation.leaderIncomeUniv || 0).toLocaleString()}</div>
+                                                </div>
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-100 bg-indigo-50/30 px-1 rounded">
+                                                    <div className="text-gray-600 font-bold">{t.lbl_univ_frag}</div>
+                                                    <div className="text-right text-blue-600">-</div>
+                                                    <div className="text-right text-green-600">{(calculation.univBase || 0).toLocaleString()}</div>
+                                                </div>
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 bg-indigo-50/30 px-1 rounded">
+                                                    <div className="text-gray-600 font-bold">{t.row_conv} + {t.row_synth}</div>
+                                                    <div className="text-right text-blue-600">{((calculation.convertedAttr || 0) + (calculation.fragSynthAttr || 0)).toLocaleString()}</div>
+                                                    <div className="text-right text-green-600">{((calculation.convertedUniv || 0) + (calculation.fragSynthUniv || 0)).toLocaleString()}</div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="space-y-1.5 text-[0.75rem]">
-                                            <div className="grid grid-cols-3 gap-1 items-center py-1 border-b border-gray-200 bg-blue-50 px-1 rounded">
-                                                <div className="text-gray-600 font-bold">{t.row_base}</div>
-                                                <div className="text-right text-blue-600 font-bold">{calculation.totalEstFixedAttr.toLocaleString()}</div>
-                                                <div className="text-right text-green-600 font-bold">{calculation.totalEstFixedUniv.toLocaleString()}</div>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-1 items-center py-1 border-b border-gray-200 bg-orange-50 px-1 rounded">
-                                                <div className="text-gray-600 font-bold">{t.row_maps}</div>
-                                                <div className="text-right text-blue-600">{calculation.inventoryMapAttr.toLocaleString()}</div>
-                                                <div className="text-right text-green-600">{calculation.inventoryMapUniv.toLocaleString()}</div>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-1 items-center py-1 border-b border-gray-200 bg-indigo-50 px-1 rounded">
-                                                <div className="text-gray-600 font-bold">{t.row_conv}</div>
-                                                <div className="text-right text-blue-600">{calculation.convertedAttr.toLocaleString()}</div>
-                                                <div className="text-right text-green-600">{calculation.convertedUniv.toLocaleString()}</div>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-1 items-center py-1 bg-indigo-50 px-1 rounded">
-                                                <div className="text-gray-600 font-bold">{t.row_synth}</div>
-                                                <div className="text-right text-blue-600">{calculation.fragSynthAttr.toLocaleString()}</div>
-                                                <div className="text-right text-green-600">{calculation.fragSynthUniv.toLocaleString()}</div>
-                                            </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Total & Exchange */}
-                                    <div className="flex flex-col gap-2">
-                                        <div className="bg-white p-2 rounded-lg border-2 border-indigo-100 flex-1 flex flex-col justify-center items-center shadow-sm">
-                                            <div className="text-gray-400 text-[0.625rem] font-bold tracking-wider uppercase mb-1">{t.total_est}</div>
-                                            <div className="flex gap-4 items-end">
-                                                <div className="text-center">
-                                                    <div className="text-2xl font-bold text-blue-600 tracking-tighter">{calculation.grandTotalAttr.toLocaleString()}</div>
-                                                    <div className="text-[0.625rem] text-blue-400 font-bold">{lang === 'zh' ? '屬性' : 'Attr'}</div>
+                                        {/* Divider (visible on medium screens+) */}
+                                        <div className="md:col-span-1 block md:hidden w-full h-px bg-gray-100 my-2"></div>
+                                        {/* Right part: Grand Total */}
+                                        <div className="md:col-span-5 flex flex-col justify-center border-l md:border-l-0 md:pl-0 pl-4 border-indigo-50">
+                                            <div className="section-title text-indigo-700 text-[1rem] font-bold mb-3 border-none p-0 drop-shadow-sm">{t.total_est}</div>
+                                            <div className="flex flex-col gap-4">
+                                                <div className="flex items-center gap-3 bg-blue-50/50 p-2 rounded-lg">
+                                                    <div className="text-lg font-black text-blue-800 whitespace-nowrap">{lang === 'zh' ? '屬性' : 'Attr'}</div>
+                                                    <div className="text-4xl font-black text-blue-600 tracking-tighter">{(calculation.grandTotalAttr || 0).toLocaleString()}</div>
                                                 </div>
-                                                <div className="text-center">
-                                                    <div className="text-2xl font-bold text-green-600 tracking-tighter">{calculation.grandTotalUniv.toLocaleString()}</div>
-                                                    <div className="text-[0.625rem] text-green-400 font-bold">{lang === 'zh' ? '通用' : 'Univ'}</div>
+                                                <div className="flex items-center gap-3 bg-green-50/50 p-2 rounded-lg">
+                                                    <div className="text-lg font-black text-green-800 whitespace-nowrap">{lang === 'zh' ? '通用' : 'Univ'}</div>
+                                                    <div className="text-4xl font-black text-green-600 tracking-tighter">{(calculation.grandTotalUniv || 0).toLocaleString()}</div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className="bg-orange-50 p-2 rounded-lg border border-orange-100 flex-1 flex flex-col justify-center">
-                                            <div className="text-[0.825rem] text-orange-800 font-bold mb-1 italic opacity-85 leading-tight">
-                                                {lang === 'zh' ? (
-                                                    <React.Fragment>
-                                                        <div>💡 提示：使用通用捲可以 1:1 替代屬性捲。</div>
-                                                        <div>其他屬性間可透過 2:1 轉化彌補缺口。</div>
-                                                    </React.Fragment>
-                                                ) : (
-                                                    <React.Fragment>
-                                                        <div>💡 Protip: Universal scrolls substitute 1:1.</div>
-                                                        <div>Attributes convert 2:1 for gaps.</div>
-                                                    </React.Fragment>
-                                                )}
-                                            </div>
-                                            <div className="text-[0.7rem] text-orange-600 mt-1">
-                                                {lang === 'zh' ? '詳細規劃請至「商店」分頁查看優先隊列分析。' : 'Check "Shop" tab for priority analysis.'}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Progress Section */}
-                                <div>
+                                {/* Middle: Progress Section */}
+                                <div className="card p-4 border-t-2 border-indigo-500 bg-white shadow-sm">
                                     <h3 className="font-bold text-gray-700 mb-2 text-sm border-b pb-1">{t.prog_title}</h3>
                                     <div className="grid grid-cols-2 gap-2 text-[0.6875rem]">
                                         <div className="flex justify-between p-1 bg-red-50 rounded border border-red-100"><span className="text-red-900 font-bold">{t.qual_god} ({calculation.totalGodPool})</span><span className="text-red-600">{t.prog_syn}{calculation.godStatus.maps} / {t.prog_need}{calculation.godStatus.needed}</span></div>
@@ -1702,6 +1577,68 @@
                                         <div className="flex justify-between p-1 bg-indigo-50 rounded border border-indigo-100"><span className="text-indigo-900 font-bold">{t.qual_rare} ({calculation.totalRarePool})</span><span className="text-indigo-600">{t.prog_syn}{calculation.rareStatus.maps} / {t.prog_need}{calculation.rareStatus.needed}</span></div>
                                         <div className="flex justify-between p-1 bg-green-50 rounded border border-green-100"><span className="text-green-900 font-bold">{t.qual_common} ({calculation.totalCommonPoolFinal})</span><span className="text-green-600">{t.prog_syn}{calculation.commonStatus.maps} / {t.prog_need}{calculation.commonStatus.needed}</span></div>
                                         <div className="col-span-2 flex justify-between p-1 bg-yellow-50 rounded border border-yellow-100"><span className="text-yellow-900 font-bold">{t.qual_random} ({calculation.totalRandomPool})</span><span className="text-yellow-600">{t.prog_syn}{calculation.randomStatus.maps} / {t.prog_need}{calculation.randomStatus.needed}</span></div>
+                                    </div>
+                                </div>
+
+                                {/* Bottom: Future Gain Breakdown */}
+                                <div className="card p-4 border-t-2 border-green-500 bg-white shadow-sm">
+                                    <div className="section-title text-green-700 text-[0.875rem] font-bold mb-2">{t.sec_future_breakdown}</div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-[0.75rem]">
+                                            <thead>
+                                                <tr className="bg-green-50/50 text-green-800">
+                                                    <th className="p-1.5 text-left rounded-l-md">{t.th_source}</th>
+                                                    <th className="p-1.5 text-center">{t.th_count}</th>
+                                                    <th className="p-1.5 text-right">{t.th_attr}</th>
+                                                    <th className="p-1.5 text-right">{t.th_univ}</th>
+                                                    <th className="p-1.5 text-right rounded-r-md">{t.th_frag}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                <tr>
+                                                    <td className="p-1.5 font-bold text-blue-700">{t.row_daily}</td>
+                                                    <td className="p-1.5 text-center font-mono">{calculation.effDays} {lang === 'zh' ? '次' : 'runs'}</td>
+                                                    <td className="p-1.5 text-right font-bold color-wind">+{calculation.effDays * DAILY_MEMBER_REWARD.attr}</td>
+                                                    <td className="p-1.5 text-right font-bold color-univ">+{calculation.effDays * DAILY_MEMBER_REWARD.univ}</td>
+                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="p-1.5 font-bold text-red-700">{t.row_weekly_divine}</td>
+                                                    <td className="p-1.5 text-center font-mono">{calculation.effWeeks} {lang === 'zh' ? '週' : 'wks'}</td>
+                                                    <td className="p-1.5 text-right font-bold color-wind">+{calculation.effWeeks * WEEKLY_MEMBER_REWARD.attr}</td>
+                                                    <td className="p-1.5 text-right font-bold color-univ">+{calculation.effWeeks * WEEKLY_MEMBER_REWARD.univ}</td>
+                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="p-1.5 font-bold text-teal-600">{t.lbl_leader_frag}</td>
+                                                    <td className="p-1.5 text-center font-mono">-</td>
+                                                    <td className="p-1.5 text-right font-bold color-wind">+{calculation.leaderIncomeAttr}</td>
+                                                    <td className="p-1.5 text-right font-bold color-univ">+{calculation.leaderIncomeUniv}</td>
+                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="p-1.5 font-bold text-orange-600">{t.row_daily_frag}</td>
+                                                    <td className="p-1.5 text-center font-mono">{calculation.effDays} {lang === 'zh' ? '天' : 'days'}</td>
+                                                    <td className="p-1.5 text-right text-gray-400 font-bold text-fragment-custom">+{calculation.effDays * 1} (絕)</td>
+                                                    <td className="p-1.5 text-right text-gray-400 font-bold text-fragment-custom">+{calculation.effDays * 2} (珍)</td>
+                                                    <td className="p-1.5 text-right font-bold text-fragment-custom">+{calculation.effDays * 3} (凡)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="p-1.5 font-bold text-purple-700">{lang === 'zh' ? "每日隨機碎片 (19片)" : "Daily Random (19)"}</td>
+                                                    <td className="p-1.5 text-center font-mono">{calculation.effDays} {lang === 'zh' ? '天' : 'days'}</td>
+                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                    <td className="p-1.5 text-right font-bold text-fragment-custom">+{calculation.effDays * FRAG_SOURCES.dailyRandom}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="p-1.5 font-bold text-purple-700">{t.row_weekly_frag}</td>
+                                                    <td className="p-1.5 text-center font-mono">{calculation.effWeeks} {lang === 'zh' ? '週' : 'wks'}</td>
+                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                    <td className="p-1.5 text-right font-bold text-fragment-custom">+{calculation.effWeeks * FRAG_SOURCES.weeklyGod}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -1713,7 +1650,7 @@
                         <div className={`card p-4 bg-white border-t-4 border-pink-500 mx-1 ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
 
                             {/* Queue + Summary Layout */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4 items-stretch">
                                 {/* Left: Dynamic Priority Queue */}
                                 <div className="lg:col-span-9 border-2 border-indigo-100 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
                                     <div className="bg-gradient-to-r from-indigo-50 to-white p-2 border-b border-indigo-100 flex justify-between items-center h-10 px-3">
@@ -1740,12 +1677,16 @@
                                                     {t.prio_empty}
                                                 </div>
                                             ) : (
-                                                <table className="w-full text-sm">
+                                                <table className="w-full text-[0.6875rem] md:text-sm border-collapse">
                                                     <thead>
-                                                        <tr className="text-gray-500 text-[0.75rem] border-b border-gray-100 bg-white sticky top-0 z-10 shadow-sm">
-                                                            <th className="py-2 pl-3 text-left">{t.prio_header_item}</th>
-                                                            <th className="py-2 text-left">{t.prio_header_calc}</th>
-                                                            <th className="py-2 pr-2 text-right w-28">{t.prio_header_status}</th>
+                                                        <tr className="text-gray-500 text-[0.625rem] border-b border-indigo-100 bg-white sticky top-0 z-10 shadow-sm uppercase font-bold">
+                                                            <th className="py-2 pl-3 text-left w-32"># {lang === 'zh' ? '品項' : 'Item'}</th>
+                                                            <th className="py-2 text-left">{lang === 'zh' ? '進度條' : 'Progress'}</th>
+                                                            <th className="py-2 text-left">{lang === 'zh' ? '現有' : 'Native'}</th>
+                                                            <th className="py-2 text-left">{lang === 'zh' ? '非目標' : 'Non-Target'}</th>
+                                                            <th className="py-2 text-left">{lang === 'zh' ? '後續掉落' : 'Future'}</th>
+                                                            <th className="py-2 text-left">{lang === 'zh' ? '需分解其他' : 'Conversion'}</th>
+                                                            <th className="py-2 pr-2 text-right">{lang === 'zh' ? '被分解' : 'Stolen'}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -1753,100 +1694,54 @@
                                                             <tr
                                                                 key={item.uid}
                                                                 onClick={() => handleQueueItemClick(index)}
-                                                                className={`border-b border-gray-50 queue-item ${selectedQueueIndex === index ? 'selected' : ''}`}
+                                                                className={`border-b border-gray-50 queue-item transition-all hover:bg-gray-50 ${selectedQueueIndex === index ? 'selected bg-indigo-50/30' : ''}`}
                                                             >
                                                                 <td className="py-3 pl-3">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className={`inline-block w-1.5 h-8 rounded-sm ${getAttrBg(item.category)}`}></span>
-                                                                        <div>
-                                                                            <div className={`font-bold ${getAttrColorText(item.category)}`}>{getAttrLabel(item.category)} {item.name}</div>
-                                                                            <div className="text-[0.625rem] text-gray-400">{item.cost}</div>
+                                                                    <div className="flex items-center gap-1.5 leading-tight">
+                                                                        <span className="text-gray-400 font-mono text-[0.625rem]">{index + 1}</span>
+                                                                        <div className="flex flex-col">
+                                                                            <div className={`font-bold truncate max-w-[100px] ${getAttrColorText(item.category)}`} title={item.name}>
+                                                                                ({getAttrLabel(item.category)}) {item.name}
+                                                                            </div>
+                                                                            <div className="flex items-center gap-1">
+                                                                                {item.status === 'stock' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" title={t.prio_status_stock}></span>}
+                                                                                {item.status === 'univ' && <span className="w-1.5 h-1.5 rounded-full bg-green-500" title={t.prio_status_univ}></span>}
+                                                                                {item.status === 'convert' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" title={t.prio_status_convert}></span>}
+                                                                                {item.status === 'gap' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" title={t.prio_status_gap}></span>}
+                                                                                <span className="text-[0.5625rem] text-gray-400">Cost: {item.cost}</span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </td>
+                                                                <td className="py-3 font-mono font-bold text-gray-500">{item.progress}</td>
                                                                 <td className="py-3">
-                                                                    <div className="flex flex-col gap-1 text-[0.625rem] md:text-[0.75rem]">
-                                                                        {item.stockUsed > 0 && (
-                                                                            <div className="flex items-center gap-1 text-gray-600">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                                                                                <span>{t.prio_stock_used}: {item.stockUsed} (= {item.stockUsed} x 1.0)</span>
-                                                                            </div>
-                                                                        )}
-                                                                        {/* Fixed Maps Income Display */}
-                                                                        {item.futureFixedUsed > 0 && (
-                                                                            <div className="flex items-center gap-1 text-purple-600 font-bold">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                                                                                <span>{lang === 'zh' ? '預計獲得: 成品圖' : 'Future: Map Drops'}: {item.futureFixedUsed} (= {item.futureFixedUsed} x 1.0)</span>
-                                                                            </div>
-                                                                        )}
-                                                                        {item.futureAttrUsed > 0 && item.choiceToUnivUsed === 0 && (
-                                                                            <div className="flex items-center gap-1 text-orange-600 font-medium">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                                                                                <span>{t.prio_future_attr}: {item.futureAttrUsed} (= {item.futureAttrUsed} x 1.0)</span>
-                                                                            </div>
-                                                                        )}
-                                                                        {item.univStockUsed > 0 && (
-                                                                            <div className="flex items-center gap-1 text-green-700">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                                                                                <span>{t.prio_univ_stock}: {item.univStockUsed} (= {item.univStockUsed} x 1.0)</span>
-                                                                            </div>
-                                                                        )}
-                                                                        {item.futureUnivRewardUsed > 0 && (
-                                                                            <div className="flex items-center gap-1 text-green-600">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                                                                                <span>{t.prio_univ_reward}: {item.futureUnivRewardUsed} (= {item.futureUnivRewardUsed} x 1.0)</span>
-                                                                            </div>
-                                                                        )}
-                                                                        {item.choiceToUnivUsed > 0 && (
-                                                                            <div className="flex items-center gap-1 text-teal-600 font-medium">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
-                                                                                <span>{t.prio_univ_reward}: {item.choiceToUnivUsed} (= {item.choiceRawConsumed} 預計屬性 / 2)</span>
-                                                                            </div>
-                                                                        )}
-                                                                        {item.attrConverted > 0 && (
-                                                                            <div className="flex items-center gap-1 text-indigo-600">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                                                                                <span>{t.prio_conv_used}: {item.attrConverted}U (= {item.attrConsumed} 屬性 / 2)</span>
-                                                                            </div>
-                                                                        )}
-                                                                        {item.gap > 0 && (
-                                                                            <div className="flex items-center gap-1 text-red-600 font-bold">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                                                                                <span>{t.prio_gap}: {item.gap}</span>
-                                                                            </div>
-                                                                        )}
+                                                                    {item.nativeUsed > 0 && <span className="text-blue-600 font-black">{item.nativeUsed}</span>}
+                                                                    {item.nativeUsed === 0 && <span className="text-gray-300">0</span>}
+                                                                </td>
+                                                                <td className="py-3">
+                                                                    <div className="flex flex-col text-[0.5625rem] gap-0.5 leading-none">
+                                                                        {item.nonTargetUniv > 0 && <span className="text-indigo-600 font-medium">無屬:{item.nonTargetUniv}</span>}
+                                                                        {item.nonTargetOtherRaw > 0 && <span className="text-gray-500">屬性:{item.nonTargetOtherRaw}</span>}
+                                                                        {item.nonTargetOtherRaw === 0 && item.nonTargetUniv === 0 && <span className="text-gray-300">0</span>}
                                                                     </div>
                                                                 </td>
-                                                                <td className="py-3 pr-2 text-right align-top">
-                                                                    <div className="flex flex-col items-end gap-1">
-                                                                        {item.status === 'stock' && (
-                                                                            <span className="inline-block bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[0.625rem] font-bold border border-blue-100 whitespace-nowrap">
-                                                                                {t.prio_status_stock}
-                                                                            </span>
-                                                                        )}
-                                                                        {item.status === 'univ' && (
-                                                                            <span className="inline-block bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[0.625rem] font-bold border border-green-100 whitespace-nowrap">
-                                                                                {t.prio_status_univ}
-                                                                            </span>
-                                                                        )}
-                                                                        {item.status === 'convert' && (
-                                                                            <span className="inline-block bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[0.625rem] font-bold border border-indigo-100 whitespace-nowrap">
-                                                                                {t.prio_status_convert}
-                                                                            </span>
-                                                                        )}
-                                                                        {item.status === 'gap' && (
-                                                                            <>
-                                                                                <span className="inline-block bg-red-50 text-red-700 px-1.5 py-0.5 rounded text-[0.625rem] font-bold border border-red-100 whitespace-nowrap">
-                                                                                    {t.prio_status_gap}
-                                                                                </span>
-                                                                                {item.category !== 'univ' && (
-                                                                                    <span className="text-[0.5625rem] text-red-500 font-bold animate-pulse whitespace-nowrap">
-                                                                                        {t.prio_farm.replace('{attr}', getAttrLabel(item.category))}
-                                                                                    </span>
-                                                                                )}
-                                                                            </>
-                                                                        )}
+                                                                <td className="py-3">
+                                                                    <div className="flex flex-col text-[0.5625rem] gap-0.5 leading-none">
+                                                                        {item.futureNativeUsed > 0 && <span className="text-green-600 font-bold">同屬:{item.futureNativeUsed}</span>}
+                                                                        {item.futureUnivUsed > 0 && <span className="text-teal-600 font-bold">無屬:{item.futureUnivUsed}</span>}
+                                                                        {item.futureOtherRaw > 0 && <span className="text-orange-500 font-medium font-bold">不同:{item.futureOtherRaw}</span>}
+                                                                        {item.futureNativeUsed === 0 && item.futureUnivUsed === 0 && item.futureOtherRaw === 0 && <span className="text-gray-300">0</span>}
                                                                     </div>
+                                                                </td>
+                                                                <td className="py-3">
+                                                                    <span className={item.conversionStolenRaw > 0 ? "text-pink-600 font-bold" : "text-gray-300"}>
+                                                                        {item.conversionStolenRaw > 0 ? item.conversionStolenRaw : "0"}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="py-3 pr-2 text-right">
+                                                                    <span className={item.stolenFromMe > 0 ? "text-red-400 font-bold" : "text-gray-300"}>
+                                                                        {item.stolenFromMe > 0 ? item.stolenFromMe : "0"}
+                                                                    </span>
                                                                 </td>
                                                             </tr>
                                                         ))}
@@ -1858,21 +1753,21 @@
                                 </div>
 
                                 {/* Right: Summary Cards Stack */}
-                                <div className="lg:col-span-3 flex flex-col gap-4">
-                                    <div className="bg-white p-4 rounded-xl shadow-sm border-2 border-indigo-50 flex-1 flex flex-col">
-                                        <div className="text-indigo-900 font-bold text-[0.75rem] mb-4 flex items-center gap-2 border-b border-indigo-50 pb-2">
+                                <div className="lg:col-span-3 flex flex-col gap-4 h-full">
+                                    <div className="bg-white p-3 rounded-xl shadow-sm border-2 border-indigo-50 flex-1 flex flex-col overflow-hidden">
+                                        <div className="text-indigo-900 font-bold text-[0.7rem] mb-2 flex items-center gap-1 border-b border-indigo-50 pb-1">
                                             <span>📊</span> {lang === 'zh' ? '預估殘捲總量' : 'Est. Total Scrolls'}
                                         </div>
 
                                         <div className="space-y-4 flex-1 flex flex-col justify-center">
                                             <div className="bg-blue-50 p-2 rounded-lg border border-blue-100 flex flex-col items-center text-center">
-                                                <div className="text-[0.9375rem] text-blue-600 font-bold mb-1 uppercase">{lang === 'zh' ? '屬性捲' : 'Attr'}</div>
-                                                <div className="text-xl font-black text-blue-700">{calculation.grandTotalAttr.toLocaleString()}</div>
+                                                <div className="text-[0.6rem] text-blue-600 font-bold mb-1 uppercase">{lang === 'zh' ? '屬性捲' : 'Attr'}</div>
+                                                <div className="text-xl font-black text-blue-700">{(calculation.grandTotalAttr || 0).toLocaleString()}</div>
                                             </div>
 
                                             <div className="bg-green-50 p-2 rounded-lg border border-green-100 flex flex-col items-center text-center">
-                                                <div className="text-[0.9375rem] text-green-600 font-bold mb-1 uppercase">{lang === 'zh' ? '通用捲' : 'Univ'}</div>
-                                                <div className="text-xl font-black text-green-700">{calculation.grandTotalUniv.toLocaleString()}</div>
+                                                <div className="text-[0.6rem] text-green-600 font-bold mb-1 uppercase">{lang === 'zh' ? '通用捲' : 'Univ'}</div>
+                                                <div className="text-xl font-black text-green-700">{(calculation.grandTotalUniv || 0).toLocaleString()}</div>
                                             </div>
                                         </div>
 
@@ -1927,102 +1822,107 @@
                                 </div>
                             </div>
                         </div>
-                    )}
+                    )
+                    }
 
                     {/* Tab 4: 每日獲取明細 */}
-                    {(viewMode === 'single' || activeTab === 'daily') && (
-                        <div className={`card p-4 border-t-4 border-teal-500 overflow-x-auto mx-1 ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
-                            <table className="w-full min-w-[700px]">
-                                <thead>
-                                    <tr>
-                                        <th className="w-16 text-[0.75rem]">{t.th_day}</th>
-                                        <th className="w-32 text-[0.75rem]">{t.th_date}</th>
-                                        <th className="text-[0.75rem]">{t.th_gain}</th>
-                                        <th className="text-[0.75rem]">{t.th_acc}</th>
-                                        <th className="text-[0.75rem]">{t.th_frag}</th>
-                                        <th className="text-[0.75rem]">{t.th_note}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {dailyTable.map((row) => (
-                                        <tr key={row.day} className={row.date.startsWith(currentDateInput.slice(5)) ? "bg-blue-100 border-l-4 border-blue-500" : ""}>
-                                            <td className="font-medium text-gray-600 text-[0.75rem]">{row.day}</td>
-                                            <td className="text-[0.75rem]">{row.date}</td>
-                                            <td className="text-[0.75rem] text-gray-600">{row.dayAttr} / {row.dayUniv} / <span className="text-yellow-600 font-bold">{row.dayRandom}</span></td>
-                                            <td className="text-[0.75rem]"><span className="text-blue-600 font-bold">{row.accAttr}</span> / <span className="text-green-600 font-bold">{row.accUniv}</span></td>
-                                            <td className="text-[0.75rem]"><span className="text-yellow-800 font-bold bg-yellow-100 px-2 py-1 rounded">{row.accRandom}</span></td>
-                                            <td className="text-[0.625rem] text-gray-500">{row.notes.map((note, idx) => (<span key={idx} className={note.style}>{idx > 0 && ", "}{note.text}</span>))}</td>
+                    {
+                        (viewMode === 'single' || activeTab === 'daily') && (
+                            <div className={`card p-4 border-t-4 border-teal-500 overflow-x-auto mx-1 ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
+                                <table className="w-full min-w-[700px]">
+                                    <thead>
+                                        <tr>
+                                            <th className="w-16 text-[0.75rem]">{t.th_day}</th>
+                                            <th className="w-32 text-[0.75rem]">{t.th_date}</th>
+                                            <th className="text-[0.75rem]">{t.th_gain}</th>
+                                            <th className="text-[0.75rem]">{t.th_acc}</th>
+                                            <th className="text-[0.75rem]">{t.th_frag}</th>
+                                            <th className="text-[0.75rem]">{t.th_note}</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                    </thead>
+                                    <tbody>
+                                        {dailyTable.map((row) => (
+                                            <tr key={row.day} className={row.date.startsWith(currentDateInput.slice(5)) ? "bg-blue-100 border-l-4 border-blue-500" : ""}>
+                                                <td className="font-medium text-gray-600 text-[0.75rem]">{row.day}</td>
+                                                <td className="text-[0.75rem]">{row.date}</td>
+                                                <td className="text-[0.75rem] text-gray-600">{row.dayAttr} / {row.dayUniv} / <span className="text-yellow-600 font-bold">{row.dayRandom}</span></td>
+                                                <td className="text-[0.75rem]"><span className="text-blue-600 font-bold">{row.accAttr}</span> / <span className="text-green-600 font-bold">{row.accUniv}</span></td>
+                                                <td className="text-[0.75rem]"><span className="text-yellow-800 font-bold bg-yellow-100 px-2 py-1 rounded">{row.accRandom}</span></td>
+                                                <td className="text-[0.625rem] text-gray-500">{row.notes.map((note, idx) => (<span key={idx} className={note.style}>{idx > 0 && ", "}{note.text}</span>))}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )
+                    }
 
-                    {(viewMode === 'single' || activeTab === 'sources') && (
-                        <div className={`card p-4 border-t-4 border-yellow-500 mx-1 ${viewMode === 'tabs' ? '' : ''}`}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="border rounded-lg p-3 bg-yellow-50 border-yellow-200">
-                                    <h3 className="font-bold text-yellow-800 mb-2 border-b border-yellow-300 pb-1">{t.src_fixed_title}</h3>
-                                    <ul className="space-y-1.5 text-[0.75rem]">
-                                        <li className="flex justify-between items-center"><span className="text-red-700 font-bold">{t.qual_god}</span><span className="bg-white px-2 py-0.5 rounded-full text-red-600 font-bold shadow-sm">4 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center"><span className="text-purple-700 font-bold">{t.qual_peerless}</span><span className="bg-white px-2 py-0.5 rounded-full text-purple-600 font-bold shadow-sm">5 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center"><span className="text-indigo-700 font-bold">{t.qual_rare}</span><span className="bg-white px-2 py-0.5 rounded-full text-indigo-600 font-bold shadow-sm">9 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center"><span className="text-green-700 font-bold">{t.qual_common}</span><span className="bg-white px-2 py-0.5 rounded-full text-green-600 font-bold shadow-sm">8 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center"><span className="text-yellow-700 font-bold">{t.qual_random}</span><span className="bg-white px-2 py-0.5 rounded-full text-yellow-600 font-bold shadow-sm">20 {t.unit_frag}</span></li>
-                                        <li className="flex justify-between items-center border-t border-yellow-200 pt-1.5 mt-1.5">
-                                            <span className="text-orange-700 font-bold">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</span>
-                                            <span className="bg-white px-2 py-0.5 rounded-full text-orange-600 font-bold shadow-sm">{t.src_art_reward}</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
-                                        <h3 className="font-bold text-blue-800 mb-2 border-b border-blue-300 pb-1">{t.src_weekly_title}</h3>
-                                        <div className="space-y-2 text-[0.75rem]">
-                                            <div><div className="text-[0.625rem] font-bold text-gray-700 mb-1">{t.src_weekly_sub}</div><div className="flex justify-between items-center bg-white p-1 rounded border border-blue-100"><span className="text-red-600 font-bold">{t.qual_god}</span><span className="font-bold">3 {t.unit_frag} {t.unit_week}</span></div></div>
-                                            <div><div className="text-[0.625rem] font-bold text-gray-700 mb-1">{t.src_daily_sub}</div><div className="flex justify-between items-center bg-white p-1 rounded border border-blue-100"><span className="text-yellow-600 font-bold">{t.qual_random}</span><span className="font-bold">19 {t.unit_frag} {t.unit_day}</span></div><div className="text-[0.6875rem] text-orange-600 font-bold mt-1 text-right italic">{t.src_daily_note}</div></div>
+                    {
+                        (viewMode === 'single' || activeTab === 'sources') && (
+                            <div className={`card p-4 border-t-4 border-yellow-500 mx-1 ${viewMode === 'tabs' ? '' : ''}`}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="border rounded-lg p-3 bg-yellow-50 border-yellow-200">
+                                        <h3 className="font-bold text-yellow-800 mb-2 border-b border-yellow-300 pb-1">{t.src_fixed_title}</h3>
+                                        <ul className="space-y-1.5 text-[0.75rem]">
+                                            <li className="flex justify-between items-center"><span className="text-red-700 font-bold">{t.qual_god}</span><span className="bg-white px-2 py-0.5 rounded-full text-red-600 font-bold shadow-sm">4 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center"><span className="text-purple-700 font-bold">{t.qual_peerless}</span><span className="bg-white px-2 py-0.5 rounded-full text-purple-600 font-bold shadow-sm">5 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center"><span className="text-indigo-700 font-bold">{t.qual_rare}</span><span className="bg-white px-2 py-0.5 rounded-full text-indigo-600 font-bold shadow-sm">9 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center"><span className="text-green-700 font-bold">{t.qual_common}</span><span className="bg-white px-2 py-0.5 rounded-full text-green-600 font-bold shadow-sm">8 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center"><span className="text-yellow-700 font-bold">{t.qual_random}</span><span className="bg-white px-2 py-0.5 rounded-full text-yellow-600 font-bold shadow-sm">20 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center border-t border-yellow-200 pt-1.5 mt-1.5">
+                                                <span className="text-orange-700 font-bold">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</span>
+                                                <span className="bg-white px-2 py-0.5 rounded-full text-orange-600 font-bold shadow-sm">{t.src_art_reward}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
+                                            <h3 className="font-bold text-blue-800 mb-2 border-b border-blue-300 pb-1">{t.src_weekly_title}</h3>
+                                            <div className="space-y-2 text-[0.75rem]">
+                                                <div><div className="text-[0.625rem] font-bold text-gray-700 mb-1">{t.src_weekly_sub}</div><div className="flex justify-between items-center bg-white p-1 rounded border border-blue-100"><span className="text-red-600 font-bold">{t.qual_god}</span><span className="font-bold">3 {t.unit_frag} {t.unit_week}</span></div></div>
+                                                <div><div className="text-[0.625rem] font-bold text-gray-700 mb-1">{t.src_daily_sub}</div><div className="flex justify-between items-center bg-white p-1 rounded border border-blue-100"><span className="text-yellow-600 font-bold">{t.qual_random}</span><span className="font-bold">19 {t.unit_frag} {t.unit_day}</span></div><div className="text-[0.6875rem] text-orange-600 font-bold mt-1 text-right italic">{t.src_daily_note}</div></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* New Rewards Reference Section */}
-                            <div className="mt-4 border rounded-lg p-3 bg-indigo-50 border-indigo-200">
-                                <h3 className="font-bold text-indigo-800 mb-2 border-b border-indigo-300 pb-1">{t.src_rewards_title}</h3>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-[0.75rem] text-left">
-                                        <thead className="bg-indigo-100 text-indigo-900">
-                                            <tr>
-                                                <th className="p-1">{t.reward_header_qual}</th>
-                                                <th className="p-1">{t.reward_header_role}</th>
-                                                <th className="p-1 text-right">{t.reward_header_attr}</th>
-                                                <th className="p-1 text-right">{t.reward_header_univ}</th>
-                                                <th className="p-1 text-right">{t.reward_header_refund}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-indigo-100">
-                                            {/* God */}
-                                            <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-red-700 italic">{t.qual_god}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">30</td><td className="p-1.5 text-right text-green-600 font-bold">40</td><td className="p-1.5 text-right">-</td></tr>
-                                            <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">15</td><td className="p-1.5 text-right text-green-500">20</td><td className="p-1.5 text-right">-</td></tr>
-                                            {/* Peerless */}
-                                            <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-purple-700 italic">{t.qual_peerless}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">16</td><td className="p-1.5 text-right text-green-600 font-bold">20</td><td className="p-1.5 text-right font-bold text-purple-600">1</td></tr>
-                                            <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">8</td><td className="p-1.5 text-right text-green-500">10</td><td className="p-1.5 text-right">-</td></tr>
-                                            {/* Rare */}
-                                            <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-indigo-700 italic">{t.qual_rare}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">8</td><td className="p-1.5 text-right text-green-600 font-bold">10</td><td className="p-1.5 text-right font-bold text-indigo-600">1</td></tr>
-                                            <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">4</td><td className="p-1.5 text-right text-green-500">5</td><td className="p-1.5 text-right">-</td></tr>
-                                            {/* Common */}
-                                            <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-green-700 italic">{t.qual_common}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">4</td><td className="p-1.5 text-right text-green-600 font-bold">5</td><td className="p-1.5 text-right font-bold text-green-600">1</td></tr>
-                                            <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">2</td><td className="p-1.5 text-right text-green-500">3</td><td className="p-1.5 text-right">-</td></tr>
-                                            {/* Legend */}
-                                            <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-purple-900 italic">{t.qual_legend}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">-</td><td className="p-1.5 text-right text-green-600 font-bold">150</td><td className="p-1.5 text-right">-</td></tr>
-                                            <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">-</td><td className="p-1.5 text-right text-green-500">75</td><td className="p-1.5 text-right">-</td></tr>
-                                        </tbody>
-                                    </table>
+                                {/* New Rewards Reference Section */}
+                                <div className="mt-4 border rounded-lg p-3 bg-indigo-50 border-indigo-200">
+                                    <h3 className="font-bold text-indigo-800 mb-2 border-b border-indigo-300 pb-1">{t.src_rewards_title}</h3>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-[0.75rem] text-left">
+                                            <thead className="bg-indigo-100 text-indigo-900">
+                                                <tr>
+                                                    <th className="p-1">{t.reward_header_qual}</th>
+                                                    <th className="p-1">{t.reward_header_role}</th>
+                                                    <th className="p-1 text-right">{t.reward_header_attr}</th>
+                                                    <th className="p-1 text-right">{t.reward_header_univ}</th>
+                                                    <th className="p-1 text-right">{t.reward_header_refund}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-indigo-100">
+                                                {/* God */}
+                                                <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-red-700 italic">{t.qual_god}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">30</td><td className="p-1.5 text-right text-green-600 font-bold">40</td><td className="p-1.5 text-right">-</td></tr>
+                                                <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">15</td><td className="p-1.5 text-right text-green-500">20</td><td className="p-1.5 text-right">-</td></tr>
+                                                {/* Peerless */}
+                                                <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-purple-700 italic">{t.qual_peerless}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">16</td><td className="p-1.5 text-right text-green-600 font-bold">20</td><td className="p-1.5 text-right font-bold text-purple-600">1</td></tr>
+                                                <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">8</td><td className="p-1.5 text-right text-green-500">10</td><td className="p-1.5 text-right">-</td></tr>
+                                                {/* Rare */}
+                                                <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-indigo-700 italic">{t.qual_rare}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">8</td><td className="p-1.5 text-right text-green-600 font-bold">10</td><td className="p-1.5 text-right font-bold text-indigo-600">1</td></tr>
+                                                <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">4</td><td className="p-1.5 text-right text-green-500">5</td><td className="p-1.5 text-right">-</td></tr>
+                                                {/* Common */}
+                                                <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-green-700 italic">{t.qual_common}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">4</td><td className="p-1.5 text-right text-green-600 font-bold">5</td><td className="p-1.5 text-right font-bold text-green-600">1</td></tr>
+                                                <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">2</td><td className="p-1.5 text-right text-green-500">3</td><td className="p-1.5 text-right">-</td></tr>
+                                                {/* Legend */}
+                                                <tr className="bg-blue-100/50"><td className="p-1.5 font-bold text-purple-900 italic">{t.qual_legend}</td><td className="p-1.5 font-bold">{t.role_capt}</td><td className="p-1.5 text-right text-blue-600 font-bold">-</td><td className="p-1.5 text-right text-green-600 font-bold">150</td><td className="p-1.5 text-right">-</td></tr>
+                                                <tr className="bg-white"><td className="p-1.5"></td><td className="p-1.5 text-gray-500">{t.role_memb}</td><td className="p-1.5 text-right text-blue-500">-</td><td className="p-1.5 text-right text-green-500">75</td><td className="p-1.5 text-right">-</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )
+                    }
                     {/* Floating Zoom Console - Fixed Units to Prevent Jumping */}
                     <div style={{
                         position: 'fixed',
@@ -2054,8 +1954,7 @@
                     </div>
                 </div>
             );
-            // #endregion
-        }
+        };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
