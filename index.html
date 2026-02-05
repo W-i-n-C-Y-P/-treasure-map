@@ -481,8 +481,19 @@
                 help_h2: "2. 碎片合成遞迴邏輯",
                 help_p3: "本工具模擬了「討伐絕/珍/凡品圖後退還 1 片碎片」的規則：",
                 help_li3: "當您輸入 10 片時，進度會顯示「合 1 / 差 9」，因為系統預知您打完後會剩 1 片。",
-                help_h3: "3. 縮放與便捷操作 (New!)",
-                help_p4: "● **縮放操作**：您可以點擊右下角的 [+] 或 [-] 進行縮放，點擊中央百分比可重置為 100%。",
+                help_h3: "3. 商店兌換計算邏輯 (重要！)",
+                help_p4: "商品按優先順序依序處理，每個商品依照以下步驟使用資源：",
+                help_li4: "● **步驟1**：現有同屬性庫存 (1:1)",
+                help_li5: "● **步驟2**：未來獲取同屬性 (1:1，優先給第一個屬性商品)",
+                help_li6: "● **步驟3**：現有「不在商品欄」的屬性 (2:1轉換)",
+                help_li7: "● **步驟4**：現有「商品欄裡最低優先權」的屬性 (2:1轉換)",
+                help_li8: "● **步驟5**：未來獲取的屬性殘卷 (2:1轉換)",
+                help_p5: "**重要提示**：前面的商品會優先使用所有可用資源，後面的商品只能使用剩餘資源。新增商品不會影響前面商品的計算結果。您可以透過調整商品順序來優化資源分配。",
+                help_h4: "4. 縮放與便捷操作",
+                help_p6: "● **縮放操作**：您可以點擊右下角的 [+] 或 [-] 進行縮放，點擊中央百分比可重置為 100%。",
+                help_p7: "● **拖拽排序**：在商店規劃的商品隊列中，您可以直接拖拽項目來快速調整優先順序。",
+                help_p8: "● **數據自動保存**：所有輸入的數據會自動保存到瀏覽器，下次打開時會自動載入。",
+                help_h5: "5. 建議每日使用流程",
                 help_li4: "● **快捷鍵**：支援 `Ctrl` + `+`/`-` 縮放，以及 `Ctrl` + `0` 重置。",
                 help_h4: "4. 建議每日使用流程",
                 help_s1: "每日更新庫存 (庫存與收益總覽)",
@@ -490,12 +501,12 @@
                 help_s2: "查看合成進度 (庫存與收益總覽 右側)",
                 help_d2: "若顯示可合成，代表遊戲內可以去合成並討伐了。",
                 help_s3: "優先隊列規劃 (商店規劃)",
-                help_d3: "加入想買的商品，並透過「上/下」按鈕調整優先順序。系統會依序扣除資源並顯示缺口。",
+                help_d3: "加入想買的商品，並透過拖拽或「上/下」按鈕調整優先順序。系統會依序扣除資源並顯示缺口。",
                 btn_gotit: "我瞭解了",
 
                 // Priority Logic
                 prio_title: "🏆 動態購物隊列與缺口分析",
-                prio_subtitle: "由上而下依序計算，點選項目後可移動/刪除",
+                prio_subtitle: "由上而下依序計算，點選項目後可移動/刪除，也可直接拖拽排序",
                 prio_header_item: "兌換項目",
                 prio_header_calc: "扣除來源",
                 prio_header_status: "狀態",
@@ -602,21 +613,32 @@
                 help_h2: "2. Recursive Synthesis",
                 help_p3: "The tool simulates the '1-fragment refund after Superior/Epic/Common runs' rule:",
                 help_li3: "Entering 10 fragments shows '1 Craft / 9 Needed' because 1 is returned after usage.",
-                help_h3: "3. Zoom & Shortcuts (New!)",
-                help_p4: "● **Zoom Console**: Use [+] or [-] in the bottom right. Tap the percentage to reset to 100%.",
+                help_h3: "3. Shop Exchange Logic (Important!)",
+                help_p4: "Items are processed in priority order. Each item uses resources in these steps:",
+                help_li4: "● **Step 1**: Current native stock (1:1 ratio)",
+                help_li5: "● **Step 2**: Future native income (1:1, priority to 1st attribute item)",
+                help_li6: "● **Step 3**: Current attributes NOT in cart (2:1 conversion)",
+                help_li7: "● **Step 4**: Lowest priority attributes IN cart (2:1 conversion)",
+                help_li8: "● **Step 5**: Future attribute income (2:1 conversion)",
+                help_p5: "**Important**: Higher priority items use all available resources first. Later items only get remaining resources. Adding new items won't change previous items' calculations. Adjust item order to optimize resource allocation.",
+                help_h4: "4. Zoom & Shortcuts",
+                help_p6: "● **Zoom Console**: Use [+] or [-] in the bottom right. Tap the percentage to reset to 100%.",
+                help_p7: "● **Drag to Reorder**: In the shopping queue, drag items directly to adjust priority quickly.",
+                help_p8: "● **Auto-Save**: All input data is automatically saved to your browser and restored on next visit.",
+                help_h5: "5. Daily Workflow",
                 help_li4: "● **Shortcuts**: Supports `Ctrl` + `+`/`-` zoom, and `Ctrl` + `0` to reset.",
-                help_h4: "4. Recommended Routine",
+                help_h5: "5. Recommended Routine",
                 help_s1: "Daily Stock Update (Tab 1)",
                 help_d1: "Fill in your latest scrolls, maps, and fragments.",
                 help_s2: "Check Synthesis (Tab 1 Bottom Right)",
                 help_d2: "If craftable, it means you can synthesize and raid in-game.",
                 help_s3: "Plan Queue (Tab 2)",
-                help_d3: "Add items and use Up/Down to prioritize. The system drains resources in waterfall order.",
+                help_d3: "Add items and drag or use arrow buttons to prioritize. System drains resources sequentially.",
                 btn_gotit: "Got it",
 
                 // Priority Logic
                 prio_title: "🏆 Dynamic Shopping Queue",
-                prio_subtitle: "Calculated top-to-bottom. Tap to select/move.",
+                prio_subtitle: "Calculated sequentially. Click to select or drag to reorder.",
                 prio_header_item: "Item",
                 prio_header_calc: "Source",
                 prio_header_status: "Status",
@@ -731,7 +753,10 @@
 
             const t = I18N[lang];
 
-            const [currentDateInput, setCurrentDateInput] = useState(() => {
+            // #region 狀態初始化 - 從 localStorage 讀取
+            const getInitialDate = () => {
+                const saved = localStorage.getItem('treasure-date');
+                if (saved) return saved;
                 const now = new Date();
                 if (now < START_DATE) return "2026-01-21";
                 if (now > END_DATE) return "2026-02-25";
@@ -739,29 +764,89 @@
                 const m = String(now.getMonth() + 1).padStart(2, '0');
                 const d = String(now.getDate()).padStart(2, '0');
                 return `${y}-${m}-${d}`;
-            });
+            };
 
-            const [inventory, setInventory] = useState({
-                attrFire: 0, attrWater: 0, attrWind: 0, attrThunder: 0, univScrolls: 0,
+            const getInitialInventory = () => {
+                const saved = localStorage.getItem('treasure-inventory');
+                if (saved) {
+                    try {
+                        return JSON.parse(saved);
+                    } catch (e) {
+                        console.error('Failed to parse inventory:', e);
+                    }
+                }
+                return {
+                    attrFire: 0, attrWater: 0, attrWind: 0, attrThunder: 0, univScrolls: 0,
+                    godMaps: 0, peerlessMaps: 0, rareMaps: 0, commonMaps: 0,
+                    godFrags: 0, peerlessFrags: 0, rareFrags: 0, commonFrags: 0, randomFrags: 0
+                };
+            };
 
-                // Maps: Quality only (Combined Attributes)
-                godMaps: 0, peerlessMaps: 0, rareMaps: 0, commonMaps: 0,
+            const getInitialLegendOptions = () => {
+                const saved = localStorage.getItem('treasure-legend');
+                if (saved) {
+                    try {
+                        return JSON.parse(saved);
+                    } catch (e) {
+                        console.error('Failed to parse legend options:', e);
+                    }
+                }
+                return { includeMember: false, includeCaptain: false, artEventAmount: 0 };
+            };
 
-                godFrags: 0, peerlessFrags: 0, rareFrags: 0, commonFrags: 0, randomFrags: 0
-            });
+            const getInitialCartQueue = () => {
+                const saved = localStorage.getItem('treasure-cart-queue');
+                if (saved) {
+                    try {
+                        return JSON.parse(saved);
+                    } catch (e) {
+                        console.error('Failed to parse cart queue:', e);
+                    }
+                }
+                return [];
+            };
 
-            const [legendOptions, setLegendOptions] = useState({ includeMember: false, includeCaptain: false, artEventAmount: 0 });
+            const getInitialShopCart = () => {
+                const saved = localStorage.getItem('treasure-shop-cart');
+                if (saved) {
+                    try {
+                        return JSON.parse(saved);
+                    } catch (e) {
+                        console.error('Failed to parse shop cart:', e);
+                    }
+                }
+                return { fire: {}, water: {}, wind: {}, thunder: {}, univ: {} };
+            };
 
-            // Using cartQueue as the Source of Truth for the order of items
-            const [cartQueue, setCartQueue] = useState([]);
-
-            // shopCart is derived or synchronized for the bottom UI counters (O(1) lookup)
-            const [shopCart, setShopCart] = useState({
-                fire: {}, water: {}, wind: {}, thunder: {}, univ: {}
-            });
-
-            // Selected Item in Queue for Mobile Actions
+            const [currentDateInput, setCurrentDateInput] = useState(getInitialDate);
+            const [inventory, setInventory] = useState(getInitialInventory);
+            const [legendOptions, setLegendOptions] = useState(getInitialLegendOptions);
+            const [cartQueue, setCartQueue] = useState(getInitialCartQueue);
+            const [shopCart, setShopCart] = useState(getInitialShopCart);
             const [selectedQueueIndex, setSelectedQueueIndex] = useState(null);
+            const [dateError, setDateError] = useState('');
+            const [draggedIndex, setDraggedIndex] = useState(null);
+            // #endregion
+            // #region 數據持久化 - 自動保存到 localStorage
+            useEffect(() => {
+                localStorage.setItem('treasure-date', currentDateInput);
+            }, [currentDateInput]);
+
+            useEffect(() => {
+                localStorage.setItem('treasure-inventory', JSON.stringify(inventory));
+            }, [inventory]);
+
+            useEffect(() => {
+                localStorage.setItem('treasure-legend', JSON.stringify(legendOptions));
+            }, [legendOptions]);
+
+            useEffect(() => {
+                localStorage.setItem('treasure-cart-queue', JSON.stringify(cartQueue));
+            }, [cartQueue]);
+
+            useEffect(() => {
+                localStorage.setItem('treasure-shop-cart', JSON.stringify(shopCart));
+            }, [shopCart]);
             // #endregion
 
             // --- 輔助函式 ---
@@ -912,7 +997,7 @@
                     totalGodPool, totalPeerlessPool, totalRarePool, totalCommonPoolFinal,
                     effDays, effWeeks
                 };
-            }, [currentDateInput, inventory, legendOptions, shopCart]);
+            }, [currentDateInput, inventory, legendOptions]);
 
             // --- NEW: Waterfall Queue Calculation ---
             const priorityQueueAnalysisData = useMemo(() => {
@@ -949,74 +1034,156 @@
                     reservedNative: 0     // Phase 1 預留的現有庫存
                 }));
 
-                // Phase 1: 預分配現有庫存 (步驟1 - 依兌換順位分配)
+                // 分析商品欄裡有哪些屬性（用於判斷步驟3和4）
+                const attributesInCart = {
+                    fire: false, water: false, wind: false, thunder: false
+                };
+                const attributePriority = []; // 按順序記錄屬性出現的優先權
+                
                 results.forEach(res => {
-                    const pool = res.category === 'univ' ? pools.uStock : pools.aStock[res.category];
-                    if (pool && pool.val > 0) {
-                        const took = Math.min(res.gap, pool.val);
-                        res.nativeUsed = took;
-                        res.reservedNative = took;
-                        res.gap -= took;
-                        pool.val -= took;
+                    if (res.category !== 'univ' && !attributesInCart[res.category]) {
+                        attributesInCart[res.category] = true;
+                        attributePriority.push(res.category);
                     }
                 });
 
-                // Phase 2: 依優先度順序處理每個商品
+                // 按順序逐個完整處理每個商品
                 results.forEach((res, i) => {
+                    
+                    // 步驟1: 現有同屬性庫存 (1:1)
+                    const nativePool = res.category === 'univ' ? pools.uStock : pools.aStock[res.category];
+                    if (nativePool && nativePool.val > 0 && res.gap > 0) {
+                        const took = Math.min(res.gap, nativePool.val);
+                        res.nativeUsed = took;
+                        res.reservedNative = took;
+                        res.gap -= took;
+                        nativePool.val -= took;
+                    }
+                    
                     if (res.gap <= 0) return;
 
-                    const consumeRaw = (field, poolRef, factor) => {
-                        if (res.gap <= 0 || poolRef.val <= 0) return;
-                        const needed = res.gap * factor;
-                        const took = Math.min(poolRef.val, needed);
-                        const gain = Math.floor(took / factor);
-                        if (gain <= 0 && factor > 1) return;
-                        res.gap -= gain;
-                        poolRef.val -= took;
-                        res[field] += took;
-                    };
-
-                    // 步驟2: 非目標 無屬性 (多餘的無屬性殘卷 1:1)
-                    if (res.category !== 'univ') consumeRaw('nonTargetUniv', pools.uStock, 1);
-
-                    // 步驟3: 後續掉落 同屬性*
+                    // 步驟2: 未來獲取同屬性 (1:1)
                     if (res.category !== 'univ' && res.category === effectiveTargetAttr) {
-                        // 屬性商品且符合目標屬性：使用 fFlex (1:1)
-                        consumeRaw('futureNativeUsed', pools.fFlex, 1);
+                        if (pools.fFlex.val > 0 && res.gap > 0) {
+                            const took = Math.min(res.gap, pools.fFlex.val);
+                            res.futureNativeUsed += took;
+                            res.gap -= took;
+                            pools.fFlex.val -= took;
+                        }
                     } else if (res.category === 'univ') {
-                        // 無屬性商品：使用 uReward (1:1)
-                        consumeRaw('futureUnivUsed', pools.uReward, 1);
+                        if (pools.uReward.val > 0 && res.gap > 0) {
+                            const took = Math.min(res.gap, pools.uReward.val);
+                            res.futureUnivUsed += took;
+                            res.gap -= took;
+                            pools.uReward.val -= took;
+                        }
+                    }
+                    
+                    if (res.gap <= 0) return;
+
+                    // 步驟3: 現有「不在商品欄」的屬性殘卷 (2:1)
+                    if (res.category === 'univ') {
+                        const notInCart = ['fire', 'water', 'wind', 'thunder'].filter(attr => !attributesInCart[attr]);
+                        notInCart.forEach(attr => {
+                            if (res.gap <= 0 || pools.aStock[attr].val <= 0) return;
+                            const needed = res.gap * 2;
+                            const took = Math.min(pools.aStock[attr].val, needed);
+                            const gain = Math.floor(took / 2);
+                            if (gain > 0) {
+                                res.nonTargetOtherRaw += took;
+                                res.gap -= gain;
+                                pools.aStock[attr].val -= took;
+                            }
+                        });
+                    }
+                    
+                    if (res.gap <= 0) return;
+
+                    // 步驟4: 現有「商品欄裡最低優先權」的屬性殘卷 (2:1)
+                    if (res.category === 'univ') {
+                        const inCartReversed = [...attributePriority].reverse();
+                        inCartReversed.forEach(attr => {
+                            if (res.gap <= 0 || pools.aStock[attr].val <= 0) return;
+                            const needed = res.gap * 2;
+                            const took = Math.min(pools.aStock[attr].val, needed);
+                            const gain = Math.floor(took / 2);
+                            if (gain > 0) {
+                                res.nonTargetOtherRaw += took;
+                                res.gap -= gain;
+                                pools.aStock[attr].val -= took;
+                            }
+                        });
+                    }
+                    
+                    if (res.gap <= 0) return;
+
+                    // === 屬性商品的步驟3-6 ===
+                    if (res.category !== 'univ') {
+                        // 步驟3: 未來通用殘卷 (1:1)
+                        if (pools.uReward.val > 0 && res.gap > 0) {
+                            const took = Math.min(res.gap, pools.uReward.val);
+                            res.futureUnivUsed += took;
+                            res.gap -= took;
+                            pools.uReward.val -= took;
+                        }
+                        
+                        if (res.gap <= 0) return;
+                        
+                        // 步驟4: 不在商品欄的屬性 (2:1)
+                        const notInCart = ['fire', 'water', 'wind', 'thunder'].filter(attr => !attributesInCart[attr] && attr !== res.category);
+                        notInCart.forEach(attr => {
+                            if (res.gap <= 0 || pools.aStock[attr].val <= 0) return;
+                            const needed = res.gap * 2;
+                            const took = Math.min(pools.aStock[attr].val, needed);
+                            const gain = Math.floor(took / 2);
+                            if (gain > 0) {
+                                res.nonTargetOtherRaw += took;
+                                res.gap -= gain;
+                                pools.aStock[attr].val -= took;
+                            }
+                        });
+                        
+                        if (res.gap <= 0) return;
+                        
+                        // 步驟5: 商品欄最低優先權的屬性 (2:1) - 排除自己
+                        const inCartReversed = [...attributePriority].reverse().filter(attr => attr !== res.category);
+                        inCartReversed.forEach(attr => {
+                            if (res.gap <= 0 || pools.aStock[attr].val <= 0) return;
+                            const needed = res.gap * 2;
+                            const took = Math.min(pools.aStock[attr].val, needed);
+                            const gain = Math.floor(took / 2);
+                            if (gain > 0) {
+                                res.nonTargetOtherRaw += took;
+                                res.gap -= gain;
+                                pools.aStock[attr].val -= took;
+                            }
+                        });
+                        
+                        if (res.gap <= 0) return;
+                        
+                        // 步驟6: 未來屬性殘卷 (2:1)
+                        if (pools.fFlex.val > 0 && res.gap > 0) {
+                            const needed = res.gap * 2;
+                            const took = Math.min(pools.fFlex.val, needed);
+                            const gain = Math.floor(took / 2);
+                            if (gain > 0) {
+                                res.futureOtherRaw += took;
+                                res.gap -= gain;
+                                pools.fFlex.val -= took;
+                            }
+                        }
                     }
 
-                    // 步驟3續: 後續掉落 無屬性 (屬性商品也可用 uReward)
-                    if (res.category !== 'univ') consumeRaw('futureUnivUsed', pools.uReward, 1);
-
-                    // 步驟4: 非目標 不同屬性 (多餘的屬性殘卷 2:1)
-                    const others = ['fire', 'water', 'wind', 'thunder'].filter(c => c !== res.category);
-                    others.forEach(cat => consumeRaw('nonTargetOtherRaw', pools.aStock[cat], 2));
-
-                    // 步驟5: 後續掉落 不同屬性 (2:1)
-                    consumeRaw('futureOtherRaw', pools.fFlex, 2);
-
-                    // 步驟6: 需分解其他 (從較後順位奪回現有庫存)
-                    for (let j = i + 1; j < results.length; j++) {
-                        if (res.gap <= 0) break;
-                        const src = results[j];
-                        if (src.reservedNative <= 0) continue;
-
-                        // 同屬性 1:1，不同屬性 2:1
-                        const factor = (src.category === res.category) ? 1 : 2;
-                        const needed = res.gap * factor;
-                        const took = Math.min(src.reservedNative, needed);
-                        const gain = Math.floor(took / factor);
-                        if (gain <= 0) continue;
-
-                        res.gap -= gain;
-                        res.conversionStolenRaw += took;
-                        src.reservedNative -= took;
-                        src.nativeUsed -= took;
-                        src.gap += took;
-                        src.stolenFromMe += took;
+                    // === 通用商品的步驟5 ===
+                    if (res.category === 'univ' && pools.fFlex.val > 0 && res.gap > 0) {
+                        const needed = res.gap * 2;
+                        const took = Math.min(pools.fFlex.val, needed);
+                        const gain = Math.floor(took / 2);
+                        if (gain > 0) {
+                            res.futureOtherRaw += took;
+                            res.gap -= gain;
+                            pools.fFlex.val -= took;
+                        }
                     }
                 });
 
@@ -1109,16 +1276,42 @@
             }, [legendOptions, lang]);
 
             // #region 事件處理 (Event Handlers)
+            // --- 輸入驗證 ---
+            const handleDateChange = (val) => {
+                const inputDate = new Date(val);
+                const minDate = new Date('2026-01-21');
+                const maxDate = new Date('2026-02-25');
+                
+                if (inputDate < minDate || inputDate > maxDate) {
+                    setDateError(lang === 'zh' 
+                        ? '日期必須在 2026-01-21 至 2026-02-25 之間' 
+                        : 'Date must be between 2026-01-21 and 2026-02-25');
+                } else {
+                    setDateError('');
+                }
+                setCurrentDateInput(val);
+            };
+
             const updateInv = (field, val) => {
                 let numVal = parseInt(val);
                 if (val === "") {
                     setInventory(prev => ({ ...prev, [field]: "" }));
                     return;
                 }
-                if (numVal < 0) return;
-                // Fix leading zero: convert "0100" back to "100"
+                if (numVal < 0 || numVal > 999999) return; // 限制範圍
                 setInventory(prev => ({ ...prev, [field]: numVal.toString() }));
             };
+
+            const updateArtEvent = (val) => {
+                let numVal = parseInt(val);
+                if (val === "") {
+                    setLegendOptions(prev => ({ ...prev, artEventAmount: "" }));
+                    return;
+                }
+                if (numVal < 0 || numVal > 999999) return;
+                setLegendOptions(prev => ({ ...prev, artEventAmount: numVal }));
+            };
+
             const toggleLegend = (field) => setLegendOptions(prev => ({ ...prev, [field]: !prev[field] }));
 
             const clearScrolls = () => setInventory(prev => ({ ...prev, attrFire: 0, attrWater: 0, attrWind: 0, attrThunder: 0, univScrolls: 0 }));
@@ -1197,6 +1390,32 @@
                 [newQueue[selectedQueueIndex + 1], newQueue[selectedQueueIndex]] = [newQueue[selectedQueueIndex], newQueue[selectedQueueIndex + 1]];
                 setCartQueue(newQueue);
                 setSelectedQueueIndex(selectedQueueIndex + 1);
+            };
+
+            // --- 拖拽排序 Handlers ---
+            const handleDragStart = (e, index) => {
+                setDraggedIndex(index);
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', e.currentTarget);
+            };
+
+            const handleDragOver = (e, index) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                
+                if (draggedIndex === null || draggedIndex === index) return;
+                
+                const newQueue = [...cartQueue];
+                const draggedItem = newQueue[draggedIndex];
+                newQueue.splice(draggedIndex, 1);
+                newQueue.splice(index, 0, draggedItem);
+                
+                setCartQueue(newQueue);
+                setDraggedIndex(index);
+            };
+
+            const handleDragEnd = () => {
+                setDraggedIndex(null);
             };
 
             const handleDeleteItem = () => {
@@ -1324,15 +1543,26 @@
                                         <li>{t.help_li3}</li>
                                     </ul>
 
-                                    {/* Section 3 */}
+                                    {/* Section 3 - Calculation Logic */}
                                     <h4 className="font-bold text-lg text-indigo-700 border-b pb-1 mt-4">{t.help_h3}</h4>
                                     <p className="mt-1">{t.help_p4}</p>
-                                    <ul className="list-disc pl-5 space-y-1">
+                                    <ul className="list-none pl-3 space-y-1 text-sm">
                                         <li>{t.help_li4}</li>
+                                        <li>{t.help_li5}</li>
+                                        <li>{t.help_li6}</li>
+                                        <li>{t.help_li7}</li>
+                                        <li>{t.help_li8}</li>
                                     </ul>
+                                    <p className="mt-2 text-sm bg-amber-50 p-2 rounded border-l-4 border-amber-400">{t.help_p5}</p>
 
-                                    {/* Section 4 */}
+                                    {/* Section 4 - Zoom & Shortcuts */}
                                     <h4 className="font-bold text-lg text-indigo-700 border-b pb-1 mt-4">{t.help_h4}</h4>
+                                    <p className="mt-1">{t.help_p6}</p>
+                                    <p className="mt-1">{t.help_p7}</p>
+                                    <p className="mt-1">{t.help_p8}</p>
+
+                                    {/* Section 5 - Daily Workflow */}
+                                    <h4 className="font-bold text-lg text-indigo-700 border-b pb-1 mt-4">{t.help_h5}</h4>
                                     <ol className="list-decimal pl-5 space-y-2">
                                         <li><strong>{t.help_s1}</strong>：<p className="text-[0.75rem] text-gray-500 mt-0.5">{t.help_d1}</p></li>
                                         <li><strong>{t.help_s2}</strong>：<p className="text-[0.75rem] text-gray-500 mt-0.5">{t.help_d2}</p></li>
@@ -1364,8 +1594,17 @@
                                     {/* Row 1: Date Selection */}
                                     <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100 flex flex-wrap items-center justify-between gap-2 shadow-sm">
                                         <div className="text-blue-900 font-bold text-[0.6875rem] flex items-center gap-1 min-w-[5rem]">📅 {t.lbl_date}</div>
-                                        <div className="flex-grow flex items-center min-w-[8rem]">
-                                            <input type="date" value={currentDateInput} onChange={(e) => setCurrentDateInput(e.target.value)} min="2026-01-21" max="2026-02-24" className="border-blue-200 rounded px-1 text-[0.75rem] h-7 w-full shadow-inner" onWheel={(e) => e.target.blur()} />
+                                        <div className="flex-grow flex flex-col items-start min-w-[8rem]">
+                                            <input 
+                                                type="date" 
+                                                value={currentDateInput} 
+                                                onChange={(e) => handleDateChange(e.target.value)} 
+                                                min="2026-01-21" 
+                                                max="2026-02-25" 
+                                                className={`border-blue-200 rounded px-1 text-[0.75rem] h-7 w-full shadow-inner ${dateError ? 'border-red-400 bg-red-50' : ''}`}
+                                                onWheel={(e) => e.target.blur()} 
+                                            />
+                                            {dateError && <span className="text-[0.625rem] text-red-600 mt-0.5">{dateError}</span>}
                                         </div>
                                         <div className="flex-shrink-0">
                                             <span className="text-[0.75rem] sm:text-[0.875rem] text-blue-700 font-bold whitespace-nowrap bg-white px-2 py-0.5 rounded shadow-sm border border-blue-100 block text-center min-w-[5.625rem]">
@@ -1663,74 +1902,150 @@
                                                     {t.prio_empty}
                                                 </div>
                                             ) : (
-                                                <table className="w-full text-[0.6875rem] md:text-sm border-collapse">
+                                                <table className="w-full text-sm border-collapse">
                                                     <thead>
-                                                        <tr className="text-gray-500 text-[0.625rem] border-b border-indigo-100 bg-white sticky top-0 z-10 shadow-sm uppercase font-bold">
-                                                            <th className="py-2 pl-3 text-left w-32"># {lang === 'zh' ? '品項' : 'Item'}</th>
-                                                            <th className="py-2 text-left">{lang === 'zh' ? '進度條' : 'Progress'}</th>
-                                                            <th className="py-2 text-left">{lang === 'zh' ? '現有' : 'Native'}</th>
-                                                            <th className="py-2 text-left">{lang === 'zh' ? '非目標' : 'Non-Target'}</th>
-                                                            <th className="py-2 text-left">{lang === 'zh' ? '後續掉落' : 'Future'}</th>
-                                                            <th className="py-2 text-left">{lang === 'zh' ? '需分解其他' : 'Conversion'}</th>
-                                                            <th className="py-2 pr-2 text-right">{lang === 'zh' ? '被分解' : 'Stolen'}</th>
+                                                        <tr className="text-gray-600 text-xs border-b-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50 sticky top-0 z-10 shadow-sm font-bold">
+                                                            <th className="py-3 pl-3 text-left w-32"># {lang === 'zh' ? '品項' : 'Item'}</th>
+                                                            <th className="py-3 text-center">{lang === 'zh' ? '進度' : 'Progress'}</th>
+                                                            <th className="py-3 text-left">{lang === 'zh' ? '資源來源明細' : 'Resource Details'}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {priorityQueueAnalysis.map((item, index) => (
-                                                            <tr
-                                                                key={item.uid}
-                                                                onClick={() => handleQueueItemClick(index)}
-                                                                className={`border-b border-gray-50 queue-item transition-all hover:bg-gray-50 ${selectedQueueIndex === index ? 'selected bg-indigo-50/30' : ''}`}
-                                                            >
-                                                                <td className="py-3 pl-3">
-                                                                    <div className="flex items-center gap-1.5 leading-tight">
-                                                                        <span className="text-gray-400 font-mono text-[0.625rem]">{index + 1}</span>
-                                                                        <div className="flex flex-col">
-                                                                            <div className={`font-bold truncate max-w-[100px] ${getAttrColorText(item.category)}`} title={item.name}>
-                                                                                ({getAttrLabel(item.category)}) {item.name}
-                                                                            </div>
-                                                                            <div className="flex items-center gap-1">
-                                                                                {item.status === 'stock' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" title={t.prio_status_stock}></span>}
-                                                                                {item.status === 'univ' && <span className="w-1.5 h-1.5 rounded-full bg-green-500" title={t.prio_status_univ}></span>}
-                                                                                {item.status === 'convert' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" title={t.prio_status_convert}></span>}
-                                                                                {item.status === 'gap' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" title={t.prio_status_gap}></span>}
-                                                                                <span className="text-[0.5625rem] text-gray-400">Cost: {item.cost}</span>
+                                                        {priorityQueueAnalysis.map((item, index) => {
+                                                            const resourceDetails = [];
+                                                            
+                                                            // 收集所有使用的资源
+                                                            if (item.nativeUsed > 0) {
+                                                                resourceDetails.push({
+                                                                    label: lang === 'zh' ? '現有同屬性' : 'Current Stock',
+                                                                    value: item.nativeUsed,
+                                                                    color: 'text-blue-700',
+                                                                    bgColor: 'bg-blue-50',
+                                                                    icon: '💎'
+                                                                });
+                                                            }
+                                                            if (item.futureNativeUsed > 0) {
+                                                                resourceDetails.push({
+                                                                    label: lang === 'zh' ? '未來同屬性' : 'Future Native',
+                                                                    value: item.futureNativeUsed,
+                                                                    color: 'text-green-700',
+                                                                    bgColor: 'bg-green-50',
+                                                                    icon: '🌟'
+                                                                });
+                                                            }
+                                                            if (item.futureUnivUsed > 0) {
+                                                                resourceDetails.push({
+                                                                    label: lang === 'zh' ? '未來通用' : 'Future Univ',
+                                                                    value: item.futureUnivUsed,
+                                                                    color: 'text-teal-700',
+                                                                    bgColor: 'bg-teal-50',
+                                                                    icon: '✨'
+                                                                });
+                                                            }
+                                                            if (item.nonTargetUniv > 0) {
+                                                                resourceDetails.push({
+                                                                    label: lang === 'zh' ? '現有通用(1:1)' : 'Cur Univ(1:1)',
+                                                                    value: item.nonTargetUniv,
+                                                                    color: 'text-indigo-700',
+                                                                    bgColor: 'bg-indigo-50',
+                                                                    icon: '🔷'
+                                                                });
+                                                            }
+                                                            if (item.nonTargetOtherRaw > 0) {
+                                                                const gain = Math.floor(item.nonTargetOtherRaw / 2);
+                                                                resourceDetails.push({
+                                                                    label: lang === 'zh' ? '其他屬性(2:1)' : 'Other Attr(2:1)',
+                                                                    value: `${item.nonTargetOtherRaw}→${gain}`,
+                                                                    color: 'text-purple-700',
+                                                                    bgColor: 'bg-purple-50',
+                                                                    icon: '🔄'
+                                                                });
+                                                            }
+                                                            if (item.futureOtherRaw > 0) {
+                                                                const gain = Math.floor(item.futureOtherRaw / 2);
+                                                                resourceDetails.push({
+                                                                    label: lang === 'zh' ? '未來其他屬性(2:1)' : 'Future Other(2:1)',
+                                                                    value: `${item.futureOtherRaw}→${gain}`,
+                                                                    color: 'text-orange-700',
+                                                                    bgColor: 'bg-orange-50',
+                                                                    icon: '⚡'
+                                                                });
+                                                            }
+                                                            if (item.conversionStolenRaw > 0) {
+                                                                resourceDetails.push({
+                                                                    label: lang === 'zh' ? '分解後面商品' : 'From Later Items',
+                                                                    value: item.conversionStolenRaw,
+                                                                    color: 'text-pink-700',
+                                                                    bgColor: 'bg-pink-50',
+                                                                    icon: '⬇️'
+                                                                });
+                                                            }
+                                                            
+                                                            return (
+                                                                <tr
+                                                                    key={item.uid}
+                                                                    draggable
+                                                                    onDragStart={(e) => handleDragStart(e, index)}
+                                                                    onDragOver={(e) => handleDragOver(e, index)}
+                                                                    onDragEnd={handleDragEnd}
+                                                                    onClick={() => handleQueueItemClick(index)}
+                                                                    className={`border-b border-gray-100 queue-item transition-all hover:bg-blue-50/30 cursor-move ${
+                                                                        selectedQueueIndex === index ? 'selected bg-indigo-100/50 border-l-4 border-l-indigo-500' : ''
+                                                                    } ${draggedIndex === index ? 'opacity-50' : ''}`}
+                                                                    style={{ cursor: 'move' }}
+                                                                >
+                                                                    <td className="py-4 pl-3">
+                                                                        <div className="flex items-center gap-2 leading-tight">
+                                                                            <span className="text-gray-500 font-mono text-sm font-bold bg-gray-100 px-2 py-1 rounded">{index + 1}</span>
+                                                                            <div className="flex flex-col">
+                                                                                <div className={`font-bold text-sm truncate max-w-[120px] ${getAttrColorText(item.category)}`} title={item.name}>
+                                                                                    ({getAttrLabel(item.category)}) {item.name}
+                                                                                </div>
+                                                                                <div className="flex items-center gap-2 mt-1">
+                                                                                    {item.status === 'stock' && <span className="w-2 h-2 rounded-full bg-blue-500" title={t.prio_status_stock}></span>}
+                                                                                    {item.status === 'univ' && <span className="w-2 h-2 rounded-full bg-green-500" title={t.prio_status_univ}></span>}
+                                                                                    {item.status === 'convert' && <span className="w-2 h-2 rounded-full bg-indigo-500" title={t.prio_status_convert}></span>}
+                                                                                    {item.status === 'gap' && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title={t.prio_status_gap}></span>}
+                                                                                    <span className="text-[0.65rem] text-gray-500">成本: {item.cost}</span>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="py-3 font-mono font-bold text-gray-500">{item.progress}</td>
-                                                                <td className="py-3">
-                                                                    {item.nativeUsed > 0 && <span className="text-blue-600 font-black">{item.nativeUsed}</span>}
-                                                                    {item.nativeUsed === 0 && <span className="text-gray-300">0</span>}
-                                                                </td>
-                                                                <td className="py-3">
-                                                                    <div className="flex flex-col text-[0.5625rem] gap-0.5 leading-none">
-                                                                        {item.nonTargetUniv > 0 && <span className="text-indigo-600 font-medium">無屬:{item.nonTargetUniv}</span>}
-                                                                        {item.nonTargetOtherRaw > 0 && <span className="text-gray-500">屬性:{item.nonTargetOtherRaw}</span>}
-                                                                        {item.nonTargetOtherRaw === 0 && item.nonTargetUniv === 0 && <span className="text-gray-300">0</span>}
-                                                                    </div>
-                                                                </td>
-                                                                <td className="py-3">
-                                                                    <div className="flex flex-col text-[0.5625rem] gap-0.5 leading-none">
-                                                                        {item.futureNativeUsed > 0 && <span className="text-green-600 font-bold">同屬:{item.futureNativeUsed}</span>}
-                                                                        {item.futureUnivUsed > 0 && <span className="text-teal-600 font-bold">無屬:{item.futureUnivUsed}</span>}
-                                                                        {item.futureOtherRaw > 0 && <span className="text-orange-500 font-medium font-bold">不同:{item.futureOtherRaw}</span>}
-                                                                        {item.futureNativeUsed === 0 && item.futureUnivUsed === 0 && item.futureOtherRaw === 0 && <span className="text-gray-300">0</span>}
-                                                                    </div>
-                                                                </td>
-                                                                <td className="py-3">
-                                                                    <span className={item.conversionStolenRaw > 0 ? "text-pink-600 font-bold" : "text-gray-300"}>
-                                                                        {item.conversionStolenRaw > 0 ? item.conversionStolenRaw : "0"}
-                                                                    </span>
-                                                                </td>
-                                                                <td className="py-3 pr-2 text-right">
-                                                                    <span className={item.stolenFromMe > 0 ? "text-red-400 font-bold" : "text-gray-300"}>
-                                                                        {item.stolenFromMe > 0 ? item.stolenFromMe : "0"}
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
+                                                                    </td>
+                                                                    <td className="py-4 text-center">
+                                                                        <div className="flex flex-col items-center gap-1">
+                                                                            <span className="font-mono font-bold text-base text-gray-700">{item.progress}</span>
+                                                                            {item.gap > 0 && (
+                                                                                <span className="text-xs text-red-500 font-medium">缺 {item.gap}</span>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="py-4 pr-3">
+                                                                        {resourceDetails.length > 0 ? (
+                                                                            <div className="flex flex-wrap gap-1.5">
+                                                                                {resourceDetails.map((detail, idx) => (
+                                                                                    <div 
+                                                                                        key={idx}
+                                                                                        className={`${detail.bgColor} ${detail.color} px-2 py-1 rounded-md text-xs font-semibold border border-current/20 flex items-center gap-1`}
+                                                                                        title={detail.label}
+                                                                                    >
+                                                                                        <span>{detail.icon}</span>
+                                                                                        <span className="whitespace-nowrap">{detail.label}: {detail.value}</span>
+                                                                                    </div>
+                                                                                ))}
+                                                                                {item.stolenFromMe > 0 && (
+                                                                                    <div className="bg-red-50 text-red-700 px-2 py-1 rounded-md text-xs font-semibold border border-red-200 flex items-center gap-1">
+                                                                                        <span>⬆️</span>
+                                                                                        <span className="whitespace-nowrap">{lang === 'zh' ? '被奪取' : 'Stolen'}: {item.stolenFromMe}</span>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-gray-400 text-sm italic">{lang === 'zh' ? '資源不足' : 'Insufficient'}</span>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
                                                     </tbody>
                                                 </table>
                                             )}
