@@ -9,6 +9,11 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
 
     <style>
         /* #region CSS Styles */
@@ -17,12 +22,23 @@
             background-color: #f3f4f6;
             touch-action: manipulation;
             font-size: 17px;
+            transition: background-color 0.3s ease;
+        }
+        
+        body.dark {
+            background-color: #111827;
         }
 
         .card {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .dark .card {
+            background: #1f2937;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
 
         /* 輸入框樣式 */
@@ -43,8 +59,15 @@
             border-radius: 0.3rem;
             padding: 0.2rem 0.4rem;
             font-size: 0.8rem;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, background-color 0.3s;
             background-color: rgba(255, 255, 255, 0.8);
+            color: #111827;
+        }
+        
+        .dark .input-group input[type="date"] {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
         }
 
         .input-group input[type="number"] {
@@ -54,8 +77,38 @@
             border-radius: 0.3rem;
             padding: 0.2rem 0.4rem;
             font-size: 0.8rem;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, background-color 0.3s;
             background-color: rgba(255, 255, 255, 0.8);
+            color: #111827;
+        }
+        
+        .dark .input-group input[type="number"] {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+        
+        /* Number input spinner buttons - show on hover and focus */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            opacity: 0;
+            -webkit-appearance: inner-spin-button;
+            cursor: pointer;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        input[type="number"]:hover::-webkit-inner-spin-button,
+        input[type="number"]:hover::-webkit-outer-spin-button,
+        input[type="number"]:focus::-webkit-inner-spin-button,
+        input[type="number"]:focus::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+        
+        .dark input[type="number"] {
+            color-scheme: dark;
         }
 
         .input-group input:focus {
@@ -63,6 +116,12 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px #93c5fd;
             background-color: white;
+        }
+        
+        .dark .input-group input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+            background-color: #4b5563;
         }
 
 
@@ -73,15 +132,29 @@
             border-bottom: 1px solid #e5e7eb;
             white-space: nowrap;
         }
+        
+        .dark th,
+        .dark td {
+            border-bottom-color: #374151;
+        }
 
         th {
             background-color: #f9fafb;
             font-weight: 600;
             color: #374151;
         }
+        
+        .dark th {
+            background-color: #374151;
+            color: #d1d5db;
+        }
 
         tr:hover {
             background-color: #f9fafb;
+        }
+        
+        .dark tr:hover {
+            background-color: #374151;
         }
 
         .section-title {
@@ -91,6 +164,11 @@
             margin-bottom: 0.5rem;
             border-left: 4px solid #3b82f6;
             padding-left: 0.5rem;
+        }
+        
+        .dark .section-title {
+            color: #f9fafb;
+            border-left-color: #60a5fa;
         }
 
         .checkbox-group {
@@ -105,6 +183,13 @@
             height: 1rem;
             cursor: pointer;
             accent-color: #3b82f6;
+        }
+        
+        .dark .checkbox-group input[type="checkbox"],
+        .dark input[type="checkbox"] {
+            accent-color: #60a5fa;
+            background-color: #1f2937;
+            border-color: #4b5563;
         }
 
         .checkbox-group label {
@@ -124,6 +209,11 @@
             border: 1px solid #e5e7eb;
             margin-bottom: 0.25rem;
         }
+        
+        .dark .shop-counter {
+            background: rgba(55, 65, 81, 0.5);
+            border-color: #4b5563;
+        }
 
         .shop-counter button {
             width: 1.125rem;
@@ -138,9 +228,18 @@
             align-items: center;
             justify-content: center;
         }
+        
+        .dark .shop-counter button {
+            background: #4b5563;
+            color: #d1d5db;
+        }
 
         .shop-counter button:hover {
             background: #d1d5db;
+        }
+        
+        .dark .shop-counter button:hover {
+            background: #6b7280;
         }
 
         .shop-counter button:disabled {
@@ -188,6 +287,10 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        
+        .dark .tab-btn {
+            color: #9ca3af;
+        }
 
         @media (min-width: 640px) {
             .tab-btn {
@@ -202,10 +305,21 @@
             border-bottom-color: #2563eb;
             background-color: #eff6ff;
         }
+        
+        .dark .tab-btn.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+            background-color: #1e3a5f;
+        }
 
         .tab-btn:hover:not(.active) {
             color: #374151;
             background-color: #f9fafb;
+        }
+        
+        .dark .tab-btn:hover:not(.active) {
+            color: #d1d5db;
+            background-color: #374151;
         }
 
         /* 內容區塊卷軸 */
@@ -223,13 +337,25 @@
             background: #f1f1f1;
             border-radius: 3px;
         }
+        
+        .dark .tab-content-scroll::-webkit-scrollbar-track {
+            background: #374151;
+        }
 
         .tab-content-scroll::-webkit-scrollbar-thumb {
             background: #d1d5db;
             border-radius: 3px;
         }
+        
+        .dark .tab-content-scroll::-webkit-scrollbar-thumb {
+            background: #6b7280;
+        }
 
         .tab-content-scroll::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        
+        .dark .tab-content-scroll::-webkit-scrollbar-thumb:hover {
             background: #9ca3af;
         }
 
@@ -245,6 +371,10 @@
         .color-wind {
             color: #4F9D9D;
         }
+        
+        .dark .color-wind {
+            color: #5eead4;
+        }
 
         .color-thunder {
             color: #4A4AFF;
@@ -252,6 +382,10 @@
 
         .color-univ {
             color: #16a34a;
+        }
+        
+        .dark .color-univ {
+            color: #4ade80;
         }
 
         .border-fire {
@@ -277,25 +411,49 @@
         .bg-fire-light {
             background-color: #fff0f0;
         }
+        
+        .dark .bg-fire-light {
+            background-color: rgba(220, 38, 38, 0.15);
+        }
 
         .bg-water-light {
             background-color: #e0fafa;
+        }
+        
+        .dark .bg-water-light {
+            background-color: rgba(6, 182, 212, 0.15);
         }
 
         .bg-wind-light {
             background-color: #eef9f9;
         }
+        
+        .dark .bg-wind-light {
+            background-color: rgba(14, 165, 233, 0.15);
+        }
 
         .bg-thunder-light {
             background-color: #efefff;
+        }
+        
+        .dark .bg-thunder-light {
+            background-color: rgba(99, 102, 241, 0.15);
         }
 
         .bg-univ-light {
             background-color: #f0fdf4;
         }
+        
+        .dark .bg-univ-light {
+            background-color: rgba(34, 197, 94, 0.15);
+        }
 
         .text-fragment-custom {
             color: #9999CC;
+        }
+        
+        .dark .text-fragment-custom {
+            color: #c4b5fd;
         }
 
         .text-god {
@@ -331,6 +489,10 @@
             align-items: center;
             z-index: 50;
         }
+        
+        .dark .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+        }
 
         .modal-content {
             background: white;
@@ -340,6 +502,11 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
+        }
+        
+        .dark .modal-content {
+            background: #1f2937;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
         }
 
         /* Selection Styles */
@@ -352,10 +519,20 @@
         .queue-item:hover:not(.selected) {
             background-color: #f9fafb;
         }
+        
+        .dark .queue-item:hover:not(.selected) {
+            background-color: #374151;
+        }
 
         .queue-item.selected {
             background-color: #eff6ff;
             border-left-color: #3b82f6;
+        }
+        
+        .dark .queue-item.selected {
+            background-color: #1e3a5f;
+            border-left-color: #60a5fa;
+        }
         }
 
         /* Control Buttons */
@@ -385,20 +562,39 @@
 
         .ctrl-btn.up {
             color: #2563eb;
-            background-color: #eff6ff;
-            border-color: #bfdbfe;
+            background-color: transparent;
+            border-color: transparent;
         }
 
         .ctrl-btn.down {
             color: #2563eb;
-            background-color: #eff6ff;
-            border-color: #bfdbfe;
+            background-color: transparent;
+            border-color: transparent;
         }
 
         .ctrl-btn.del {
             color: #dc2626;
-            background-color: #fef2f2;
-            border-color: #fecaca;
+            background-color: transparent;
+            border-color: transparent;
+        }
+        
+        .dark .ctrl-btn {
+            background-color: transparent;
+            color: #9ca3af;
+            border-color: transparent;
+        }
+        
+        .dark .ctrl-btn.up,
+        .dark .ctrl-btn.down {
+            color: #93c5fd;
+            background-color: transparent;
+            border-color: transparent;
+        }
+        
+        .dark .ctrl-btn.del {
+            color: #fca5a5;
+            background-color: transparent;
+            border-color: transparent;
         }
 
         /* #endregion */
@@ -739,7 +935,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.31";
+        const APP_VERSION = "v3.32";
         const APP_AUTHOR = "Nikis Ray";
         
         // 輔助函數：計算傳頌總獎勵
@@ -778,6 +974,25 @@
                 const saved = localStorage.getItem('treasure-zoom');
                 return saved ? parseInt(saved) : 100;
             });
+            
+            // 深色模式狀態
+            const [darkMode, setDarkMode] = useState(() => {
+                const saved = localStorage.getItem('treasure-darkMode');
+                if (saved) return saved === 'dark';
+                return window.matchMedia('(prefers-color-scheme: dark)').matches;
+            });
+
+            // 深色模式效果
+            useEffect(() => {
+                if (darkMode) {
+                    document.documentElement.classList.add('dark');
+                    document.body.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.body.classList.remove('dark');
+                }
+                localStorage.setItem('treasure-darkMode', darkMode ? 'dark' : 'light');
+            }, [darkMode]);
 
             useEffect(() => {
                 document.documentElement.style.fontSize = `${zoomLevel}%`;
@@ -1334,17 +1549,17 @@
                     if (isSunday || i === 1) {
                         dayAttr += WEEKLY_MEMBER_REWARD.attr;
                         dayUniv += WEEKLY_MEMBER_REWARD.univ;
-                        notes.push({ text: t.note_weekly, style: "font-bold text-black" });
+                        notes.push({ text: t.note_weekly, style: "font-bold text-gray-900 dark:text-gray-100" });
                     }
                     if (i === 1) {
-                        notes.push({ text: t.note_fixed, style: "text-gray-500" });
+                        notes.push({ text: t.note_fixed, style: "text-gray-500 dark:text-gray-400" });
                         accRandom += FRAG_SOURCES.fixedRandom + (parseInt(legendOptions.artEventAmount) || 0);
 
                         let legUniv = calculateLegendReward(legendOptions);
                         if (legUniv > 0) {
                             dayUniv += legUniv;
                             const noteText = t.note_leg.replace('{v}', legUniv);
-                            notes.push({ text: noteText, style: "font-bold text-orange-600" });
+                            notes.push({ text: noteText, style: "font-bold text-orange-600 dark:text-orange-400" });
                         }
                     }
 
@@ -1552,7 +1767,7 @@
             // #region 介面輔助元件 (UI Components)
             const ShopItem = ({ item, category, color }) => {
                 const count = shopCart[category][item.id] || 0;
-                const costStyle = category === 'univ' ? "text-green-600" : "text-blue-600";
+                const costStyle = category === 'univ' ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400";
 
                 return (
                     <div className="shop-counter">
@@ -1572,14 +1787,14 @@
                 const net = inv - cost;
 
                 return (
-                    <div className={`p-2 rounded-lg border ${bgColorClass} ${net >= 0 ? 'border-gray-200' : 'border-red-500 border-2'}`}>
+                    <div className={`p-2 rounded-lg border ${bgColorClass} ${net >= 0 ? 'border-gray-200 dark:border-gray-700' : 'border-red-500 border-2'}`}>
                         <div className={`font-bold text-[0.75rem] mb-1 ${textColor}`}>{label}</div>
-                        <div className="space-y-1 text-[0.625rem] text-gray-600">
+                        <div className="space-y-1 text-[0.625rem] text-gray-600 dark:text-gray-400">
                             <div className="flex justify-between"><span>{t.card_inv}:</span> <span>{(inv || 0).toLocaleString()}</span></div>
                             <div className="flex justify-between text-pink-600"><span>{t.card_cost}:</span> <span>-{(cost || 0).toLocaleString()}</span></div>
-                            <div className="border-t border-gray-200 my-0.5 pt-0.5 flex justify-between items-center">
+                            <div className="border-t border-gray-200 dark:border-gray-700 my-0.5 pt-0.5 flex justify-between items-center">
                                 <span className="font-bold">{t.card_bal}:</span>
-                                <span className={`font-bold text-sm ${net >= 0 ? 'text-blue-600' : 'text-red-600 font-extrabold'}`}>{net}</span>
+                                <span className={`font-bold text-sm ${net >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400 font-extrabold'}`}>{net}</span>
                             </div>
                         </div>
                     </div>
@@ -1596,19 +1811,22 @@
                 <div className="max-w-5xl xl:max-w-7xl mx-auto p-2 md:p-6 flex flex-col min-h-screen relative">
                     {/* Top Section */}
                     <div className="flex flex-col md:flex-row justify-between items-center mb-4 pt-2 gap-3">
-                        <div className="text-[0.75rem] font-bold text-gray-500 font-mono flex items-center justify-center md:justify-start order-2 md:order-1 flex-shrink-0">
+                        <div className="text-[0.75rem] font-bold text-gray-500 dark:text-gray-400 font-mono flex items-center justify-center md:justify-start order-2 md:order-1 flex-shrink-0">
                             {APP_VERSION} | {APP_AUTHOR}
                         </div>
                         <div className="text-center order-1 md:order-2 px-2">
-                            <h1 className="text-2xl font-bold text-indigo-900 mb-0 leading-tight whitespace-nowrap">{t.title}</h1>
-                            <p className="text-gray-500 text-[0.625rem]">{t.period}</p>
+                            <h1 className="text-2xl font-bold text-indigo-900 dark:text-indigo-300 mb-0 leading-tight whitespace-nowrap">{t.title}</h1>
+                            <p className="text-gray-500 dark:text-gray-400 text-[0.625rem]">{t.period}</p>
                         </div>
                         <div className="flex flex-wrap gap-2 justify-center md:justify-end order-3 md:order-3 flex-grow md:flex-grow-0">
-                            <button onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')} className="bg-white text-indigo-600 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-indigo-50 transition border border-indigo-200 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">
+                            <button onClick={() => setDarkMode(prev => !prev)} className="bg-white dark:bg-gray-800 dark:bg-gray-700 text-gray-600 dark:text-gray-400 dark:text-gray-200 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-900 dark:hover:bg-gray-600 transition border border-gray-200 dark:border-gray-700 dark:border-gray-600 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">
+                                {darkMode ? '☀️' : '🌙'}
+                            </button>
+                            <button onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')} className="bg-white dark:bg-gray-800 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 dark:bg-indigo-900/20 dark:hover:bg-gray-600 transition border border-indigo-200 dark:border-indigo-700 dark:border-gray-600 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">
                                 {lang === 'zh' ? 'EN' : '中'}
                             </button>
-                            <button onClick={() => setShowHelp(true)} className="bg-white text-gray-600 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-gray-50 transition border border-gray-200 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">{t.btn_help}</button>
-                            <button onClick={() => setViewMode(prev => prev === 'tabs' ? 'single' : 'tabs')} className="bg-white text-indigo-600 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-indigo-50 transition border border-indigo-100 flex items-center gap-1 min-h-[1.875rem] flex-shrink-0 whitespace-nowrap">
+                            <button onClick={() => setShowHelp(true)} className="bg-white dark:bg-gray-800 dark:bg-gray-700 text-gray-600 dark:text-gray-400 dark:text-gray-200 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-900 dark:hover:bg-gray-600 transition border border-gray-200 dark:border-gray-700 dark:border-gray-600 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">{t.btn_help}</button>
+                            <button onClick={() => setViewMode(prev => prev === 'tabs' ? 'single' : 'tabs')} className="bg-white dark:bg-gray-800 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full shadow-sm text-[0.75rem] font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 dark:bg-indigo-900/20 dark:hover:bg-gray-600 transition border border-indigo-100 dark:border-indigo-800 dark:border-gray-600 flex items-center gap-1 min-h-[1.875rem] flex-shrink-0 whitespace-nowrap">
                                 {viewMode === 'tabs' ? t.btn_tabs : t.btn_single}
                             </button>
                         </div>
@@ -1619,14 +1837,14 @@
                         <div className="modal-overlay" onClick={() => setShowHelp(false)}>
                             <div className="modal-content p-6" onClick={e => e.stopPropagation()}>
                                 <div className="flex justify-between items-center mb-4 border-b pb-2">
-                                    <h3 className="text-xl font-bold text-gray-800">{t.help_title}</h3>
-                                    <button onClick={() => setShowHelp(false)} className="text-gray-500 font-bold">×</button>
+                                    <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">{t.help_title}</h3>
+                                    <button onClick={() => setShowHelp(false)} className="text-gray-500 dark:text-gray-400 font-bold">×</button>
                                 </div>
-                                <div className="space-y-4 text-sm text-gray-700 overflow-y-auto px-1" style={{ maxHeight: '70vh' }}>
+                                <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300 overflow-y-auto px-1" style={{ maxHeight: '70vh' }}>
                                     <p>{t.help_p1}</p>
 
                                     {/* Section 1 */}
-                                    <h4 className="font-bold text-lg text-indigo-700 border-b pb-1">{t.help_h1}</h4>
+                                    <h4 className="font-bold text-lg text-indigo-700 dark:text-indigo-400 border-b pb-1">{t.help_h1}</h4>
                                     <p>{t.help_p2}</p>
                                     <ul className="list-disc pl-5 space-y-1">
                                         <li>{t.help_li1}</li>
@@ -1634,14 +1852,14 @@
                                     </ul>
 
                                     {/* Section 2 */}
-                                    <h4 className="font-bold text-lg text-indigo-700 border-b pb-1 mt-4">{t.help_h2}</h4>
+                                    <h4 className="font-bold text-lg text-indigo-700 dark:text-indigo-400 border-b pb-1 mt-4">{t.help_h2}</h4>
                                     <p>{t.help_p3}</p>
                                     <ul className="list-disc pl-5 space-y-1">
                                         <li>{t.help_li3}</li>
                                     </ul>
 
                                     {/* Section 3 - Calculation Logic */}
-                                    <h4 className="font-bold text-lg text-indigo-700 border-b pb-1 mt-4">{t.help_h3}</h4>
+                                    <h4 className="font-bold text-lg text-indigo-700 dark:text-indigo-400 border-b pb-1 mt-4">{t.help_h3}</h4>
                                     <p className="mt-1">{t.help_p4}</p>
                                     <ul className="list-none pl-3 space-y-1 text-sm">
                                         <li>{t.help_li4}</li>
@@ -1650,20 +1868,20 @@
                                         <li>{t.help_li7}</li>
                                         <li>{t.help_li8}</li>
                                     </ul>
-                                    <p className="mt-2 text-sm bg-amber-50 p-2 rounded border-l-4 border-amber-400">{t.help_p5}</p>
+                                    <p className="mt-2 text-sm bg-amber-50 dark:bg-amber-900/20 p-2 rounded border-l-4 border-amber-400 dark:border-amber-600">{t.help_p5}</p>
 
                                     {/* Section 4 - Zoom & Shortcuts */}
-                                    <h4 className="font-bold text-lg text-indigo-700 border-b pb-1 mt-4">{t.help_h4}</h4>
+                                    <h4 className="font-bold text-lg text-indigo-700 dark:text-indigo-400 border-b pb-1 mt-4">{t.help_h4}</h4>
                                     <p className="mt-1">{t.help_p6}</p>
                                     <p className="mt-1">{t.help_p7}</p>
                                     <p className="mt-1">{t.help_p8}</p>
 
                                     {/* Section 5 - Daily Workflow */}
-                                    <h4 className="font-bold text-lg text-indigo-700 border-b pb-1 mt-4">{t.help_h5}</h4>
+                                    <h4 className="font-bold text-lg text-indigo-700 dark:text-indigo-400 border-b pb-1 mt-4">{t.help_h5}</h4>
                                     <ol className="list-decimal pl-5 space-y-2">
-                                        <li><strong>{t.help_s1}</strong>：<p className="text-[0.75rem] text-gray-500 mt-0.5">{t.help_d1}</p></li>
-                                        <li><strong>{t.help_s2}</strong>：<p className="text-[0.75rem] text-gray-500 mt-0.5">{t.help_d2}</p></li>
-                                        <li><strong>{t.help_s3}</strong>：<p className="text-[0.75rem] text-gray-500 mt-0.5">{t.help_d3}</p></li>
+                                        <li><strong>{t.help_s1}</strong>：<p className="text-[0.75rem] text-gray-500 dark:text-gray-400 mt-0.5">{t.help_d1}</p></li>
+                                        <li><strong>{t.help_s2}</strong>：<p className="text-[0.75rem] text-gray-500 dark:text-gray-400 mt-0.5">{t.help_d2}</p></li>
+                                        <li><strong>{t.help_s3}</strong>：<p className="text-[0.75rem] text-gray-500 dark:text-gray-400 mt-0.5">{t.help_d3}</p></li>
                                     </ol>
                                 </div>
                                 <div className="mt-6 text-center"><button onClick={() => setShowHelp(false)} className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition">{t.btn_gotit}</button></div>
@@ -1673,7 +1891,7 @@
 
                     {/* 分頁 Tab */}
                     {viewMode === 'tabs' && (
-                        <div className="flex border-b border-gray-200 mb-4 bg-white rounded-t-lg shadow-sm tabs-container mx-1">
+                        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4 bg-white dark:bg-gray-800 rounded-t-lg shadow-sm tabs-container mx-1">
                             <div className={`tab-btn rounded-tl-lg ${activeTab === 'main' ? 'active' : ''}`} onClick={() => setActiveTab('main')}>
                                 <span className="hidden sm:inline">{t.tab_main}</span>
                                 <span className="inline sm:hidden">{t.tab_main_short}</span>
@@ -1697,54 +1915,54 @@
                     {(viewMode === 'single' || activeTab === 'main') && (
                         <div className={`grid grid-cols-1 lg:grid-cols-12 gap-4 mx-1 h-full ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
                             {/* Left Col: Settings (6 cols wide) */}
-                            <div className={`lg:col-span-6 card p-4 bg-white border-t-4 border-blue-500 flex flex-col h-full`}>
+                            <div className={`lg:col-span-6 card p-4 bg-white dark:bg-gray-800 border-t-4 border-blue-500 dark:border-blue-400 flex flex-col h-full`}>
                                 {/* 3-Row Header Layout - Consistent 3-Part Alignment & Compact */}
                                 <div className="flex flex-col gap-1.5 mb-3">
                                     {/* Row 1: Date Selection */}
-                                    <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100 flex flex-wrap items-center gap-2 shadow-sm">
-                                        <div className="text-blue-900 font-bold text-[0.6875rem] flex items-center gap-1">📅 {t.lbl_date}</div>
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-100 dark:border-blue-800 flex flex-wrap items-center gap-2 shadow-sm">
+                                        <div className="text-blue-900 dark:text-blue-300 font-bold text-[0.6875rem] flex items-center gap-1">📅 {t.lbl_date}</div>
                                         <input 
                                             type="date" 
                                             value={currentDateInput} 
                                             onChange={(e) => handleDateChange(e.target.value)} 
                                             min="2026-01-21" 
                                             max="2026-02-24" 
-                                            className={`border-blue-200 rounded px-1 text-[0.75rem] h-7 w-[9rem] shadow-inner ${dateError ? 'border-red-400 bg-red-50' : ''}`}
+                                            className={`border-blue-200 dark:border-blue-700 dark:bg-gray-700 dark:text-gray-100 rounded px-1 text-[0.75rem] h-7 w-[9rem] shadow-inner ${dateError ? 'border-red-400 bg-red-50 dark:bg-red-900/20 dark:bg-red-900/30' : ''}`}
                                             onWheel={(e) => e.target.blur()} 
                                         />
-                                        {dateError && <span className="text-[0.625rem] text-red-600">{dateError}</span>}
+                                        {dateError && <span className="text-[0.625rem] text-red-600 dark:text-red-400">{dateError}</span>}
                                         <div className="ml-auto">
-                                            <span className="text-[0.75rem] sm:text-[0.875rem] text-blue-700 font-bold whitespace-nowrap bg-white px-2 py-0.5 rounded shadow-sm border border-blue-100 block text-center min-w-[5.625rem]">
+                                            <span className="text-[0.75rem] sm:text-[0.875rem] text-blue-700 dark:text-blue-300 font-bold whitespace-nowrap bg-white dark:bg-gray-800 dark:bg-gray-700 px-2 py-0.5 rounded shadow-sm border border-blue-100 dark:border-blue-800 block text-center min-w-[5.625rem]">
                                                 {t.lbl_remaining.replace('{d}', calculation.effDays).replace('{w}', calculation.effWeeks)}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Row 2: Legend & Art Event (Merged) */}
-                                    <div className="bg-gradient-to-br from-purple-50/50 to-orange-50/50 p-2 rounded-lg border border-purple-100 shadow-sm">
+                                    <div className="bg-gradient-to-br from-purple-50/50 to-orange-50/50 dark:from-purple-900/20 dark:to-orange-900/20 p-2 rounded-lg border border-purple-100 dark:border-purple-800 shadow-sm">
                                         <div className="flex justify-between items-center gap-2">
                                             {/* 左側：傳頌和妙手 */}
                                             <div className="flex-grow flex items-center gap-3 flex-wrap">
                                                 {/* 傳頌部分 */}
                                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                                    <span className="text-purple-900 font-bold text-[0.6875rem]">📜 {lang === 'zh' ? '傳頌' : 'Legend'}</span>
-                                                    <span className="text-purple-800 text-[0.625rem] font-semibold">⭐⭐</span>
+                                                    <span className="text-purple-900 dark:text-purple-300 font-bold text-[0.6875rem]">📜 {lang === 'zh' ? '傳頌' : 'Legend'}</span>
+                                                    <span className="text-purple-800 dark:text-purple-400 text-[0.625rem] font-semibold">⭐⭐</span>
                                                     <div className="flex items-center gap-0.5">
                                                         <input type="checkbox" id="legCaptain2" checked={legendOptions.includeCaptain2Star} onChange={() => setLegendOptions(prev => ({ ...prev, includeCaptain2Star: !prev.includeCaptain2Star }))} className="w-3.5 h-3.5 cursor-pointer" />
-                                                        <label htmlFor="legCaptain2" className="text-gray-700 text-[0.625rem] cursor-pointer">{lang === 'zh' ? '隊長' : 'Cpt'}</label>
+                                                        <label htmlFor="legCaptain2" className="text-gray-700 dark:text-gray-300 text-[0.625rem] cursor-pointer">{lang === 'zh' ? '隊長' : 'Cpt'}</label>
                                                     </div>
                                                     <div className="flex items-center gap-0.5">
                                                         <input type="checkbox" id="legMember2" checked={legendOptions.includeMember2Star} onChange={() => setLegendOptions(prev => ({ ...prev, includeMember2Star: !prev.includeMember2Star }))} className="w-3.5 h-3.5 cursor-pointer" />
-                                                        <label htmlFor="legMember2" className="text-gray-700 text-[0.625rem] cursor-pointer">{lang === 'zh' ? '隊員' : 'Mem'}</label>
+                                                        <label htmlFor="legMember2" className="text-gray-700 dark:text-gray-300 text-[0.625rem] cursor-pointer">{lang === 'zh' ? '隊員' : 'Mem'}</label>
                                                     </div>
-                                                    <span className="text-purple-800 text-[0.625rem] font-semibold">⭐</span>
+                                                    <span className="text-purple-800 dark:text-purple-400 text-[0.625rem] font-semibold">⭐</span>
                                                     <div className="flex items-center gap-0.5">
                                                         <input type="checkbox" id="legCaptain1" checked={legendOptions.includeCaptain1Star} onChange={() => setLegendOptions(prev => ({ ...prev, includeCaptain1Star: !prev.includeCaptain1Star }))} className="w-3.5 h-3.5 cursor-pointer" />
-                                                        <label htmlFor="legCaptain1" className="text-gray-700 text-[0.625rem] cursor-pointer">{lang === 'zh' ? '隊長' : 'Cpt'}</label>
+                                                        <label htmlFor="legCaptain1" className="text-gray-700 dark:text-gray-300 text-[0.625rem] cursor-pointer">{lang === 'zh' ? '隊長' : 'Cpt'}</label>
                                                     </div>
                                                     <div className="flex items-center gap-0.5">
                                                         <input type="checkbox" id="legMember1" checked={legendOptions.includeMember1Star} onChange={() => setLegendOptions(prev => ({ ...prev, includeMember1Star: !prev.includeMember1Star }))} className="w-3.5 h-3.5 cursor-pointer" />
-                                                        <label htmlFor="legMember1" className="text-gray-700 text-[0.625rem] cursor-pointer">{lang === 'zh' ? '隊員' : 'Mem'}</label>
+                                                        <label htmlFor="legMember1" className="text-gray-700 dark:text-gray-300 text-[0.625rem] cursor-pointer">{lang === 'zh' ? '隊員' : 'Mem'}</label>
                                                     </div>
                                                 </div>
                                                 
@@ -1753,8 +1971,8 @@
                                                 
                                                 {/* 妙手部分 */}
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-orange-900 font-bold text-[0.6875rem]">✨ {lang === 'zh' ? '妙手' : 'Art'}</span>
-                                                    <select value={legendOptions.artEventAmount} onChange={(e) => setLegendOptions(prev => ({ ...prev, artEventAmount: parseInt(e.target.value) }))} className="border-orange-200 rounded px-1.5 text-[0.7rem] h-6 bg-white">
+                                                    <span className="text-orange-900 dark:text-orange-300 font-bold text-[0.6875rem]">✨ {lang === 'zh' ? '妙手' : 'Art'}</span>
+                                                    <select value={legendOptions.artEventAmount} onChange={(e) => setLegendOptions(prev => ({ ...prev, artEventAmount: parseInt(e.target.value) }))} className="border-orange-200 dark:border-orange-700 rounded px-1.5 text-[0.7rem] h-6 bg-white dark:bg-gray-700 dark:text-gray-100">
                                                         <option value="0">0</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option>
                                                     </select>
                                                 </div>
@@ -1762,7 +1980,7 @@
                                             
                                             {/* 右側：標籤 */}
                                             <div className="flex-shrink-0">
-                                                <span className="text-[0.5625rem] text-purple-600 italic whitespace-nowrap bg-white/60 px-2 py-0.5 rounded border border-purple-200/50">
+                                                <span className="text-[0.5625rem] text-purple-600 dark:text-purple-400 italic whitespace-nowrap bg-white dark:bg-gray-800/60 px-2 py-0.5 rounded border border-purple-200/50">
                                                     {lang === 'zh' ? '如已獲得請勿勾選' : 'Opt-out if done'}
                                                 </span>
                                             </div>
@@ -1771,94 +1989,94 @@
                                 </div>
 
                                 {/* Scrolls */}
-                                <div className="bg-blue-50 p-2 rounded-lg border border-blue-200 mb-2">
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-200 dark:border-blue-700 mb-2">
                                     <div className="flex justify-between items-center mb-1">
-                                        <label className="text-[0.75rem] font-bold text-gray-700">{t.lbl_scrolls}</label>
-                                        <button onClick={clearScrolls} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
+                                        <label className="text-[0.75rem] font-bold text-gray-700 dark:text-gray-300">{t.lbl_scrolls}</label>
+                                        <button onClick={clearScrolls} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600">{t.btn_clear}</button>
                                     </div>
                                     <div className="grid grid-cols-5 gap-1">
                                         <div className="input-group"><label className="color-wind">{t.attr_wind}</label><input type="number" min="0" value={inventory.attrWind} onChange={(e) => updateInv('attrWind', e.target.value)} className="border-wind focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
                                         <div className="input-group"><label className="color-thunder">{t.attr_thunder}</label><input type="number" min="0" value={inventory.attrThunder} onChange={(e) => updateInv('attrThunder', e.target.value)} className="border-thunder focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
                                         <div className="input-group"><label className="color-water">{t.attr_water}</label><input type="number" min="0" value={inventory.attrWater} onChange={(e) => updateInv('attrWater', e.target.value)} className="border-water focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
                                         <div className="input-group"><label className="color-fire">{t.attr_fire}</label><input type="number" min="0" value={inventory.attrFire} onChange={(e) => updateInv('attrFire', e.target.value)} className="border-fire focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-gray-600">{t.attr_univ}</label><input type="number" min="0" value={inventory.univScrolls} onChange={(e) => updateInv('univScrolls', e.target.value)} onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><label className="text-gray-600 dark:text-gray-400">{t.attr_univ}</label><input type="number" min="0" value={inventory.univScrolls} onChange={(e) => updateInv('univScrolls', e.target.value)} onWheel={(e) => e.target.blur()} /></div>
                                     </div>
                                 </div>
 
                                 {/* Maps (Simplified: One row for Qualities) */}
-                                <div className="bg-orange-50 p-2 rounded-lg border border-orange-200 mb-2">
+                                <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-lg border border-orange-200 dark:border-orange-700 mb-2">
                                     <div className="flex justify-between items-center mb-1">
-                                        <label className="text-[0.75rem] font-bold text-gray-700">{t.lbl_maps}</label>
-                                        <button onClick={clearMaps} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
+                                        <label className="text-[0.75rem] font-bold text-gray-700 dark:text-gray-300">{t.lbl_maps}</label>
+                                        <button onClick={clearMaps} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600">{t.btn_clear}</button>
                                     </div>
 
                                     <div className="grid grid-cols-5 gap-1">
                                         <div className="input-group">
-                                            <label className="text-red-600">{t.qual_god}</label>
-                                            <input type="number" min="0" value={inventory.godMaps} onChange={(e) => updateInv('godMaps', e.target.value)} className="bg-red-50" onWheel={(e) => e.target.blur()} />
+                                            <label className="text-red-600 dark:text-red-400">{t.qual_god}</label>
+                                            <input type="number" min="0" value={inventory.godMaps} onChange={(e) => updateInv('godMaps', e.target.value)} className="bg-red-50 dark:bg-red-900/20" onWheel={(e) => e.target.blur()} />
                                         </div>
                                         <div className="input-group">
-                                            <label className="text-purple-600">{t.qual_peerless}</label>
-                                            <input type="number" min="0" value={inventory.peerlessMaps} onChange={(e) => updateInv('peerlessMaps', e.target.value)} className="bg-purple-50" onWheel={(e) => e.target.blur()} />
+                                            <label className="text-purple-600 dark:text-purple-400">{t.qual_peerless}</label>
+                                            <input type="number" min="0" value={inventory.peerlessMaps} onChange={(e) => updateInv('peerlessMaps', e.target.value)} className="bg-purple-50 dark:bg-purple-900/20" onWheel={(e) => e.target.blur()} />
                                         </div>
                                         <div className="input-group">
-                                            <label className="text-indigo-600">{t.qual_rare}</label>
-                                            <input type="number" min="0" value={inventory.rareMaps} onChange={(e) => updateInv('rareMaps', e.target.value)} className="bg-indigo-50" onWheel={(e) => e.target.blur()} />
+                                            <label className="text-indigo-600 dark:text-indigo-400">{t.qual_rare}</label>
+                                            <input type="number" min="0" value={inventory.rareMaps} onChange={(e) => updateInv('rareMaps', e.target.value)} className="bg-indigo-50 dark:bg-indigo-900/20" onWheel={(e) => e.target.blur()} />
                                         </div>
                                         <div className="input-group">
-                                            <label className="text-green-600">{t.qual_common}</label>
-                                            <input type="number" min="0" value={inventory.commonMaps} onChange={(e) => updateInv('commonMaps', e.target.value)} className="bg-green-50" onWheel={(e) => e.target.blur()} />
+                                            <label className="text-green-600 dark:text-green-400">{t.qual_common}</label>
+                                            <input type="number" min="0" value={inventory.commonMaps} onChange={(e) => updateInv('commonMaps', e.target.value)} className="bg-green-50 dark:bg-green-900/20" onWheel={(e) => e.target.blur()} />
                                         </div>
                                         <div className="input-group">
                                             <label className="text-gray-400">{/* 空白佔位 */}</label>
-                                            <input type="text" disabled className="bg-gray-100 opacity-0 cursor-not-allowed" />
+                                            <input type="text" disabled className="bg-gray-100 dark:bg-gray-800 opacity-0 cursor-not-allowed" />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Frags */}
-                                <div className="bg-indigo-50 p-2 rounded-lg border border-indigo-200">
+                                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-lg border border-indigo-200 dark:border-indigo-700">
                                     <div className="flex justify-between items-center mb-1">
-                                        <label className="text-[0.75rem] font-bold text-gray-700">{t.lbl_frags}</label>
-                                        <button onClick={clearFrags} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm">{t.btn_clear}</button>
+                                        <label className="text-[0.75rem] font-bold text-gray-700 dark:text-gray-300">{t.lbl_frags}</label>
+                                        <button onClick={clearFrags} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600">{t.btn_clear}</button>
                                     </div>
                                     <div className="grid grid-cols-5 gap-1">
-                                        <div className="input-group"><label className="text-god">{t.qual_god}</label><input type="number" min="0" value={inventory.godFrags} onChange={(e) => updateInv('godFrags', e.target.value)} className="bg-red-50" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-peerless">{t.qual_peerless}</label><input type="number" min="0" value={inventory.peerlessFrags} onChange={(e) => updateInv('peerlessFrags', e.target.value)} className="bg-purple-50" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-rare">{t.qual_rare}</label><input type="number" min="0" value={inventory.rareFrags} onChange={(e) => updateInv('rareFrags', e.target.value)} className="bg-indigo-50" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-common">{t.qual_common}</label><input type="number" min="0" value={inventory.commonFrags} onChange={(e) => updateInv('commonFrags', e.target.value)} className="bg-green-50" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-random">{t.qual_random}</label><input type="number" min="0" value={inventory.randomFrags} onChange={(e) => updateInv('randomFrags', e.target.value)} className="bg-yellow-50" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><label className="text-red-600 dark:text-red-400">{t.qual_god}</label><input type="number" min="0" value={inventory.godFrags} onChange={(e) => updateInv('godFrags', e.target.value)} className="bg-red-50 dark:bg-red-900/20" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><label className="text-purple-600 dark:text-purple-400">{t.qual_peerless}</label><input type="number" min="0" value={inventory.peerlessFrags} onChange={(e) => updateInv('peerlessFrags', e.target.value)} className="bg-purple-50 dark:bg-purple-900/20" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><label className="text-indigo-600 dark:text-indigo-400">{t.qual_rare}</label><input type="number" min="0" value={inventory.rareFrags} onChange={(e) => updateInv('rareFrags', e.target.value)} className="bg-indigo-50 dark:bg-indigo-900/20" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><label className="text-green-600 dark:text-green-400">{t.qual_common}</label><input type="number" min="0" value={inventory.commonFrags} onChange={(e) => updateInv('commonFrags', e.target.value)} className="bg-green-50 dark:bg-green-900/20" onWheel={(e) => e.target.blur()} /></div>
+                                        <div className="input-group"><label className="text-yellow-600 dark:text-yellow-400">{t.qual_random}</label><input type="number" min="0" value={inventory.randomFrags} onChange={(e) => updateInv('randomFrags', e.target.value)} className="bg-yellow-50 dark:bg-yellow-900/20" onWheel={(e) => e.target.blur()} /></div>
                                     </div>
                                 </div>
 
-                                {/* 碎片合成進度盤點 - 緊湊橫向佈局（強制單行） */}
-                                <div className="card p-2.5 border-t-2 border-indigo-500 bg-white shadow-sm mt-2">
-                                    <h3 className="font-bold text-gray-700 mb-1.5 text-xs border-b pb-1">{t.prog_title}</h3>
+                                {/* 碎片合成進度盤點 - 卡片樣式 */}
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border-2 border-indigo-200 dark:border-indigo-700 shadow-sm mt-2">
+                                    <h3 className="font-bold text-indigo-700 dark:text-indigo-400 mb-2 text-sm border-b border-indigo-200 dark:border-indigo-700 pb-1.5">{t.prog_title}</h3>
                                     <div className="grid grid-cols-5 gap-1 text-[0.625rem]">
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-red-50 rounded border border-red-100">
-                                            <span className="text-red-900 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_god}</span>
-                                            <span className="text-red-600 text-[0.55rem]">({calculation.totalGodPool})</span>
-                                            <span className="text-red-600 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.godStatus.maps}/{t.prog_need} {calculation.godStatus.needed}</span>
+                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-red-50 dark:bg-red-900/20 rounded border border-red-100 dark:border-red-800">
+                                            <span className="text-red-900 dark:text-red-300 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_god}</span>
+                                            <span className="text-red-600 dark:text-red-400 text-[0.55rem]">({calculation.totalGodPool})</span>
+                                            <span className="text-red-600 dark:text-red-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.godStatus.maps}/{t.prog_need} {calculation.godStatus.needed}</span>
                                         </div>
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-purple-50 rounded border border-purple-100">
-                                            <span className="text-purple-900 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_peerless}</span>
-                                            <span className="text-purple-600 text-[0.55rem]">({calculation.totalPeerlessPool})</span>
-                                            <span className="text-purple-600 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.peerlessStatus.maps}/{t.prog_need} {calculation.peerlessStatus.needed}</span>
+                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-100 dark:border-purple-800">
+                                            <span className="text-purple-900 dark:text-purple-300 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_peerless}</span>
+                                            <span className="text-purple-600 dark:text-purple-400 text-[0.55rem]">({calculation.totalPeerlessPool})</span>
+                                            <span className="text-purple-600 dark:text-purple-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.peerlessStatus.maps}/{t.prog_need} {calculation.peerlessStatus.needed}</span>
                                         </div>
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-indigo-50 rounded border border-indigo-100">
-                                            <span className="text-indigo-900 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_rare}</span>
-                                            <span className="text-indigo-600 text-[0.55rem]">({calculation.totalRarePool})</span>
-                                            <span className="text-indigo-600 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.rareStatus.maps}/{t.prog_need} {calculation.rareStatus.needed}</span>
+                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded border border-indigo-100 dark:border-indigo-800">
+                                            <span className="text-indigo-900 dark:text-indigo-300 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_rare}</span>
+                                            <span className="text-indigo-600 dark:text-indigo-400 text-[0.55rem]">({calculation.totalRarePool})</span>
+                                            <span className="text-indigo-600 dark:text-indigo-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.rareStatus.maps}/{t.prog_need} {calculation.rareStatus.needed}</span>
                                         </div>
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-green-50 rounded border border-green-100">
-                                            <span className="text-green-900 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_common}</span>
-                                            <span className="text-green-600 text-[0.55rem]">({calculation.totalCommonPoolFinal})</span>
-                                            <span className="text-green-600 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.commonStatus.maps}/{t.prog_need} {calculation.commonStatus.needed}</span>
+                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-green-50 dark:bg-green-900/20 rounded border border-green-100 dark:border-green-800">
+                                            <span className="text-green-900 dark:text-green-300 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_common}</span>
+                                            <span className="text-green-600 dark:text-green-400 text-[0.55rem]">({calculation.totalCommonPoolFinal})</span>
+                                            <span className="text-green-600 dark:text-green-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.commonStatus.maps}/{t.prog_need} {calculation.commonStatus.needed}</span>
                                         </div>
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-yellow-50 rounded border border-yellow-100">
-                                            <span className="text-yellow-900 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_random}</span>
-                                            <span className="text-yellow-600 text-[0.55rem]">({calculation.totalRandomPool})</span>
-                                            <span className="text-yellow-600 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.randomStatus.maps}/{t.prog_need} {calculation.randomStatus.needed}</span>
+                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-100 dark:border-yellow-800">
+                                            <span className="text-yellow-900 dark:text-yellow-200 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_random}</span>
+                                            <span className="text-yellow-600 dark:text-yellow-400 text-[0.55rem]">({calculation.totalRandomPool})</span>
+                                            <span className="text-yellow-600 dark:text-yellow-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.randomStatus.maps}/{t.prog_need} {calculation.randomStatus.needed}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1867,55 +2085,55 @@
                             {/* Right Col: Calculations (6 cols wide) */}
                             <div className="lg:col-span-6 flex flex-col gap-4 overflow-hidden">
                                 {/* Merged Row: Source Details & Grand Total */}
-                                <div className="card p-4 border-t-2 border-indigo-600 bg-white shadow-sm">
+                                <div className="card p-4 border-t-2 border-indigo-600 bg-white dark:bg-gray-800 shadow-sm">
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                                         {/* Left part: Source Details */}
                                         <div className="md:col-span-7">
-                                            <div className="section-title text-indigo-700 text-[0.875rem] font-bold mb-2">
+                                            <div className="section-title text-indigo-700 dark:text-indigo-400 text-[0.875rem] font-bold mb-2">
                                                 {t.sec_details_title}
                                             </div>
-                                            <div className="bg-gray-50 p-2 rounded-lg border border-gray-100 space-y-1.5 text-[0.75rem]">
-                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center border-b pb-1 font-bold uppercase text-[0.625rem]">
-                                                    <span className="text-gray-700">{t.th_source}</span>
-                                                    <span className="text-right text-blue-600">{t.th_attr}</span>
-                                                    <span className="text-right text-green-600">{t.th_univ}</span>
+                                            <div className="bg-gray-50 dark:bg-gray-900 p-2 rounded-lg border border-gray-100 dark:border-gray-700 space-y-1.5 text-[0.75rem]">
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center border-b border-gray-200 dark:border-gray-700 pb-1 font-bold uppercase text-[0.625rem]">
+                                                    <span className="text-gray-700 dark:text-gray-300">{t.th_source}</span>
+                                                    <span className="text-right text-blue-600 dark:text-blue-400">{t.th_attr}</span>
+                                                    <span className="text-right text-green-600 dark:text-green-400">{t.th_univ}</span>
                                                 </div>
-                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-100 bg-blue-50/30 px-1 rounded">
-                                                    <div className="text-gray-600 font-bold">{t.lbl_member_frag}</div>
-                                                    <div className="text-right text-blue-600 font-bold">{(calculation.memberIncomeAttr || 0).toLocaleString()}</div>
-                                                    <div className="text-right text-green-600 font-bold">{(calculation.memberIncomeUniv || 0).toLocaleString()}</div>
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 px-1 rounded">
+                                                    <div className="text-gray-600 dark:text-gray-400 font-bold">{t.lbl_member_frag}</div>
+                                                    <div className="text-right text-blue-600 dark:text-blue-400 font-bold">{(calculation.memberIncomeAttr || 0).toLocaleString()}</div>
+                                                    <div className="text-right text-green-600 dark:text-green-400 font-bold">{(calculation.memberIncomeUniv || 0).toLocaleString()}</div>
                                                 </div>
-                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-100 bg-orange-50/30 px-1 rounded">
-                                                    <div className="text-gray-600 font-bold">{t.lbl_leader_frag}</div>
-                                                    <div className="text-right text-blue-600">{(calculation.leaderIncomeAttr || 0).toLocaleString()}</div>
-                                                    <div className="text-right text-green-600">{(calculation.leaderIncomeUniv || 0).toLocaleString()}</div>
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900/20 px-1 rounded">
+                                                    <div className="text-gray-600 dark:text-gray-400 font-bold">{t.lbl_leader_frag}</div>
+                                                    <div className="text-right text-blue-600 dark:text-blue-400">{(calculation.leaderIncomeAttr || 0).toLocaleString()}</div>
+                                                    <div className="text-right text-green-600 dark:text-green-400">{(calculation.leaderIncomeUniv || 0).toLocaleString()}</div>
                                                 </div>
-                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-100 bg-indigo-50/30 px-1 rounded">
-                                                    <div className="text-gray-600 font-bold">{t.lbl_univ_frag}</div>
-                                                    <div className="text-right text-blue-600">-</div>
-                                                    <div className="text-right text-green-600">{(calculation.univBase || 0).toLocaleString()}</div>
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-200 dark:border-gray-700 bg-indigo-50 dark:bg-indigo-900/20 px-1 rounded">
+                                                    <div className="text-gray-600 dark:text-gray-400 font-bold">{t.lbl_univ_frag}</div>
+                                                    <div className="text-right text-blue-600 dark:text-blue-400">-</div>
+                                                    <div className="text-right text-green-600 dark:text-green-400">{(calculation.univBase || 0).toLocaleString()}</div>
                                                 </div>
-                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 bg-indigo-50/30 px-1 rounded">
-                                                    <div className="text-gray-600 font-bold">{t.row_conv} + {t.row_synth}</div>
-                                                    <div className="text-right text-blue-600">{((calculation.convertedAttr || 0) + (calculation.fragSynthAttr || 0)).toLocaleString()}</div>
-                                                    <div className="text-right text-green-600">{((calculation.convertedUniv || 0) + (calculation.fragSynthUniv || 0)).toLocaleString()}</div>
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 bg-indigo-50 dark:bg-indigo-900/20 px-1 rounded">
+                                                    <div className="text-gray-600 dark:text-gray-400 font-bold">{t.row_conv} + {t.row_synth}</div>
+                                                    <div className="text-right text-blue-600 dark:text-blue-400">{((calculation.convertedAttr || 0) + (calculation.fragSynthAttr || 0)).toLocaleString()}</div>
+                                                    <div className="text-right text-green-600 dark:text-green-400">{((calculation.convertedUniv || 0) + (calculation.fragSynthUniv || 0)).toLocaleString()}</div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Divider (visible on medium screens+) */}
-                                        <div className="md:col-span-1 block md:hidden w-full h-px bg-gray-100 my-2"></div>
+                                        <div className="md:col-span-1 block md:hidden w-full h-px bg-gray-100 dark:bg-gray-800 my-2"></div>
                                         {/* Right part: Grand Total */}
                                         <div className="md:col-span-5 flex flex-col justify-center border-l md:border-l-0 md:pl-0 pl-4 border-indigo-50">
-                                            <div className="section-title text-indigo-700 text-[1rem] font-bold mb-3 border-none p-0 drop-shadow-sm">{t.total_est}</div>
+                                            <div className="section-title text-indigo-700 dark:text-indigo-400 text-[1rem] font-bold mb-3 border-none p-0 drop-shadow-sm">{t.total_est}</div>
                                             <div className="flex flex-col gap-4">
-                                                <div className="flex items-center gap-3 bg-blue-50/50 p-2 rounded-lg">
-                                                    <div className="text-lg font-black text-blue-800 whitespace-nowrap">{lang === 'zh' ? '屬性' : 'Attr'}</div>
-                                                    <div className="text-4xl font-black text-blue-600 tracking-tighter">{(calculation.grandTotalAttr || 0).toLocaleString()}</div>
+                                                <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg">
+                                                    <div className="text-lg font-black text-blue-800 dark:text-blue-300 whitespace-nowrap">{lang === 'zh' ? '屬性' : 'Attr'}</div>
+                                                    <div className="text-4xl font-black text-blue-600 dark:text-blue-400 tracking-tighter">{(calculation.grandTotalAttr || 0).toLocaleString()}</div>
                                                 </div>
-                                                <div className="flex items-center gap-3 bg-green-50/50 p-2 rounded-lg">
-                                                    <div className="text-lg font-black text-green-800 whitespace-nowrap">{lang === 'zh' ? '通用' : 'Univ'}</div>
-                                                    <div className="text-4xl font-black text-green-600 tracking-tighter">{(calculation.grandTotalUniv || 0).toLocaleString()}</div>
+                                                <div className="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
+                                                    <div className="text-lg font-black text-green-800 dark:text-green-300 whitespace-nowrap">{lang === 'zh' ? '通用' : 'Univ'}</div>
+                                                    <div className="text-4xl font-black text-green-600 dark:text-green-400 tracking-tighter">{(calculation.grandTotalUniv || 0).toLocaleString()}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1923,12 +2141,12 @@
                                 </div>
 
                                 {/* 未來預計獲取明細 - 移到第二個位置 */}
-                                <div className="card p-4 border-t-2 border-green-500 bg-white shadow-sm">
-                                    <div className="section-title text-green-700 text-[0.875rem] font-bold mb-2">{t.sec_future_breakdown}</div>
+                                <div className="card p-4 border-t-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm">
+                                    <div className="section-title text-green-700 dark:text-green-400 text-[0.875rem] font-bold mb-2">{t.sec_future_breakdown}</div>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-[0.75rem]">
                                             <thead>
-                                                <tr className="bg-green-50/50 text-green-800">
+                                                <tr className="bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300">
                                                     <th className="p-1.5 text-left rounded-l-md">{t.th_source}</th>
                                                     <th className="p-1.5 text-center">{t.th_count}</th>
                                                     <th className="p-1.5 text-right">{t.th_attr}</th>
@@ -1936,47 +2154,47 @@
                                                     <th className="p-1.5 text-right rounded-r-md">{t.th_frag}</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-gray-100">
+                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                                 <tr>
-                                                    <td className="p-1.5 font-bold text-blue-700">{t.row_daily}</td>
-                                                    <td className="p-1.5 text-center font-mono">{calculation.effDays} {lang === 'zh' ? '次' : 'runs'}</td>
+                                                    <td className="p-1.5 font-bold text-blue-700 dark:text-blue-300">{t.row_daily}</td>
+                                                    <td className="p-1.5 text-center font-mono text-gray-900 dark:text-gray-100">{calculation.effDays} <span className="text-gray-600 dark:text-gray-400">{lang === 'zh' ? '次' : 'runs'}</span></td>
                                                     <td className="p-1.5 text-right font-bold color-wind">+{calculation.effDays * DAILY_MEMBER_REWARD.attr}</td>
                                                     <td className="p-1.5 text-right font-bold color-univ">+{calculation.effDays * DAILY_MEMBER_REWARD.univ}</td>
-                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                    <td className="p-1.5 text-right text-gray-400 dark:text-gray-500">-</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="p-1.5 font-bold text-red-700">{t.row_weekly_divine}</td>
-                                                    <td className="p-1.5 text-center font-mono">{calculation.effWeeks} {lang === 'zh' ? '週' : 'wks'}</td>
+                                                    <td className="p-1.5 font-bold text-red-700 dark:text-red-400">{t.row_weekly_divine}</td>
+                                                    <td className="p-1.5 text-center font-mono text-gray-900 dark:text-gray-100">{calculation.effWeeks} <span className="text-gray-600 dark:text-gray-400">{lang === 'zh' ? '週' : 'wks'}</span></td>
                                                     <td className="p-1.5 text-right font-bold color-wind">+{calculation.effWeeks * WEEKLY_MEMBER_REWARD.attr}</td>
                                                     <td className="p-1.5 text-right font-bold color-univ">+{calculation.effWeeks * WEEKLY_MEMBER_REWARD.univ}</td>
-                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                    <td className="p-1.5 text-right text-gray-400 dark:text-gray-500">-</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="p-1.5 font-bold text-teal-600">{t.lbl_leader_frag}</td>
-                                                    <td className="p-1.5 text-center font-mono">-</td>
+                                                    <td className="p-1.5 font-bold text-teal-600 dark:text-teal-400">{t.lbl_leader_frag}</td>
+                                                    <td className="p-1.5 text-center font-mono text-gray-600 dark:text-gray-400">-</td>
                                                     <td className="p-1.5 text-right font-bold color-wind">+{calculation.leaderIncomeAttr}</td>
                                                     <td className="p-1.5 text-right font-bold color-univ">+{calculation.leaderIncomeUniv}</td>
-                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                    <td className="p-1.5 text-right text-gray-400 dark:text-gray-500">-</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="p-1.5 font-bold text-orange-600">{t.row_daily_frag}</td>
-                                                    <td className="p-1.5 text-center font-mono">{calculation.effDays} {lang === 'zh' ? '天' : 'days'}</td>
+                                                    <td className="p-1.5 font-bold text-orange-600 dark:text-orange-400">{t.row_daily_frag}</td>
+                                                    <td className="p-1.5 text-center font-mono text-gray-900 dark:text-gray-100">{calculation.effDays} <span className="text-gray-600 dark:text-gray-400">{lang === 'zh' ? '天' : 'days'}</span></td>
                                                     <td className="p-1.5 text-right text-gray-400 font-bold text-fragment-custom">+{calculation.effDays * 1} ({t.qual_peerless_short})</td>
                                                     <td className="p-1.5 text-right text-gray-400 font-bold text-fragment-custom">+{calculation.effDays * 2} ({t.qual_rare_short})</td>
                                                     <td className="p-1.5 text-right font-bold text-fragment-custom">+{calculation.effDays * 3} ({t.qual_common_short})</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="p-1.5 font-bold text-purple-700">{lang === 'zh' ? "每日隨機碎片 (19片)" : "Daily Random (19)"}</td>
-                                                    <td className="p-1.5 text-center font-mono">{calculation.effDays} {lang === 'zh' ? '天' : 'days'}</td>
-                                                    <td className="p-1.5 text-right text-gray-400">-</td>
-                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                    <td className="p-1.5 font-bold text-purple-700 dark:text-purple-400">{lang === 'zh' ? "每日隨機碎片 (19片)" : "Daily Random (19)"}</td>
+                                                    <td className="p-1.5 text-center font-mono text-gray-900 dark:text-gray-100">{calculation.effDays} <span className="text-gray-600 dark:text-gray-400">{lang === 'zh' ? '天' : 'days'}</span></td>
+                                                    <td className="p-1.5 text-right text-gray-400 dark:text-gray-500">-</td>
+                                                    <td className="p-1.5 text-right text-gray-400 dark:text-gray-500">-</td>
                                                     <td className="p-1.5 text-right font-bold text-fragment-custom">+{calculation.effDays * FRAG_SOURCES.dailyRandom}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="p-1.5 font-bold text-purple-700">{t.row_weekly_frag}</td>
-                                                    <td className="p-1.5 text-center font-mono">{calculation.effWeeks} {lang === 'zh' ? '週' : 'wks'}</td>
-                                                    <td className="p-1.5 text-right text-gray-400">-</td>
-                                                    <td className="p-1.5 text-right text-gray-400">-</td>
+                                                    <td className="p-1.5 font-bold text-purple-700 dark:text-purple-400">{t.row_weekly_frag}</td>
+                                                    <td className="p-1.5 text-center font-mono text-gray-900 dark:text-gray-100">{calculation.effWeeks} <span className="text-gray-600 dark:text-gray-400">{lang === 'zh' ? '週' : 'wks'}</span></td>
+                                                    <td className="p-1.5 text-right text-gray-400 dark:text-gray-500">-</td>
+                                                    <td className="p-1.5 text-right text-gray-400 dark:text-gray-500">-</td>
                                                     <td className="p-1.5 text-right font-bold text-fragment-custom">+{calculation.effWeeks * FRAG_SOURCES.weeklyGod}</td>
                                                 </tr>
                                             </tbody>
@@ -1989,27 +2207,27 @@
 
                     {/* Tab 3: 商店 */}
                     {(viewMode === 'single' || activeTab === 'shop') && (
-                        <div className={`card p-4 bg-white border-t-4 border-pink-500 mx-1 ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
+                        <div className={`card p-4 bg-white dark:bg-gray-800 border-t-4 border-pink-500 mx-1 ${viewMode === 'tabs' ? 'mb-6' : 'mb-6'}`}>
 
                             {/* Queue + Summary Layout */}
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4 items-stretch">
                                 {/* Left: Dynamic Priority Queue */}
-                                <div className="lg:col-span-9 border-2 border-indigo-100 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
-                                    <div className="bg-gradient-to-r from-indigo-50 to-white p-2 border-b border-indigo-100 flex justify-between items-center h-10 px-3">
-                                        <div className="text-[0.75rem] text-indigo-500 font-bold">{t.prio_subtitle}</div>
+                                <div className="lg:col-span-9 border-2 border-indigo-100 dark:border-indigo-800 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+                                    <div className="bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-900/30 dark:to-gray-800 p-2 border-b border-indigo-100 dark:border-indigo-800 flex justify-between items-center h-10 px-3">
+                                        <div className="text-[0.75rem] text-indigo-500 dark:text-indigo-400 font-bold">{t.prio_subtitle}</div>
                                         <div className="text-right text-[0.75rem]">
-                                            <span className="block text-green-600 font-bold">{t.prio_rem_univ} {priorityQueueAnalysis.length > 0 ? (priorityQueueAnalysis[priorityQueueAnalysis.length - 1].remainingUnivPool || 0).toLocaleString() : (calculation.grandTotalUniv || 0).toLocaleString()}</span>
+                                            <span className="block text-green-600 dark:text-green-400 font-bold">{t.prio_rem_univ} {priorityQueueAnalysis.length > 0 ? (priorityQueueAnalysis[priorityQueueAnalysis.length - 1].remainingUnivPool || 0).toLocaleString() : (calculation.grandTotalUniv || 0).toLocaleString()}</span>
                                         </div>
                                     </div>
 
                                     <div className="flex h-full min-h-[18.75rem] max-h-[18.75rem]">
                                         {/* Control Panel (Fixed Left Sidebar) */}
-                                        <div className="w-14 bg-gray-50 border-r border-indigo-100 flex flex-col items-center justify-center gap-3 p-1 flex-shrink-0">
+                                        <div className="w-14 bg-gray-50 dark:bg-gray-900 border-r border-indigo-100 dark:border-indigo-800 flex flex-col items-center justify-center gap-3 p-1 flex-shrink-0">
                                             <button className="ctrl-btn up" onClick={handleMoveUp} disabled={selectedQueueIndex === null || selectedQueueIndex === 0}>▲</button>
                                             <button className="ctrl-btn down" onClick={handleMoveDown} disabled={selectedQueueIndex === null || selectedQueueIndex === cartQueue.length - 1}>▼</button>
                                             <div className="h-4"></div>
                                             <button className="ctrl-btn del" onClick={handleDeleteItem} title={lang === 'zh' ? '刪除選中項' : 'Delete selected'} disabled={selectedQueueIndex === null}>🗑️</button>
-                                            <button className="ctrl-btn del !text-red-400 !bg-red-50 !border-red-100 mt-2" onClick={clearAllQueue} title={t.btn_clear_all}>ALL</button>
+                                            <button className="ctrl-btn del !text-red-600 dark:!text-red-400 !bg-red-50 dark:!bg-red-900/20 !border-red-100 dark:!border-red-800 mt-2" onClick={clearAllQueue} title={t.btn_clear_all}>ALL</button>
                                         </div>
 
                                         {/* List Area */}
@@ -2021,7 +2239,7 @@
                                             ) : (
                                                 <table className="w-full text-sm border-collapse">
                                                     <thead>
-                                                        <tr className="text-gray-600 text-[0.6875rem] border-b-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50 sticky top-0 z-10 shadow-sm font-bold">
+                                                        <tr className="text-gray-600 dark:text-gray-400 text-[0.6875rem] border-b-2 border-indigo-200 dark:border-indigo-700 bg-gradient-to-r from-indigo-50 to-blue-50 sticky top-0 z-10 shadow-sm font-bold">
                                                             <th className="py-2.5 pl-3 text-left w-32"># {lang === 'zh' ? '品項' : 'Item'}</th>
                                                             <th className="py-2.5 text-center">{lang === 'zh' ? '進度' : 'Progress'}</th>
                                                             <th className="py-2.5 text-left">{lang === 'zh' ? '資源來源明細' : 'Resource Details'}</th>
@@ -2036,8 +2254,8 @@
                                                                 resourceDetails.push({
                                                                     label: lang === 'zh' ? '現有同屬性' : 'Current Stock',
                                                                     value: item.nativeUsed,
-                                                                    color: 'text-blue-700',
-                                                                    bgColor: 'bg-blue-50',
+                                                                    color: 'text-blue-700 dark:text-blue-300',
+                                                                    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
                                                                     icon: '💎'
                                                                 });
                                                             }
@@ -2045,8 +2263,8 @@
                                                                 resourceDetails.push({
                                                                     label: lang === 'zh' ? '未來同屬性' : 'Future Native',
                                                                     value: item.futureNativeUsed,
-                                                                    color: 'text-green-700',
-                                                                    bgColor: 'bg-green-50',
+                                                                    color: 'text-green-700 dark:text-green-400',
+                                                                    bgColor: 'bg-green-50 dark:bg-green-900/20',
                                                                     icon: '🌟'
                                                                 });
                                                             }
@@ -2054,8 +2272,8 @@
                                                                 resourceDetails.push({
                                                                     label: lang === 'zh' ? '未來通用' : 'Future Univ',
                                                                     value: item.futureUnivUsed,
-                                                                    color: 'text-teal-700',
-                                                                    bgColor: 'bg-teal-50',
+                                                                    color: 'text-teal-700 dark:text-teal-400',
+                                                                    bgColor: 'bg-teal-50 dark:bg-teal-900/20',
                                                                     icon: '✨'
                                                                 });
                                                             }
@@ -2063,8 +2281,8 @@
                                                                 resourceDetails.push({
                                                                     label: lang === 'zh' ? '現有通用(1:1)' : 'Cur Univ(1:1)',
                                                                     value: item.nonTargetUniv,
-                                                                    color: 'text-indigo-700',
-                                                                    bgColor: 'bg-indigo-50',
+                                                                    color: 'text-indigo-700 dark:text-indigo-400',
+                                                                    bgColor: 'bg-indigo-50 dark:bg-indigo-900/20',
                                                                     icon: '🔷'
                                                                 });
                                                             }
@@ -2073,8 +2291,8 @@
                                                                 resourceDetails.push({
                                                                     label: lang === 'zh' ? '其他屬性(2:1)' : 'Other Attr(2:1)',
                                                                     value: `${item.nonTargetOtherRaw}→${gain}`,
-                                                                    color: 'text-purple-700',
-                                                                    bgColor: 'bg-purple-50',
+                                                                    color: 'text-purple-700 dark:text-purple-400',
+                                                                    bgColor: 'bg-purple-50 dark:bg-purple-900/20',
                                                                     icon: '🔄'
                                                                 });
                                                             }
@@ -2083,8 +2301,8 @@
                                                                 resourceDetails.push({
                                                                     label: lang === 'zh' ? '未來其他屬性(2:1)' : 'Future Other(2:1)',
                                                                     value: `${item.futureOtherRaw}→${gain}`,
-                                                                    color: 'text-orange-700',
-                                                                    bgColor: 'bg-orange-50',
+                                                                    color: 'text-orange-700 dark:text-orange-400',
+                                                                    bgColor: 'bg-orange-50 dark:bg-orange-900/20',
                                                                     icon: '⚡'
                                                                 });
                                                             }
@@ -2106,7 +2324,7 @@
                                                                     onDragOver={!isMobile ? (e) => handleDragOver(e, index) : undefined}
                                                                     onDragEnd={!isMobile ? handleDragEnd : undefined}
                                                                     onClick={() => handleQueueItemClick(index)}
-                                                                    className={`border-b border-gray-100 queue-item transition-all hover:bg-blue-50/30 ${
+                                                                    className={`border-b border-gray-100 queue-item transition-all hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900/20 ${
                                                                         !isMobile ? 'cursor-move' : 'cursor-pointer'
                                                                     } ${
                                                                         selectedQueueIndex === index ? 'selected bg-indigo-100/50 border-l-4 border-l-indigo-500' : ''
@@ -2115,7 +2333,7 @@
                                                                 >
                                                                     <td className="py-3 pl-3">
                                                                         <div className="flex items-center gap-2 leading-tight">
-                                                                            <span className="text-gray-500 font-mono text-xs font-bold bg-gray-100 px-1.5 py-0.5 rounded">{index + 1}</span>
+                                                                            <span className="text-gray-500 dark:text-gray-400 font-mono text-xs font-bold bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{index + 1}</span>
                                                                             <div className="flex flex-col">
                                                                                 <div className={`font-bold text-xs truncate max-w-[120px] ${getAttrColorText(item.category)}`} title={item.name}>
                                                                                     ({getAttrLabel(item.category)}) {item.name}
@@ -2125,14 +2343,14 @@
                                                                                     {item.status === 'univ' && <span className="w-1.5 h-1.5 rounded-full bg-green-500" title={t.prio_status_univ}></span>}
                                                                                     {item.status === 'convert' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" title={t.prio_status_convert}></span>}
                                                                                     {item.status === 'gap' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" title={t.prio_status_gap}></span>}
-                                                                                    <span className="text-[0.625rem] text-gray-500">{t.shop_cost}: {item.cost}</span>
+                                                                                    <span className="text-[0.625rem] text-gray-500 dark:text-gray-400">{t.shop_cost}: {item.cost}</span>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                     </td>
                                                                     <td className="py-3 text-center">
                                                                         <div className="flex flex-col items-center gap-0.5">
-                                                                            <span className="font-mono font-bold text-sm text-gray-700">{item.progress}</span>
+                                                                            <span className="font-mono font-bold text-sm text-gray-700 dark:text-gray-300">{item.progress}</span>
                                                                             {item.gap > 0 && (
                                                                                 <span className="text-[0.625rem] text-red-500 font-medium">{t.shop_gap} {item.gap}</span>
                                                                             )}
@@ -2152,7 +2370,7 @@
                                                                                     </div>
                                                                                 ))}
                                                                                 {item.stolenFromMe > 0 && (
-                                                                                    <div className="bg-red-50 text-red-700 px-1.5 py-0.5 rounded text-[0.65rem] font-semibold border border-red-200 flex items-center gap-0.5">
+                                                                                    <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-1.5 py-0.5 rounded text-[0.65rem] font-semibold border border-red-200 flex items-center gap-0.5">
                                                                                         <span>⬆️</span>
                                                                                         <span className="whitespace-nowrap">{lang === 'zh' ? '被奪取' : 'Stolen'}: {item.stolenFromMe}</span>
                                                                                     </div>
@@ -2175,27 +2393,27 @@
                                 {/* Right: Summary Cards Stack */}
                                 <div className="lg:col-span-3 flex flex-col gap-4 h-full">
                                     {/* 預估殘卷總量 */}
-                                    <div className="bg-white p-3 rounded-xl shadow-sm border-2 border-indigo-50 flex flex-col overflow-hidden">
-                                        <div className="text-indigo-900 font-bold text-[0.875rem] mb-3 flex items-center gap-1 border-b border-indigo-50 pb-2">
+                                    <div className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border-2 border-indigo-50 flex flex-col overflow-hidden">
+                                        <div className="text-indigo-900 dark:text-indigo-300 font-bold text-[0.875rem] mb-3 flex items-center gap-1 border-b border-indigo-50 pb-2">
                                             <span>📊</span> {lang === 'zh' ? '預估殘卷總量' : 'Est. Total Scrolls'}
                                         </div>
 
                                         <div className="space-y-4">
-                                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-center gap-3">
-                                                <div className="text-base text-blue-600 font-bold whitespace-nowrap">{lang === 'zh' ? '屬性卷' : 'Attr'}</div>
-                                                <div className="text-3xl font-black text-blue-700">{(calculation.grandTotalAttr || 0).toLocaleString()}</div>
+                                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800 flex items-center gap-3">
+                                                <div className="text-base text-blue-600 dark:text-blue-400 font-bold whitespace-nowrap">{lang === 'zh' ? '屬性卷' : 'Attr'}</div>
+                                                <div className="text-3xl font-black text-blue-700 dark:text-blue-300">{(calculation.grandTotalAttr || 0).toLocaleString()}</div>
                                             </div>
 
-                                            <div className="bg-green-50 p-3 rounded-lg border border-green-100 flex items-center gap-3">
-                                                <div className="text-base text-green-600 font-bold whitespace-nowrap">{lang === 'zh' ? '通用卷' : 'Univ'}</div>
-                                                <div className="text-3xl font-black text-green-700">{(calculation.grandTotalUniv || 0).toLocaleString()}</div>
+                                            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800 flex items-center gap-3">
+                                                <div className="text-base text-green-600 dark:text-green-400 font-bold whitespace-nowrap">{lang === 'zh' ? '通用卷' : 'Univ'}</div>
+                                                <div className="text-3xl font-black text-green-700 dark:text-green-400">{(calculation.grandTotalUniv || 0).toLocaleString()}</div>
                                             </div>
                                         </div>
                                     </div>
                                     
                                     {/* 提示卡片 */}
-                                    <div className="bg-orange-50 p-2.5 rounded-lg border border-orange-200 shadow-sm">
-                                        <div className="text-[0.75rem] text-orange-800 font-bold flex flex-col gap-0.5">
+                                    <div className="bg-orange-50 dark:bg-orange-900/20 p-2.5 rounded-lg border border-orange-200 dark:border-orange-700 shadow-sm">
+                                        <div className="text-[0.75rem] text-orange-800 dark:text-orange-300 font-bold flex flex-col gap-0.5">
                                             {lang === 'zh' ? (
                                                 <React.Fragment>
                                                     <div className="flex items-center gap-1">💡 提示：使用通用卷可以 1:1 替代屬性卷。</div>
@@ -2226,7 +2444,7 @@
                                         <div key={element} className={`border rounded p-2 shadow-sm ${bgColorClass[element]}`}>
                                             <div className={`font-bold mb-1 text-center border-b pb-1 ${textColor[element]} ${borderColor[element]} flex justify-between items-center text-[0.75rem]`}>
                                                 <span>{labels[element]}</span>
-                                                <button onClick={() => clearShopCategory(element)} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm" title={t.btn_clear}>{t.btn_clear}</button>
+                                                <button onClick={() => clearShopCategory(element)} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600" title={t.btn_clear}>{t.btn_clear}</button>
                                             </div>
                                             <div className="space-y-1">
                                                 {ATTR_SHOP_ITEMS.map(item => (
@@ -2237,13 +2455,13 @@
                                     );
                                 })}
                                 <div className="border rounded p-2 shadow-sm bg-univ-light">
-                                    <div className="font-bold mb-1 text-center border-b pb-1 text-green-600 border-green-200 flex justify-between items-center text-[0.75rem]">
+                                    <div className="font-bold mb-1 text-center border-b pb-1 text-green-600 dark:text-green-400 border-green-200 dark:border-green-700 flex justify-between items-center text-[0.75rem]">
                                         <span>{t.attr_univ}</span>
-                                        <button onClick={() => clearShopCategory('univ')} className="text-[0.625rem] bg-white border border-gray-300 px-1 rounded shadow-sm" title={t.btn_clear}>{t.btn_clear}</button>
+                                        <button onClick={() => clearShopCategory('univ')} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600" title={t.btn_clear}>{t.btn_clear}</button>
                                     </div>
                                     <div className="space-y-1">
                                         {UNIV_SHOP_ITEMS.map(item => (
-                                            <ShopItem key={item.id} item={item} category="univ" color="text-green-600" />
+                                            <ShopItem key={item.id} item={item} category="univ" color="text-green-600 dark:text-green-400" />
                                         ))}
                                     </div>
                                 </div>
@@ -2269,13 +2487,13 @@
                                     </thead>
                                     <tbody>
                                         {dailyTable.map((row) => (
-                                            <tr key={row.day} className={row.date.startsWith(currentDateInput.slice(5)) ? "bg-blue-100 border-l-4 border-blue-500" : ""}>
-                                                <td className="font-medium text-gray-600 text-[0.875rem]">{row.day}</td>
-                                                <td className="text-[0.875rem]">{row.date}</td>
-                                                <td className="text-[0.875rem] text-gray-600">{row.dayAttr} / {row.dayUniv} / <span className="text-yellow-600 font-bold">{row.dayRandom}</span></td>
-                                                <td className="text-[0.875rem]"><span className="text-blue-600 font-bold">{row.accAttr}</span> / <span className="text-green-600 font-bold">{row.accUniv}</span></td>
-                                                <td className="text-[0.875rem]"><span className="text-yellow-800 font-bold bg-yellow-100 px-2 py-1 rounded">{row.accRandom}</span></td>
-                                                <td className="text-[0.75rem] text-gray-500">{row.notes.map((note, idx) => (<span key={idx} className={note.style}>{idx > 0 && ", "}{note.text}</span>))}</td>
+                                            <tr key={row.day} className={row.date.startsWith(currentDateInput.slice(5)) ? "bg-blue-100 dark:bg-blue-900/30 border-l-4 border-blue-500 dark:border-blue-400" : ""}>
+                                                <td className="font-medium text-gray-600 dark:text-gray-400 text-[0.875rem]">{row.day}</td>
+                                                <td className="text-[0.875rem] text-gray-900 dark:text-gray-100">{row.date}</td>
+                                                <td className="text-[0.875rem] text-gray-600 dark:text-gray-400"><span className="text-gray-900 dark:text-gray-100">{row.dayAttr}</span> <span className="text-gray-400 dark:text-gray-500">/</span> <span className="text-gray-900 dark:text-gray-100">{row.dayUniv}</span> <span className="text-gray-400 dark:text-gray-500">/</span> <span className="text-yellow-600 dark:text-yellow-400 font-bold">{row.dayRandom}</span></td>
+                                                <td className="text-[0.875rem]"><span className="text-blue-600 dark:text-blue-400 font-bold">{row.accAttr}</span> <span className="text-gray-400 dark:text-gray-500">/</span> <span className="text-green-600 dark:text-green-400 font-bold">{row.accUniv}</span></td>
+                                                <td className="text-[0.875rem]"><span className="text-yellow-800 dark:text-yellow-900 font-bold bg-yellow-100 dark:bg-yellow-400 px-2 py-1 rounded">{row.accRandom}</span></td>
+                                                <td className="text-[0.75rem] text-gray-500 dark:text-gray-400">{row.notes.map((note, idx) => (<span key={idx} className={note.style}>{idx > 0 && ", "}{note.text}</span>))}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -2290,49 +2508,49 @@
                                 {/* 三列並排 - 響應式：手機1列，平板2列，桌面3列 */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                     {/* 卡片1: 固定任務 */}
-                                    <div className="border rounded-lg p-3 bg-yellow-50 border-yellow-200">
+                                    <div className="border rounded-lg p-3 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700">
                                         <h3 className="font-bold text-yellow-800 mb-2 border-b border-yellow-300 pb-1 text-base">{t.src_fixed_title}</h3>
                                         <ul className="space-y-1.5 text-sm">
-                                            <li className="flex justify-between items-center"><span className="text-red-700 font-bold">{t.qual_god}</span><span className="bg-white px-2 py-0.5 rounded-full text-red-600 font-bold shadow-sm text-sm">4 {t.unit_frag}</span></li>
-                                            <li className="flex justify-between items-center"><span className="text-purple-700 font-bold">{t.qual_peerless}</span><span className="bg-white px-2 py-0.5 rounded-full text-purple-600 font-bold shadow-sm text-sm">5 {t.unit_frag}</span></li>
-                                            <li className="flex justify-between items-center"><span className="text-indigo-700 font-bold">{t.qual_rare}</span><span className="bg-white px-2 py-0.5 rounded-full text-indigo-600 font-bold shadow-sm text-sm">9 {t.unit_frag}</span></li>
-                                            <li className="flex justify-between items-center"><span className="text-green-700 font-bold">{t.qual_common}</span><span className="bg-white px-2 py-0.5 rounded-full text-green-600 font-bold shadow-sm text-sm">8 {t.unit_frag}</span></li>
-                                            <li className="flex justify-between items-center"><span className="text-yellow-700 font-bold">{t.qual_random}</span><span className="bg-white px-2 py-0.5 rounded-full text-yellow-600 font-bold shadow-sm text-sm">20 {t.unit_frag}</span></li>
-                                            <li className="flex justify-between items-center border-t border-yellow-200 pt-1.5 mt-1.5">
-                                                <span className="text-orange-700 font-bold">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</span>
-                                                <span className="bg-white px-2 py-0.5 rounded-full text-orange-600 font-bold shadow-sm text-sm">{t.src_art_reward}</span>
+                                            <li className="flex justify-between items-center"><span className="text-red-700 dark:text-red-400 font-bold">{t.qual_god}</span><span className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full text-red-600 dark:text-red-400 font-bold shadow-sm text-sm">4 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center"><span className="text-purple-700 dark:text-purple-400 font-bold">{t.qual_peerless}</span><span className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full text-purple-600 dark:text-purple-400 font-bold shadow-sm text-sm">5 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center"><span className="text-indigo-700 dark:text-indigo-400 font-bold">{t.qual_rare}</span><span className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full text-indigo-600 dark:text-indigo-400 font-bold shadow-sm text-sm">9 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center"><span className="text-green-700 dark:text-green-400 font-bold">{t.qual_common}</span><span className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full text-green-600 dark:text-green-400 font-bold shadow-sm text-sm">8 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center"><span className="text-yellow-700 dark:text-yellow-300 font-bold">{t.qual_random}</span><span className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full text-yellow-600 dark:text-yellow-400 font-bold shadow-sm text-sm">20 {t.unit_frag}</span></li>
+                                            <li className="flex justify-between items-center border-t border-yellow-200 dark:border-yellow-700 pt-1.5 mt-1.5">
+                                                <span className="text-orange-700 dark:text-orange-400 font-bold">✨ {lang === 'zh' ? '妙手丹青' : 'Art Event'}</span>
+                                                <span className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full text-orange-600 dark:text-orange-400 font-bold shadow-sm text-sm">{t.src_art_reward}</span>
                                             </li>
                                         </ul>
                                     </div>
 
                                     {/* 卡片2: 週期任務 */}
-                                    <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
-                                        <h3 className="font-bold text-blue-800 mb-2 border-b border-blue-300 pb-1 text-base">{t.src_weekly_title}</h3>
+                                    <div className="border rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
+                                        <h3 className="font-bold text-blue-800 dark:text-blue-300 mb-2 border-b border-blue-300 pb-1 text-base">{t.src_weekly_title}</h3>
                                         <div className="space-y-2 text-sm">
                                             <div>
-                                                <div className="text-xs font-bold text-gray-700 mb-1">{t.src_weekly_sub}</div>
-                                                <div className="flex justify-between items-center bg-white p-2 rounded border border-blue-100">
-                                                    <span className="text-red-600 font-bold">{t.qual_god}</span>
-                                                    <span className="font-bold text-sm">3 {t.unit_frag}/{t.unit_week}</span>
+                                                <div className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">{t.src_weekly_sub}</div>
+                                                <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded border border-blue-100 dark:border-blue-800">
+                                                    <span className="text-red-600 dark:text-red-400 font-bold">{t.qual_god}</span>
+                                                    <span className="font-bold text-sm text-gray-900 dark:text-gray-100">3 {t.unit_frag}/{t.unit_week}</span>
                                                 </div>
                                             </div>
                                             <div>
-                                                <div className="text-xs font-bold text-gray-700 mb-1">{t.src_daily_sub}</div>
-                                                <div className="flex justify-between items-center bg-white p-2 rounded border border-blue-100">
-                                                    <span className="text-yellow-600 font-bold">{t.qual_random}</span>
-                                                    <span className="font-bold text-sm">19 {t.unit_frag}/{t.unit_day}</span>
+                                                <div className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">{t.src_daily_sub}</div>
+                                                <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded border border-blue-100 dark:border-blue-800">
+                                                    <span className="text-yellow-600 dark:text-yellow-400 font-bold">{t.qual_random}</span>
+                                                    <span className="font-bold text-sm text-gray-900 dark:text-gray-100">19 {t.unit_frag}/{t.unit_day}</span>
                                                 </div>
-                                                <div className="text-xs text-orange-600 font-bold mt-1 text-right italic">{t.src_daily_note}</div>
+                                                <div className="text-xs text-orange-600 dark:text-orange-400 font-bold mt-1 text-right italic">{t.src_daily_note}</div>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* 卡片3: 獎勵表格（緊湊版） */}
-                                    <div className="border rounded-lg p-3 bg-indigo-50 border-indigo-200">
-                                        <h3 className="font-bold text-indigo-800 mb-2 border-b border-indigo-300 pb-1 text-base">{t.src_rewards_title}</h3>
+                                    <div className="border rounded-lg p-3 bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-700">
+                                        <h3 className="font-bold text-indigo-800 dark:text-indigo-300 mb-2 border-b border-indigo-300 pb-1 text-base">{t.src_rewards_title}</h3>
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-sm text-left">
-                                                <thead className="bg-indigo-100 text-indigo-900">
+                                                <thead className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-900 dark:text-indigo-200">
                                                     <tr>
                                                         <th className="p-1 text-xs">{t.reward_header_qual}</th>
                                                         <th className="p-1 text-xs">{t.reward_header_role}</th>
@@ -2341,22 +2559,22 @@
                                                         <th className="p-1 text-right text-xs">{t.reward_header_refund}</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-indigo-100">
+                                                <tbody className="divide-y divide-indigo-100 dark:divide-indigo-800">
                                                     {/* God */}
-                                                    <tr className="bg-blue-100/50"><td className="p-1 font-bold text-red-700">{t.qual_god}</td><td className="p-1 font-bold">{t.role_capt}</td><td className="p-1 text-right text-blue-600 font-bold">30</td><td className="p-1 text-right text-green-600 font-bold">40</td><td className="p-1 text-right">-</td></tr>
-                                                    <tr className="bg-white"><td className="p-1"></td><td className="p-1 text-gray-500">{t.role_memb}</td><td className="p-1 text-right text-blue-500">15</td><td className="p-1 text-right text-green-500">20</td><td className="p-1 text-right">-</td></tr>
+                                                    <tr className="bg-blue-100/50 dark:bg-blue-900/20"><td className="p-1 font-bold text-red-700 dark:text-red-400">{t.qual_god}</td><td className="p-1 font-bold text-gray-900 dark:text-gray-100">{t.role_capt}</td><td className="p-1 text-right text-blue-600 dark:text-blue-400 font-bold">30</td><td className="p-1 text-right text-green-600 dark:text-green-400 font-bold">40</td><td className="p-1 text-right text-gray-600 dark:text-gray-400">-</td></tr>
+                                                    <tr className="bg-white dark:bg-gray-800"><td className="p-1"></td><td className="p-1 text-gray-500 dark:text-gray-400">{t.role_memb}</td><td className="p-1 text-right text-blue-500 dark:text-blue-400">15</td><td className="p-1 text-right text-green-500 dark:text-green-400">20</td><td className="p-1 text-right text-gray-600 dark:text-gray-400">-</td></tr>
                                                     {/* Peerless */}
-                                                    <tr className="bg-blue-100/50"><td className="p-1 font-bold text-purple-700">{t.qual_peerless}</td><td className="p-1 font-bold">{t.role_capt}</td><td className="p-1 text-right text-blue-600 font-bold">16</td><td className="p-1 text-right text-green-600 font-bold">20</td><td className="p-1 text-right font-bold text-purple-600">1</td></tr>
-                                                    <tr className="bg-white"><td className="p-1"></td><td className="p-1 text-gray-500">{t.role_memb}</td><td className="p-1 text-right text-blue-500">8</td><td className="p-1 text-right text-green-500">10</td><td className="p-1 text-right">-</td></tr>
+                                                    <tr className="bg-blue-100/50 dark:bg-blue-900/20"><td className="p-1 font-bold text-purple-700 dark:text-purple-400">{t.qual_peerless}</td><td className="p-1 font-bold text-gray-900 dark:text-gray-100">{t.role_capt}</td><td className="p-1 text-right text-blue-600 dark:text-blue-400 font-bold">16</td><td className="p-1 text-right text-green-600 dark:text-green-400 font-bold">20</td><td className="p-1 text-right font-bold text-purple-600 dark:text-purple-400">1</td></tr>
+                                                    <tr className="bg-white dark:bg-gray-800"><td className="p-1"></td><td className="p-1 text-gray-500 dark:text-gray-400">{t.role_memb}</td><td className="p-1 text-right text-blue-500 dark:text-blue-400">8</td><td className="p-1 text-right text-green-500 dark:text-green-400">10</td><td className="p-1 text-right text-gray-600 dark:text-gray-400">-</td></tr>
                                                     {/* Rare */}
-                                                    <tr className="bg-blue-100/50"><td className="p-1 font-bold text-indigo-700">{t.qual_rare}</td><td className="p-1 font-bold">{t.role_capt}</td><td className="p-1 text-right text-blue-600 font-bold">8</td><td className="p-1 text-right text-green-600 font-bold">10</td><td className="p-1 text-right font-bold text-indigo-600">1</td></tr>
-                                                    <tr className="bg-white"><td className="p-1"></td><td className="p-1 text-gray-500">{t.role_memb}</td><td className="p-1 text-right text-blue-500">4</td><td className="p-1 text-right text-green-500">5</td><td className="p-1 text-right">-</td></tr>
+                                                    <tr className="bg-blue-100/50 dark:bg-blue-900/20"><td className="p-1 font-bold text-indigo-700 dark:text-indigo-400">{t.qual_rare}</td><td className="p-1 font-bold text-gray-900 dark:text-gray-100">{t.role_capt}</td><td className="p-1 text-right text-blue-600 dark:text-blue-400 font-bold">8</td><td className="p-1 text-right text-green-600 dark:text-green-400 font-bold">10</td><td className="p-1 text-right font-bold text-indigo-600 dark:text-indigo-400">1</td></tr>
+                                                    <tr className="bg-white dark:bg-gray-800"><td className="p-1"></td><td className="p-1 text-gray-500 dark:text-gray-400">{t.role_memb}</td><td className="p-1 text-right text-blue-500 dark:text-blue-400">4</td><td className="p-1 text-right text-green-500 dark:text-green-400">5</td><td className="p-1 text-right text-gray-600 dark:text-gray-400">-</td></tr>
                                                     {/* Common */}
-                                                    <tr className="bg-blue-100/50"><td className="p-1 font-bold text-green-700">{t.qual_common}</td><td className="p-1 font-bold">{t.role_capt}</td><td className="p-1 text-right text-blue-600 font-bold">4</td><td className="p-1 text-right text-green-600 font-bold">5</td><td className="p-1 text-right font-bold text-green-600">1</td></tr>
-                                                    <tr className="bg-white"><td className="p-1"></td><td className="p-1 text-gray-500">{t.role_memb}</td><td className="p-1 text-right text-blue-500">2</td><td className="p-1 text-right text-green-500">3</td><td className="p-1 text-right">-</td></tr>
+                                                    <tr className="bg-blue-100/50 dark:bg-blue-900/20"><td className="p-1 font-bold text-green-700 dark:text-green-400">{t.qual_common}</td><td className="p-1 font-bold text-gray-900 dark:text-gray-100">{t.role_capt}</td><td className="p-1 text-right text-blue-600 dark:text-blue-400 font-bold">4</td><td className="p-1 text-right text-green-600 dark:text-green-400 font-bold">5</td><td className="p-1 text-right font-bold text-green-600 dark:text-green-400">1</td></tr>
+                                                    <tr className="bg-white dark:bg-gray-800"><td className="p-1"></td><td className="p-1 text-gray-500 dark:text-gray-400">{t.role_memb}</td><td className="p-1 text-right text-blue-500 dark:text-blue-400">2</td><td className="p-1 text-right text-green-500 dark:text-green-400">3</td><td className="p-1 text-right text-gray-600 dark:text-gray-400">-</td></tr>
                                                     {/* Legend */}
-                                                    <tr className="bg-blue-100/50"><td className="p-1 font-bold text-purple-900">{t.qual_legend}</td><td className="p-1 font-bold">{t.role_capt}</td><td className="p-1 text-right text-blue-600 font-bold">-</td><td className="p-1 text-right text-green-600 font-bold">150</td><td className="p-1 text-right">-</td></tr>
-                                                    <tr className="bg-white"><td className="p-1"></td><td className="p-1 text-gray-500">{t.role_memb}</td><td className="p-1 text-right text-blue-500">-</td><td className="p-1 text-right text-green-500">75</td><td className="p-1 text-right">-</td></tr>
+                                                    <tr className="bg-blue-100/50 dark:bg-blue-900/20"><td className="p-1 font-bold text-purple-900 dark:text-purple-300">{t.qual_legend}</td><td className="p-1 font-bold text-gray-900 dark:text-gray-100">{t.role_capt}</td><td className="p-1 text-right text-blue-600 dark:text-blue-400 font-bold">-</td><td className="p-1 text-right text-green-600 dark:text-green-400 font-bold">150</td><td className="p-1 text-right text-gray-600 dark:text-gray-400">-</td></tr>
+                                                    <tr className="bg-white dark:bg-gray-800"><td className="p-1"></td><td className="p-1 text-gray-500 dark:text-gray-400">{t.role_memb}</td><td className="p-1 text-right text-blue-500 dark:text-blue-400">-</td><td className="p-1 text-right text-green-500 dark:text-green-400">75</td><td className="p-1 text-right text-gray-600 dark:text-gray-400">-</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -2373,25 +2591,25 @@
                         zIndex: 9999,
                         display: 'flex',
                         alignItems: 'center',
-                        backgroundColor: 'white',
+                        backgroundColor: darkMode ? '#1f2937' : 'white',
                         padding: '4px 8px',
                         borderRadius: '999px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        border: '1px solid #e0e7ff',
+                        boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.15)',
+                        border: darkMode ? '1px solid #4b5563' : '1px solid #e0e7ff',
                         gap: '6px',
                         height: '36px'
                     }}>
                         <button
                             onClick={() => setZoomLevel(prev => Math.max(50, prev - 10))}
-                            style={{ width: '28px', height: '28px', border: 'none', background: '#f5f7ff', color: '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            style={{ width: '28px', height: '28px', border: 'none', background: darkMode ? '#374151' : '#f5f7ff', color: darkMode ? '#93c5fd' : '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >-</button>
                         <button
                             onClick={() => setZoomLevel(100)}
-                            style={{ border: 'none', background: 'transparent', color: '#6366f1', fontSize: '12px', fontWeight: '900', cursor: 'pointer', padding: '0 4px', fontFormat: 'monospace' }}
+                            style={{ border: 'none', background: 'transparent', color: darkMode ? '#818cf8' : '#6366f1', fontSize: '12px', fontWeight: '900', cursor: 'pointer', padding: '0 4px', fontFormat: 'monospace' }}
                         >{zoomLevel}%</button>
                         <button
                             onClick={() => setZoomLevel(prev => Math.min(250, prev + 10))}
-                            style={{ width: '28px', height: '28px', border: 'none', background: '#f5f7ff', color: '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            style={{ width: '28px', height: '28px', border: 'none', background: darkMode ? '#374151' : '#f5f7ff', color: darkMode ? '#93c5fd' : '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >+</button>
                     </div>
                 </div>
