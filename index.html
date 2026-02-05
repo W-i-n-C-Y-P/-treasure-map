@@ -26,7 +26,22 @@
         }
         
         body.dark {
+            background: linear-gradient(135deg, #111827 0%, #1F2937 100%);
+        }
+        
+        /* EVA-01 Theme - Purple/Green Neon */
+        body.eva-01 {
             background: linear-gradient(135deg, #0F0F23 0%, #1A0B2E 100%);
+        }
+        
+        /* EVA-00 Theme - Blue/Cyan Cool */
+        body.eva-00 {
+            background: linear-gradient(135deg, #020818 0%, #0A1628 100%);
+        }
+        
+        /* Solo Leveling Theme - Purple/Gray Shadow */
+        body.solo-leveling {
+            background: linear-gradient(135deg, #1A0A2E 0%, #0F0520 100%);
         }
 
         .card {
@@ -37,9 +52,30 @@
         }
         
         .dark .card {
+            background: linear-gradient(145deg, #1F2937 0%, #374151 100%);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+        }
+        
+        /* EVA-01 Cards - Purple/Green */
+        .eva-01 .card {
             background: linear-gradient(145deg, #1A1A2E 0%, #16213E 100%);
             box-shadow: 0 4px 12px rgba(107, 70, 193, 0.2), 0 0 20px rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(147, 51, 234, 0.3);
+        }
+        
+        /* EVA-00 Cards - Blue/Cyan */
+        .eva-00 .card {
+            background: linear-gradient(145deg, #0A1A2E 0%, #162838 100%);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3), 0 0 20px rgba(6, 182, 212, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+        
+        /* Solo Leveling Cards - Purple/Gray */
+        .solo-leveling .card {
+            background: linear-gradient(145deg, #1E1035 0%, #2A1645 100%);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3), 0 0 20px rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.4);
         }
 
         /* 輸入框樣式 */
@@ -66,9 +102,30 @@
         }
         
         .dark .input-group input[type="date"] {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+        
+        /* EVA-01 Date Inputs */
+        .eva-01 .input-group input[type="date"] {
             background-color: rgba(26, 26, 46, 0.8);
             border-color: rgba(147, 51, 234, 0.5);
             color: #10B981;
+        }
+        
+        /* EVA-00 Inputs */
+        .eva-00 .input-group input[type="date"] {
+            background-color: rgba(10, 26, 46, 0.8);
+            border-color: rgba(59, 130, 246, 0.5);
+            color: #22D3EE;
+        }
+        
+        /* Solo Leveling Inputs */
+        .solo-leveling .input-group input[type="date"] {
+            background-color: rgba(30, 16, 53, 0.8);
+            border-color: rgba(168, 85, 247, 0.5);
+            color: #C084FC;
         }
 
         .input-group input[type="number"] {
@@ -84,9 +141,30 @@
         }
         
         .dark .input-group input[type="number"] {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+        
+        /* EVA-01 Number Inputs */
+        .eva-01 .input-group input[type="number"] {
             background-color: rgba(26, 26, 46, 0.8);
             border-color: rgba(147, 51, 234, 0.5);
             color: #10B981;
+        }
+        
+        /* EVA-00 Number Inputs */
+        .eva-00 .input-group input[type="number"] {
+            background-color: rgba(10, 26, 46, 0.8);
+            border-color: rgba(59, 130, 246, 0.5);
+            color: #22D3EE;
+        }
+        
+        /* Solo Leveling Number Inputs */
+        .solo-leveling .input-group input[type="number"] {
+            background-color: rgba(30, 16, 53, 0.8);
+            border-color: rgba(168, 85, 247, 0.5);
+            color: #C084FC;
         }
         
         /* Number input spinner buttons - show on hover and focus */
@@ -120,9 +198,30 @@
         }
         
         .dark .input-group input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+            background-color: #4b5563;
+        }
+        
+        /* EVA-01 Focus */
+        .eva-01 .input-group input:focus {
             border-color: #9333EA;
             box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.3), 0 0 15px rgba(16, 185, 129, 0.4);
             background-color: rgba(26, 26, 46, 0.9);
+        }
+        
+        /* EVA-00 Focus */
+        .eva-00 .input-group input:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3), 0 0 15px rgba(6, 182, 212, 0.4);
+            background-color: rgba(10, 26, 46, 0.9);
+        }
+        
+        /* Solo Leveling Focus */
+        .solo-leveling .input-group input:focus {
+            border-color: #A855F7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.3), 0 0 15px rgba(192, 132, 252, 0.4);
+            background-color: rgba(30, 16, 53, 0.9);
         }
 
 
@@ -314,10 +413,34 @@
         }
         
         .dark .tab-btn.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+            background: linear-gradient(180deg, rgba(96, 165, 250, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+            box-shadow: 0 0 5px rgba(96, 165, 250, 0.2);
+        }
+        
+        /* EVA-01 Active Tab */
+        .eva-01 .tab-btn.active {
             color: #10B981;
             border-bottom-color: #10B981;
             background: linear-gradient(180deg, rgba(16, 185, 129, 0.15) 0%, rgba(147, 51, 234, 0.1) 100%);
             box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+        
+        /* EVA-00 Active Tab */
+        .eva-00 .tab-btn.active {
+            color: #22D3EE;
+            border-bottom-color: #22D3EE;
+            background: linear-gradient(180deg, rgba(34, 211, 238, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+        }
+        
+        /* Solo Leveling Active Tab */
+        .solo-leveling .tab-btn.active {
+            color: #C084FC;
+            border-bottom-color: #C084FC;
+            background: linear-gradient(180deg, rgba(192, 132, 252, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%);
+            box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
         }
         
         .dark .tab-btn.active {
@@ -362,8 +485,26 @@
         }
         
         .dark .tab-content-scroll::-webkit-scrollbar-thumb {
+            background: #6b7280;
+            box-shadow: none;
+        }
+        
+        /* EVA-01 Scrollbar */
+        .eva-01 .tab-content-scroll::-webkit-scrollbar-thumb {
             background: linear-gradient(180deg, #9333EA 0%, #10B981 100%);
             box-shadow: 0 0 10px rgba(147, 51, 234, 0.5);
+        }
+        
+        /* EVA-00 Scrollbar */
+        .eva-00 .tab-content-scroll::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #3B82F6 0%, #22D3EE 100%);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        
+        /* Solo Leveling Scrollbar */
+        .solo-leveling .tab-content-scroll::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #A855F7 0%, #C084FC 100%);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
         }
 
         .tab-content-scroll::-webkit-scrollbar-thumb:hover {
@@ -371,8 +512,25 @@
         }
         
         .dark .tab-content-scroll::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        
+        /* EVA-01 Scrollbar Hover */
+        .eva-01 .tab-content-scroll::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(180deg, #A855F7 0%, #22C55E 100%);
             box-shadow: 0 0 15px rgba(16, 185, 129, 0.7);
+        }
+        
+        /* EVA-00 Scrollbar Hover */
+        .eva-00 .tab-content-scroll::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #60A5FA 0%, #67E8F9 100%);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.7);
+        }
+        
+        /* Solo Leveling Scrollbar Hover */
+        .solo-leveling .tab-content-scroll::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #C084FC 0%, #DDD6FE 100%);
+            box-shadow: 0 0 15px rgba(192, 132, 252, 0.7);
         }
 
         /* 自定義屬性顏色 class */
@@ -603,17 +761,56 @@
         
         .dark .ctrl-btn.up,
         .dark .ctrl-btn.down {
-            color: #10B981;
+            color: #93c5fd;
             background-color: transparent;
             border-color: transparent;
+            text-shadow: none;
+        }
+        
+        /* EVA-01 Control Buttons */
+        .eva-01 .ctrl-btn.up,
+        .eva-01 .ctrl-btn.down {
+            color: #10B981;
             text-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
         }
         
+        /* EVA-00 Control Buttons */
+        .eva-00 .ctrl-btn.up,
+        .eva-00 .ctrl-btn.down {
+            color: #22D3EE;
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+        }
+        
+        /* Solo Leveling Control Buttons */
+        .solo-leveling .ctrl-btn.up,
+        .solo-leveling .ctrl-btn.down {
+            color: #C084FC;
+            text-shadow: 0 0 10px rgba(192, 132, 252, 0.8);
+        }
+        
         .dark .ctrl-btn.del {
-            color: #F59E0B;
+            color: #fca5a5;
             background-color: transparent;
             border-color: transparent;
+            text-shadow: none;
+        }
+        
+        /* EVA-01 Delete Button */
+        .eva-01 .ctrl-btn.del {
+            color: #F59E0B;
             text-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+        }
+        
+        /* EVA-00 Delete Button */
+        .eva-00 .ctrl-btn.del {
+            color: #F59E0B;
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+        }
+        
+        /* Solo Leveling Delete Button */
+        .solo-leveling .ctrl-btn.del {
+            color: #EF4444;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
         }
 
         /* #endregion */
@@ -954,7 +1151,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.33";
+        const APP_VERSION = "v3.4";
         const APP_AUTHOR = "Nikis Ray";
         
         // 輔助函數：計算傳頌總獎勵
@@ -994,24 +1191,39 @@
                 return saved ? parseInt(saved) : 100;
             });
             
-            // 深色模式狀態
-            const [darkMode, setDarkMode] = useState(() => {
-                const saved = localStorage.getItem('treasure-darkMode');
-                if (saved) return saved === 'dark';
-                return window.matchMedia('(prefers-color-scheme: dark)').matches;
+            // 主題狀態
+            const [theme, setTheme] = useState(() => {
+                const saved = localStorage.getItem('treasure-theme');
+                if (saved) return saved;
+                const darkMode = localStorage.getItem('treasure-darkMode');
+                if (darkMode === 'dark') return 'dark';
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+                return 'light';
             });
 
-            // 深色模式效果
+            // 主題效果
             useEffect(() => {
-                if (darkMode) {
-                    document.documentElement.classList.add('dark');
-                    document.body.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                    document.body.classList.remove('dark');
+                const root = document.documentElement;
+                const body = document.body;
+                
+                // Remove all theme classes
+                root.classList.remove('dark', 'eva-01', 'eva-00', 'solo-leveling');
+                body.classList.remove('dark', 'eva-01', 'eva-00', 'solo-leveling');
+                
+                // Add current theme class
+                if (theme !== 'light') {
+                    root.classList.add(theme);
+                    body.classList.add(theme);
                 }
-                localStorage.setItem('treasure-darkMode', darkMode ? 'dark' : 'light');
-            }, [darkMode]);
+                
+                // Add dark class for all non-light themes
+                if (theme !== 'light') {
+                    root.classList.add('dark');
+                    body.classList.add('dark');
+                }
+                
+                localStorage.setItem('treasure-theme', theme);
+            }, [theme]);
 
             useEffect(() => {
                 document.documentElement.style.fontSize = `${zoomLevel}%`;
@@ -1834,13 +2046,21 @@
                             {APP_VERSION} | {APP_AUTHOR}
                         </div>
                         <div className="text-center order-1 md:order-2 px-2">
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-green-500 to-purple-600 dark:from-purple-500 dark:via-green-400 dark:to-purple-500 bg-clip-text text-transparent mb-0 leading-tight whitespace-nowrap" style={{textShadow: darkMode ? '0 0 20px rgba(16, 185, 129, 0.5)' : 'none'}}>{t.title}</h1>
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-green-500 to-purple-600 dark:from-purple-500 dark:via-green-400 dark:to-purple-500 bg-clip-text text-transparent mb-0 leading-tight whitespace-nowrap" style={{textShadow: theme !== 'light' ? '0 0 20px rgba(16, 185, 129, 0.5)' : 'none'}}>{t.title}</h1>
                             <p className="text-gray-500 dark:text-purple-400 text-[0.625rem]">{t.period}</p>
                         </div>
                         <div className="flex flex-wrap gap-2 justify-center md:justify-end order-3 md:order-3 flex-grow md:flex-grow-0">
-                            <button onClick={() => setDarkMode(prev => !prev)} className="bg-white dark:bg-gradient-to-r dark:from-purple-900/40 dark:to-green-900/40 text-gray-600 dark:text-green-400 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(16,185,129,0.3)] text-[0.75rem] font-bold hover:bg-gray-50 dark:hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition border border-gray-200 dark:border-purple-500/50 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">
-                                {darkMode ? '☀️' : '🌙'}
-                            </button>
+                            <select 
+                                value={theme} 
+                                onChange={(e) => setTheme(e.target.value)}
+                                className="bg-white dark:bg-gradient-to-r dark:from-purple-900/40 dark:to-green-900/40 text-gray-700 dark:text-green-400 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(16,185,129,0.3)] text-[0.75rem] font-bold hover:bg-gray-50 dark:hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition border border-gray-200 dark:border-purple-500/50 min-h-[1.875rem] cursor-pointer"
+                            >
+                                <option value="light">🌞 淺色</option>
+                                <option value="dark">🌙 深色</option>
+                                <option value="eva-01">🤖 初號機</option>
+                                <option value="eva-00">🌊 零號機</option>
+                                <option value="solo-leveling">⚔️ 獨自升級</option>
+                            </select>
                             <button onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')} className="bg-white dark:bg-gradient-to-r dark:from-purple-900/40 dark:to-green-900/40 text-indigo-600 dark:text-purple-400 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(147,51,234,0.3)] text-[0.75rem] font-bold hover:bg-indigo-50 dark:hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] transition border border-indigo-200 dark:border-green-500/50 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">
                                 {lang === 'zh' ? 'EN' : '中'}
                             </button>
@@ -2610,25 +2830,25 @@
                         zIndex: 9999,
                         display: 'flex',
                         alignItems: 'center',
-                        backgroundColor: darkMode ? '#1f2937' : 'white',
+                        backgroundColor: theme !== 'light' ? '#1f2937' : 'white',
                         padding: '4px 8px',
                         borderRadius: '999px',
-                        boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.15)',
-                        border: darkMode ? '1px solid #4b5563' : '1px solid #e0e7ff',
+                        boxShadow: theme !== 'light' ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.15)',
+                        border: theme !== 'light' ? '1px solid #4b5563' : '1px solid #e0e7ff',
                         gap: '6px',
                         height: '36px'
                     }}>
                         <button
                             onClick={() => setZoomLevel(prev => Math.max(50, prev - 10))}
-                            style={{ width: '28px', height: '28px', border: 'none', background: darkMode ? '#374151' : '#f5f7ff', color: darkMode ? '#93c5fd' : '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            style={{ width: '28px', height: '28px', border: 'none', background: theme !== 'light' ? '#374151' : '#f5f7ff', color: theme !== 'light' ? '#93c5fd' : '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >-</button>
                         <button
                             onClick={() => setZoomLevel(100)}
-                            style={{ border: 'none', background: 'transparent', color: darkMode ? '#818cf8' : '#6366f1', fontSize: '12px', fontWeight: '900', cursor: 'pointer', padding: '0 4px', fontFormat: 'monospace' }}
+                            style={{ border: 'none', background: 'transparent', color: theme !== 'light' ? '#818cf8' : '#6366f1', fontSize: '12px', fontWeight: '900', cursor: 'pointer', padding: '0 4px', fontFormat: 'monospace' }}
                         >{zoomLevel}%</button>
                         <button
                             onClick={() => setZoomLevel(prev => Math.min(250, prev + 10))}
-                            style={{ width: '28px', height: '28px', border: 'none', background: darkMode ? '#374151' : '#f5f7ff', color: darkMode ? '#93c5fd' : '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            style={{ width: '28px', height: '28px', border: 'none', background: theme !== 'light' ? '#374151' : '#f5f7ff', color: theme !== 'light' ? '#93c5fd' : '#4f46e5', fontWeight: 'bold', fontSize: '16px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >+</button>
                     </div>
                 </div>
