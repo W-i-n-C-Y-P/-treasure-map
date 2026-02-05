@@ -506,7 +506,7 @@
                 help_p5: "**重要提示**：前面的商品會優先使用所有可用資源，後面的商品只能使用剩餘資源。新增商品不會影響前面商品的計算結果。您可以透過調整商品順序來優化資源分配。",
                 help_h4: "4. 縮放與便捷操作",
                 help_p6: "● **縮放操作**：您可以點擊右下角的 [+] 或 [-] 進行縮放，點擊中央百分比可重置為 100%。",
-                help_p7: "● **拖拽排序**：在商店規劃的商品隊列中，您可以直接拖拽項目來快速調整優先順序。",
+                help_p7: "● **拖拽排序**：在電腦上，您可以直接拖拽商品隊列來快速調整優先順序。手機請使用上下箭頭按鈕。",
                 help_p8: "● **數據自動保存**：所有輸入的數據會自動保存到瀏覽器，下次打開時會自動載入。",
                 help_h5: "5. 建議每日使用流程",
                 help_li4: "● **快捷鍵**：支援 `Ctrl` + `+`/`-` 縮放，以及 `Ctrl` + `0` 重置。",
@@ -516,12 +516,12 @@
                 help_s2: "查看合成進度 (庫存與收益總覽 右側)",
                 help_d2: "若顯示可合成，代表遊戲內可以去合成並討伐了。",
                 help_s3: "優先隊列規劃 (商店規劃)",
-                help_d3: "加入想買的商品，並透過拖拽或「上/下」按鈕調整優先順序。系統會依序扣除資源並顯示缺口。",
+                help_d3: "加入想買的商品，並透過上下按鈕調整優先順序（電腦可拖拽）。系統會依序扣除資源並顯示缺口。",
                 btn_gotit: "我瞭解了",
 
                 // Priority Logic
                 prio_title: "🏆 動態購物隊列與缺口分析",
-                prio_subtitle: "由上而下依序計算，點選項目後可移動/刪除，也可直接拖拽排序",
+                prio_subtitle: "由上而下依序計算，點選項目後可移動/刪除（電腦可拖拽）",
                 prio_header_item: "兌換項目",
                 prio_header_calc: "扣除來源",
                 prio_header_status: "狀態",
@@ -642,7 +642,7 @@
                 help_p5: "**Important**: Higher priority items use all available resources first. Later items only get remaining resources. Adding new items won't change previous items' calculations. Adjust item order to optimize resource allocation.",
                 help_h4: "4. Zoom & Shortcuts",
                 help_p6: "● **Zoom Console**: Use [+] or [-] in the bottom right. Tap the percentage to reset to 100%.",
-                help_p7: "● **Drag to Reorder**: In the shopping queue, drag items directly to adjust priority quickly.",
+                help_p7: "● **Drag to Reorder**: On desktop, drag items directly to adjust priority. On mobile, use arrow buttons.",
                 help_p8: "● **Auto-Save**: All input data is automatically saved to your browser and restored on next visit.",
                 help_h5: "5. Daily Workflow",
                 help_li4: "● **Shortcuts**: Supports `Ctrl` + `+`/`-` zoom, and `Ctrl` + `0` to reset.",
@@ -657,7 +657,7 @@
 
                 // Priority Logic
                 prio_title: "🏆 Dynamic Shopping Queue",
-                prio_subtitle: "Calculated sequentially. Click to select or drag to reorder.",
+                prio_subtitle: "Calculated sequentially. Click to select, use arrows to reorder (desktop: drag).",
                 prio_header_item: "Item",
                 prio_header_calc: "Source",
                 prio_header_status: "Status",
@@ -715,7 +715,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.30";
+        const APP_VERSION = "v3.20";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -845,7 +845,19 @@
             const [selectedQueueIndex, setSelectedQueueIndex] = useState(null);
             const [dateError, setDateError] = useState('');
             const [draggedIndex, setDraggedIndex] = useState(null);
+            const [isMobile, setIsMobile] = useState(false);
             // #endregion
+
+            // 檢測是否為移動設備
+            useEffect(() => {
+                const checkMobile = () => {
+                    setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+                };
+                checkMobile();
+                window.addEventListener('resize', checkMobile);
+                return () => window.removeEventListener('resize', checkMobile);
+            }, []);
+
             // #region 數據持久化 - 自動保存到 localStorage
             useEffect(() => {
                 localStorage.setItem('treasure-date', currentDateInput);
@@ -1411,8 +1423,9 @@
                 setSelectedQueueIndex(selectedQueueIndex + 1);
             };
 
-            // --- 拖拽排序 Handlers (支援滑鼠和觸控) ---
+            // --- 拖拽排序 Handlers (僅桌面端) ---
             const handleDragStart = (e, index) => {
+                if (isMobile) return; // 手機禁用
                 setDraggedIndex(index);
                 if (e.dataTransfer) {
                     e.dataTransfer.effectAllowed = 'move';
@@ -1421,6 +1434,7 @@
             };
 
             const handleDragOver = (e, index) => {
+                if (isMobile) return; // 手機禁用
                 e.preventDefault();
                 if (e.dataTransfer) {
                     e.dataTransfer.dropEffect = 'move';
@@ -1438,49 +1452,11 @@
             };
 
             const handleDragEnd = () => {
+                if (isMobile) return; // 手機禁用
                 setDraggedIndex(null);
             };
 
-            // --- 觸控拖拽支援 (移動端) ---
-            const [touchStartY, setTouchStartY] = React.useState(null);
-            const [touchCurrentY, setTouchCurrentY] = React.useState(null);
-
-            const handleTouchStart = (e, index) => {
-                setDraggedIndex(index);
-                setTouchStartY(e.touches[0].clientY);
-                setTouchCurrentY(e.touches[0].clientY);
-            };
-
-            const handleTouchMove = (e, index) => {
-                if (draggedIndex === null) return;
-                e.preventDefault(); // 防止滾動
-                
-                const currentY = e.touches[0].clientY;
-                setTouchCurrentY(currentY);
-                
-                // 計算移動方向，決定要swap的目標
-                const threshold = 50; // 移動50px才觸發交換
-                const diff = currentY - touchStartY;
-                
-                if (Math.abs(diff) > threshold) {
-                    const direction = diff > 0 ? 1 : -1;
-                    const targetIndex = draggedIndex + direction;
-                    
-                    if (targetIndex >= 0 && targetIndex < cartQueue.length && targetIndex !== draggedIndex) {
-                        const newQueue = [...cartQueue];
-                        [newQueue[draggedIndex], newQueue[targetIndex]] = [newQueue[targetIndex], newQueue[draggedIndex]];
-                        setCartQueue(newQueue);
-                        setDraggedIndex(targetIndex);
-                        setTouchStartY(currentY);
-                    }
-                }
-            };
-
-            const handleTouchEnd = () => {
-                setDraggedIndex(null);
-                setTouchStartY(null);
-                setTouchCurrentY(null);
-            };
+            // --- 觸控拖拽已移除（手機使用上下箭頭） ---
 
             const handleDeleteItem = () => {
                 if (selectedQueueIndex === null) return;
@@ -2060,18 +2036,17 @@
                                                             return (
                                                                 <tr
                                                                     key={item.uid}
-                                                                    draggable
-                                                                    onDragStart={(e) => handleDragStart(e, index)}
-                                                                    onDragOver={(e) => handleDragOver(e, index)}
-                                                                    onDragEnd={handleDragEnd}
-                                                                    onTouchStart={(e) => handleTouchStart(e, index)}
-                                                                    onTouchMove={(e) => handleTouchMove(e, index)}
-                                                                    onTouchEnd={handleTouchEnd}
+                                                                    draggable={!isMobile}
+                                                                    onDragStart={!isMobile ? (e) => handleDragStart(e, index) : undefined}
+                                                                    onDragOver={!isMobile ? (e) => handleDragOver(e, index) : undefined}
+                                                                    onDragEnd={!isMobile ? handleDragEnd : undefined}
                                                                     onClick={() => handleQueueItemClick(index)}
-                                                                    className={`border-b border-gray-100 queue-item transition-all hover:bg-blue-50/30 cursor-move ${
+                                                                    className={`border-b border-gray-100 queue-item transition-all hover:bg-blue-50/30 ${
+                                                                        !isMobile ? 'cursor-move' : 'cursor-pointer'
+                                                                    } ${
                                                                         selectedQueueIndex === index ? 'selected bg-indigo-100/50 border-l-4 border-l-indigo-500' : ''
-                                                                    } ${draggedIndex === index ? 'opacity-50 scale-105' : ''}`}
-                                                                    style={{ cursor: 'move', touchAction: 'none' }}
+                                                                    } ${draggedIndex === index && !isMobile ? 'opacity-50 scale-105' : ''}`}
+                                                                    style={{ cursor: isMobile ? 'pointer' : 'move' }}
                                                                 >
                                                                     <td className="py-4 pl-3">
                                                                         <div className="flex items-center gap-2 leading-tight">
