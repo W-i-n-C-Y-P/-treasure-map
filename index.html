@@ -174,16 +174,27 @@
         .tab-btn {
             flex: 1;
             display: inline-block;
-            padding: 0.6rem 1rem;
+            padding: 0.5rem 0.4rem;
             text-align: center;
             font-weight: 600;
             color: #6b7280;
             border-bottom: 3px solid transparent;
             cursor: pointer;
             transition: all 0.2s;
-            min-width: 90px;
-            font-size: 0.95rem;
-            flex-shrink: 0;
+            min-width: 70px;
+            font-size: 0.8rem;
+            flex-shrink: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        @media (min-width: 640px) {
+            .tab-btn {
+                min-width: 90px;
+                font-size: 0.95rem;
+                padding: 0.6rem 1rem;
+            }
         }
 
         .tab-btn.active {
@@ -407,9 +418,13 @@
                 title: "藏寶圖活動收益計算機",
                 period: "活動期間: 2026/01/21 ~ 2026/02/25",
                 tab_main: "📊 庫存與收益總覽",
+                tab_main_short: "📊 庫存",
                 tab_shop: "🛒 商店規劃",
+                tab_shop_short: "🛒 商店",
                 tab_daily: "📅 每日明細",
+                tab_daily_short: "📅 明細",
                 tab_sources: "📜 來源說明",
+                tab_sources_short: "📜 來源",
                 btn_help: "❓ 說明",
                 btn_tabs: "📑 頁籤式",
                 btn_single: "📜 一頁式",
@@ -543,9 +558,13 @@
                 title: "Treasure Map Calculator",
                 period: "Event Period: 2026/01/21 ~ 2026/02/25",
                 tab_main: "Overview",
+                tab_main_short: "📊 Home",
                 tab_shop: "Shop Plan",
+                tab_shop_short: "🛒 Shop",
                 tab_daily: "Daily Log",
+                tab_daily_short: "📅 Daily",
                 tab_sources: "Sources",
+                tab_sources_short: "📜 Info",
                 btn_help: "❓ Help",
                 btn_tabs: "📑 Tabs",
                 btn_single: "📜 Single",
@@ -696,7 +715,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.20";
+        const APP_VERSION = "v3.30";
         const APP_AUTHOR = "Nikis Ray";
 
         // --- 商店設定 ---
@@ -1392,16 +1411,20 @@
                 setSelectedQueueIndex(selectedQueueIndex + 1);
             };
 
-            // --- 拖拽排序 Handlers ---
+            // --- 拖拽排序 Handlers (支援滑鼠和觸控) ---
             const handleDragStart = (e, index) => {
                 setDraggedIndex(index);
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/html', e.currentTarget);
+                if (e.dataTransfer) {
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', e.currentTarget);
+                }
             };
 
             const handleDragOver = (e, index) => {
                 e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
+                if (e.dataTransfer) {
+                    e.dataTransfer.dropEffect = 'move';
+                }
                 
                 if (draggedIndex === null || draggedIndex === index) return;
                 
@@ -1416,6 +1439,47 @@
 
             const handleDragEnd = () => {
                 setDraggedIndex(null);
+            };
+
+            // --- 觸控拖拽支援 (移動端) ---
+            const [touchStartY, setTouchStartY] = React.useState(null);
+            const [touchCurrentY, setTouchCurrentY] = React.useState(null);
+
+            const handleTouchStart = (e, index) => {
+                setDraggedIndex(index);
+                setTouchStartY(e.touches[0].clientY);
+                setTouchCurrentY(e.touches[0].clientY);
+            };
+
+            const handleTouchMove = (e, index) => {
+                if (draggedIndex === null) return;
+                e.preventDefault(); // 防止滾動
+                
+                const currentY = e.touches[0].clientY;
+                setTouchCurrentY(currentY);
+                
+                // 計算移動方向，決定要swap的目標
+                const threshold = 50; // 移動50px才觸發交換
+                const diff = currentY - touchStartY;
+                
+                if (Math.abs(diff) > threshold) {
+                    const direction = diff > 0 ? 1 : -1;
+                    const targetIndex = draggedIndex + direction;
+                    
+                    if (targetIndex >= 0 && targetIndex < cartQueue.length && targetIndex !== draggedIndex) {
+                        const newQueue = [...cartQueue];
+                        [newQueue[draggedIndex], newQueue[targetIndex]] = [newQueue[targetIndex], newQueue[draggedIndex]];
+                        setCartQueue(newQueue);
+                        setDraggedIndex(targetIndex);
+                        setTouchStartY(currentY);
+                    }
+                }
+            };
+
+            const handleTouchEnd = () => {
+                setDraggedIndex(null);
+                setTouchStartY(null);
+                setTouchCurrentY(null);
             };
 
             const handleDeleteItem = () => {
@@ -1577,10 +1641,22 @@
                     {/* 分頁 Tab */}
                     {viewMode === 'tabs' && (
                         <div className="flex border-b border-gray-200 mb-4 bg-white rounded-t-lg shadow-sm tabs-container mx-1">
-                            <div className={`tab-btn rounded-tl-lg ${activeTab === 'main' ? 'active' : ''}`} onClick={() => setActiveTab('main')}>{t.tab_main}</div>
-                            <div className={`tab-btn ${activeTab === 'shop' ? 'active' : ''}`} onClick={() => setActiveTab('shop')}>{t.tab_shop}</div>
-                            <div className={`tab-btn ${activeTab === 'daily' ? 'active' : ''}`} onClick={() => setActiveTab('daily')}>{t.tab_daily}</div>
-                            <div className={`tab-btn rounded-tr-lg ${activeTab === 'sources' ? 'active' : ''}`} onClick={() => setActiveTab('sources')}>{t.tab_sources}</div>
+                            <div className={`tab-btn rounded-tl-lg ${activeTab === 'main' ? 'active' : ''}`} onClick={() => setActiveTab('main')}>
+                                <span className="hidden sm:inline">{t.tab_main}</span>
+                                <span className="inline sm:hidden">{t.tab_main_short}</span>
+                            </div>
+                            <div className={`tab-btn ${activeTab === 'shop' ? 'active' : ''}`} onClick={() => setActiveTab('shop')}>
+                                <span className="hidden sm:inline">{t.tab_shop}</span>
+                                <span className="inline sm:hidden">{t.tab_shop_short}</span>
+                            </div>
+                            <div className={`tab-btn ${activeTab === 'daily' ? 'active' : ''}`} onClick={() => setActiveTab('daily')}>
+                                <span className="hidden sm:inline">{t.tab_daily}</span>
+                                <span className="inline sm:hidden">{t.tab_daily_short}</span>
+                            </div>
+                            <div className={`tab-btn rounded-tr-lg ${activeTab === 'sources' ? 'active' : ''}`} onClick={() => setActiveTab('sources')}>
+                                <span className="hidden sm:inline">{t.tab_sources}</span>
+                                <span className="inline sm:hidden">{t.tab_sources_short}</span>
+                            </div>
                         </div>
                     )}
 
@@ -1988,11 +2064,14 @@
                                                                     onDragStart={(e) => handleDragStart(e, index)}
                                                                     onDragOver={(e) => handleDragOver(e, index)}
                                                                     onDragEnd={handleDragEnd}
+                                                                    onTouchStart={(e) => handleTouchStart(e, index)}
+                                                                    onTouchMove={(e) => handleTouchMove(e, index)}
+                                                                    onTouchEnd={handleTouchEnd}
                                                                     onClick={() => handleQueueItemClick(index)}
                                                                     className={`border-b border-gray-100 queue-item transition-all hover:bg-blue-50/30 cursor-move ${
                                                                         selectedQueueIndex === index ? 'selected bg-indigo-100/50 border-l-4 border-l-indigo-500' : ''
-                                                                    } ${draggedIndex === index ? 'opacity-50' : ''}`}
-                                                                    style={{ cursor: 'move' }}
+                                                                    } ${draggedIndex === index ? 'opacity-50 scale-105' : ''}`}
+                                                                    style={{ cursor: 'move', touchAction: 'none' }}
                                                                 >
                                                                     <td className="py-4 pl-3">
                                                                         <div className="flex items-center gap-2 leading-tight">
