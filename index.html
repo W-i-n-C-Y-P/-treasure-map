@@ -1151,7 +1151,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.4";
+        const APP_VERSION = "v3.5";
         const APP_AUTHOR = "Nikis Ray";
         
         // 輔助函數：計算傳頌總獎勵
@@ -1252,10 +1252,8 @@
 
             const t = I18N[lang];
 
-            // #region 狀態初始化 - 從 localStorage 讀取
+            // #region 狀態初始化
             const getInitialDate = () => {
-                const saved = localStorage.getItem('treasure-date');
-                if (saved) return saved;
                 const now = new Date();
                 if (now < START_DATE) return "2026-01-21";
                 if (now > END_DATE) return "2026-02-25";
@@ -1266,14 +1264,6 @@
             };
 
             const getInitialInventory = () => {
-                const saved = localStorage.getItem('treasure-inventory');
-                if (saved) {
-                    try {
-                        return JSON.parse(saved);
-                    } catch (e) {
-                        console.error('Failed to parse inventory:', e);
-                    }
-                }
                 return {
                     attrFire: 0, attrWater: 0, attrWind: 0, attrThunder: 0, univScrolls: 0,
                     godMaps: 0, peerlessMaps: 0, rareMaps: 0, commonMaps: 0,
@@ -1282,34 +1272,6 @@
             };
 
             const getInitialLegendOptions = () => {
-                const saved = localStorage.getItem('treasure-legend');
-                if (saved) {
-                    try {
-                        const parsed = JSON.parse(saved);
-                        // 為舊版數據轉換格式
-                        if (parsed.includeCaptain !== undefined || parsed.includeMember !== undefined) {
-                            // 舊版：有 includeCaptain/includeMember
-                            const starLevel = parsed.starLevel || 2;
-                            return {
-                                includeCaptain1Star: starLevel === 1 && parsed.includeCaptain,
-                                includeCaptain2Star: starLevel === 2 && parsed.includeCaptain,
-                                includeMember1Star: starLevel === 1 && parsed.includeMember,
-                                includeMember2Star: starLevel === 2 && parsed.includeMember,
-                                artEventAmount: parsed.artEventAmount || 0
-                            };
-                        }
-                        // 新版格式，確保所有字段存在
-                        return {
-                            includeCaptain1Star: parsed.includeCaptain1Star || false,
-                            includeCaptain2Star: parsed.includeCaptain2Star || false,
-                            includeMember1Star: parsed.includeMember1Star || false,
-                            includeMember2Star: parsed.includeMember2Star || false,
-                            artEventAmount: parsed.artEventAmount || 0
-                        };
-                    } catch (e) {
-                        console.error('Failed to parse legend options:', e);
-                    }
-                }
                 return { 
                     includeCaptain1Star: false, 
                     includeCaptain2Star: false, 
@@ -1320,26 +1282,10 @@
             };
 
             const getInitialCartQueue = () => {
-                const saved = localStorage.getItem('treasure-cart-queue');
-                if (saved) {
-                    try {
-                        return JSON.parse(saved);
-                    } catch (e) {
-                        console.error('Failed to parse cart queue:', e);
-                    }
-                }
                 return [];
             };
 
             const getInitialShopCart = () => {
-                const saved = localStorage.getItem('treasure-shop-cart');
-                if (saved) {
-                    try {
-                        return JSON.parse(saved);
-                    } catch (e) {
-                        console.error('Failed to parse shop cart:', e);
-                    }
-                }
                 return { fire: {}, water: {}, wind: {}, thunder: {}, univ: {} };
             };
 
@@ -1364,26 +1310,30 @@
                 return () => window.removeEventListener('resize', checkMobile);
             }, []);
 
-            // #region 數據持久化 - 自動保存到 localStorage
+            // 自動檢測日期變化 - 在午夜後自動更新到當前日期
             useEffect(() => {
-                localStorage.setItem('treasure-date', currentDateInput);
+                const checkDateChange = () => {
+                    const now = new Date();
+                    const y = now.getFullYear();
+                    const m = String(now.getMonth() + 1).padStart(2, '0');
+                    const d = String(now.getDate()).padStart(2, '0');
+                    const todayStr = `${y}-${m}-${d}`;
+                    
+                    // 只有當儲存的日期早於今天，且今天仍在活動期間內時，才自動更新
+                    if (currentDateInput < todayStr && now >= START_DATE && now <= END_DATE) {
+                        setCurrentDateInput(todayStr);
+                    }
+                };
+                
+                // 初始檢查
+                checkDateChange();
+                
+                // 每分鐘檢查一次
+                const interval = setInterval(checkDateChange, 60000);
+                
+                return () => clearInterval(interval);
             }, [currentDateInput]);
 
-            useEffect(() => {
-                localStorage.setItem('treasure-inventory', JSON.stringify(inventory));
-            }, [inventory]);
-
-            useEffect(() => {
-                localStorage.setItem('treasure-legend', JSON.stringify(legendOptions));
-            }, [legendOptions]);
-
-            useEffect(() => {
-                localStorage.setItem('treasure-cart-queue', JSON.stringify(cartQueue));
-            }, [cartQueue]);
-
-            useEffect(() => {
-                localStorage.setItem('treasure-shop-cart', JSON.stringify(shopCart));
-            }, [shopCart]);
             // #endregion
 
             // --- 輔助函式 ---
@@ -1544,15 +1494,36 @@
                     if (firstAttrItem) effectiveTargetAttr = firstAttrItem.category;
                 }
 
+                // 分离资源池：队员残卷（目标属性）和队长残卷（非目标属性）
                 let pools = {
                     uStock: { val: parseInt(inventory.univScrolls || 0) },
                     uReward: { val: Math.max(0, (calculation.grandTotalUniv || 0) - parseInt(inventory.univScrolls || 0)) },
-                    fFlex: { val: (calculation.futureMemberIncomeAttr || 0) + (calculation.futureLeaderIncomeAttr || 0) },
+                    fTarget: { val: (calculation.futureMemberIncomeAttr || 0) }, // 队员残卷（目标属性，1:1）
+                    fOther: { val: (calculation.futureLeaderIncomeAttr || 0) }, // 队长残卷（非目标属性，2:1）
                     aStock: {
-                        fire: { val: parseInt(inventory.attrFire || 0) }, water: { val: parseInt(inventory.attrWater || 0) },
-                        wind: { val: parseInt(inventory.attrWind || 0) }, thunder: { val: parseInt(inventory.attrThunder || 0) }
+                        fire: { val: parseInt(inventory.attrFire || 0) },
+                        water: { val: parseInt(inventory.attrWater || 0) },
+                        wind: { val: parseInt(inventory.attrWind || 0) },
+                        thunder: { val: parseInt(inventory.attrThunder || 0) }
                     }
                 };
+
+                // DEBUG: 輸出初始狀態
+                console.log('🔍 ========== 瀑布流計算開始 ==========');
+                console.log('📊 目標屬性:', effectiveTargetAttr);
+                console.log('💰 初始資源池:', {
+                    uStock: pools.uStock.val,
+                    uReward: pools.uReward.val,
+                    fTarget: pools.fTarget.val,
+                    fOther: pools.fOther.val,
+                    aStock: {
+                        fire: pools.aStock.fire.val,
+                        water: pools.aStock.water.val,
+                        wind: pools.aStock.wind.val,
+                        thunder: pools.aStock.thunder.val
+                    }
+                });
+                console.log('🛒 商品隊列:', cartQueue.map(item => `${item.name || item.label}(${item.cost})`));
 
                 // Initialize results
                 const results = cartQueue.map(item => ({
@@ -1583,10 +1554,12 @@
                     }
                 });
 
-                // 按順序逐個完整處理每個商品
+                // ========== 計算開始 ==========
+                console.log('\n========== 步驟1: 按優先權分配現有庫存 ==========');
                 results.forEach((res, i) => {
+                    console.log(`商品${i + 1}[優先權${i + 1}]: ${res.name || res.label} [${res.category}]`);
                     
-                    // 步驟1: 現有同屬性庫存 (1:1)
+                    // 步驟1: 現有同屬性庫存 (1:1)，依兌換順位（優先權）分配
                     const nativePool = res.category === 'univ' ? pools.uStock : pools.aStock[res.category];
                     if (nativePool && nativePool.val > 0 && res.gap > 0) {
                         const took = Math.min(res.gap, nativePool.val);
@@ -1594,34 +1567,71 @@
                         res.reservedNative = took;
                         res.gap -= took;
                         nativePool.val -= took;
+                        console.log(`  ✓ 分配 ${took}, 剩餘需求=${res.gap}, 池剩餘=${nativePool.val}`);
+                    } else {
+                        console.log(`  - 無可用庫存`);
+                    }
+                });
+
+                // 階段2: 按優先權執行步驟2-6（只處理能完成的商品）
+                console.log('\n========== 步驟2-6: 按優先權填充 ==========');
+                results.forEach((res, i) => {
+                    
+                    console.log(`\n--- 商品${i + 1}: ${res.name || res.label} [${res.category}] 需${res.cost}, 已分配${res.reservedNative}, 缺${res.gap} ---`);
+                    
+                    if (res.gap <= 0) { console.log(`  ✅ 步驟1已完成!`); return; }
+
+                    // 步驟2: 非目标无属性（未來通用收益 1:1）
+                    if (pools.uReward.val > 0 && res.gap > 0) {
+                        const took = Math.min(res.gap, pools.uReward.val);
+                        res.futureUnivUsed += took;
+                        res.gap -= took;
+                        pools.uReward.val -= took;
+                        console.log(`  ✓ 步驟2: 使用未來通用收益 ${took}, 剩餘gap=${res.gap}, uReward剩餘=${pools.uReward.val}`);
                     }
                     
-                    if (res.gap <= 0) return;
+                    if (res.gap <= 0) { console.log(`  🎉 完成填充!`); return; }
 
-                    // 步驟2: 未來獲取同屬性 (1:1)
-                    if (res.category !== 'univ' && res.category === effectiveTargetAttr) {
-                        if (pools.fFlex.val > 0 && res.gap > 0) {
-                            const took = Math.min(res.gap, pools.fFlex.val);
-                            res.futureNativeUsed += took;
-                            res.gap -= took;
-                            pools.fFlex.val -= took;
-                        }
-                    } else if (res.category === 'univ') {
-                        if (pools.uReward.val > 0 && res.gap > 0) {
-                            const took = Math.min(res.gap, pools.uReward.val);
-                            res.futureUnivUsed += took;
-                            res.gap -= took;
-                            pools.uReward.val -= took;
-                        }
+                    // 步驟3: 后续掉落同属性（只有目标属性商品可以1:1使用队员残卷）
+                    if (res.category !== 'univ' && res.category === effectiveTargetAttr && pools.fTarget.val > 0 && res.gap > 0) {
+                        const took = Math.min(res.gap, pools.fTarget.val);
+                        res.futureNativeUsed += took;
+                        res.gap -= took;
+                        pools.fTarget.val -= took;
+                        console.log(`  ✓ 步驟3: 使用目標屬性殘卷fTarget ${took}, 剩餘gap=${res.gap}, fTarget剩餘=${pools.fTarget.val}`);
                     }
                     
-                    if (res.gap <= 0) return;
+                    if (res.gap <= 0) { console.log(`  🎉 完成填充!`); return; }
 
-                    // 步驟3: 現有「不在商品欄」的屬性殘卷 (2:1)
-                    if (res.category === 'univ') {
-                        const notInCart = ['fire', 'water', 'wind', 'thunder'].filter(attr => !attributesInCart[attr]);
-                        notInCart.forEach(attr => {
-                            if (res.gap <= 0 || pools.aStock[attr].val <= 0) return;
+                    // 步驟4: 非目標 不同屬性（多餘的屬性殘卷 2:1）
+                    // "多餘的" = 步驟1分配後pools中剩餘的
+                    if (res.gap > 0) {
+                        const allAttrs = ['fire', 'water', 'wind', 'thunder'];
+                        const convertibleAttrs = allAttrs.filter(attr => 
+                            attr !== effectiveTargetAttr && 
+                            attr !== res.category &&
+                            pools.aStock[attr].val > 0  // 只看有剩餘的
+                        );
+                        
+                        // 按優先權倒序轉換（不在購物車的優先，在購物車的從低優先權開始）
+                        const conversionOrder = [];
+                        convertibleAttrs.forEach(attr => {
+                            if (!attributesInCart[attr]) {
+                                conversionOrder.push(attr);
+                            }
+                        });
+                        [...attributePriority].reverse().forEach(attr => {
+                            if (convertibleAttrs.includes(attr)) {
+                                conversionOrder.push(attr);
+                            }
+                        });
+                        
+                        if (conversionOrder.length > 0) {
+                            console.log(`  步驟4: 可轉換 [${conversionOrder.join(', ')}]`);
+                        }
+                        
+                        conversionOrder.forEach(attr => {
+                            if (res.gap <= 0) return;
                             const needed = res.gap * 2;
                             const took = Math.min(pools.aStock[attr].val, needed);
                             const gain = Math.floor(took / 2);
@@ -1629,100 +1639,124 @@
                                 res.nonTargetOtherRaw += took;
                                 res.gap -= gain;
                                 pools.aStock[attr].val -= took;
+                                console.log(`    ✓ 轉換${attr} ${took}→${gain}, 缺${res.gap}`);
                             }
                         });
                     }
                     
-                    if (res.gap <= 0) return;
+                    if (res.gap <= 0) { console.log(`  🎉 完成填充!`); return; }
 
-                    // 步驟4: 現有「商品欄裡最低優先權」的屬性殘卷 (2:1)
-                    if (res.category === 'univ') {
-                        const inCartReversed = [...attributePriority].reverse();
-                        inCartReversed.forEach(attr => {
-                            if (res.gap <= 0 || pools.aStock[attr].val <= 0) return;
-                            const needed = res.gap * 2;
-                            const took = Math.min(pools.aStock[attr].val, needed);
-                            const gain = Math.floor(took / 2);
-                            if (gain > 0) {
-                                res.nonTargetOtherRaw += took;
-                                res.gap -= gain;
-                                pools.aStock[attr].val -= took;
-                            }
-                        });
-                    }
-                    
-                    if (res.gap <= 0) return;
-
-                    // === 屬性商品的步驟3-6 ===
-                    if (res.category !== 'univ') {
-                        // 步驟3: 未來通用殘卷 (1:1)
-                        if (pools.uReward.val > 0 && res.gap > 0) {
-                            const took = Math.min(res.gap, pools.uReward.val);
-                            res.futureUnivUsed += took;
-                            res.gap -= took;
-                            pools.uReward.val -= took;
-                        }
-                        
-                        if (res.gap <= 0) return;
-                        
-                        // 步驟4: 不在商品欄的屬性 (2:1)
-                        const notInCart = ['fire', 'water', 'wind', 'thunder'].filter(attr => !attributesInCart[attr] && attr !== res.category);
-                        notInCart.forEach(attr => {
-                            if (res.gap <= 0 || pools.aStock[attr].val <= 0) return;
-                            const needed = res.gap * 2;
-                            const took = Math.min(pools.aStock[attr].val, needed);
-                            const gain = Math.floor(took / 2);
-                            if (gain > 0) {
-                                res.nonTargetOtherRaw += took;
-                                res.gap -= gain;
-                                pools.aStock[attr].val -= took;
-                            }
-                        });
-                        
-                        if (res.gap <= 0) return;
-                        
-                        // 步驟5: 商品欄最低優先權的屬性 (2:1) - 排除自己
-                        const inCartReversed = [...attributePriority].reverse().filter(attr => attr !== res.category);
-                        inCartReversed.forEach(attr => {
-                            if (res.gap <= 0 || pools.aStock[attr].val <= 0) return;
-                            const needed = res.gap * 2;
-                            const took = Math.min(pools.aStock[attr].val, needed);
-                            const gain = Math.floor(took / 2);
-                            if (gain > 0) {
-                                res.nonTargetOtherRaw += took;
-                                res.gap -= gain;
-                                pools.aStock[attr].val -= took;
-                            }
-                        });
-                        
-                        if (res.gap <= 0) return;
-                        
-                        // 步驟6: 未來屬性殘卷 (2:1)
-                        if (pools.fFlex.val > 0 && res.gap > 0) {
-                            const needed = res.gap * 2;
-                            const took = Math.min(pools.fFlex.val, needed);
-                            const gain = Math.floor(took / 2);
-                            if (gain > 0) {
-                                res.futureOtherRaw += took;
-                                res.gap -= gain;
-                                pools.fFlex.val -= took;
-                            }
-                        }
-                    }
-
-                    // === 通用商品的步驟5 ===
-                    if (res.category === 'univ' && pools.fFlex.val > 0 && res.gap > 0) {
+                    // 步驟5: 后续掉落不同属性（队长残卷fOther 2:1 + 队员残卷fTarget 2:1）
+                    // 先用fOther
+                    if (pools.fOther.val > 0 && res.gap > 0) {
                         const needed = res.gap * 2;
-                        const took = Math.min(pools.fFlex.val, needed);
+                        const took = Math.min(pools.fOther.val, needed);
                         const gain = Math.floor(took / 2);
                         if (gain > 0) {
                             res.futureOtherRaw += took;
                             res.gap -= gain;
-                            pools.fFlex.val -= took;
+                            pools.fOther.val -= took;
+                            console.log(`  ✓ 步驟5: 轉換隊長殘卷fOther ${took} (2:1) 獲得${gain}, 剩餘gap=${res.gap}, fOther剩餘=${pools.fOther.val}`);
                         }
                     }
+                    // 再用fTarget（非目標屬性商品也可以2:1轉換）
+                    // 按優先權分配，不預留
+                    if (pools.fTarget.val > 0 && res.gap > 0) {
+                        const needed = res.gap * 2;
+                        const took = Math.min(pools.fTarget.val, needed);
+                        const gain = Math.floor(took / 2);
+                        if (gain > 0) {
+                            res.futureOtherRaw += took;
+                            res.gap -= gain;
+                            pools.fTarget.val -= took;
+                            console.log(`  ✓ 步驟5: 轉換隊員殘卷fTarget ${took} (2:1) 獲得${gain}, 剩餘gap=${res.gap}, fTarget剩餘=${pools.fTarget.val}`);
+                        }
+                    }
+                    
+                    if (res.gap <= 0) { console.log(`  🎉 完成!`); return; }
+
+                    // 步驟6: 需分解其他（從較後順位商品的步驟1分配中拿回）
+                    // 智能判斷：如果後續商品也無法完成，優先給當前商品使用
+                    if (res.gap > 0) {
+                        console.log(`  步驟6: 嘗試從後續商品拿回...`);
+                        
+                        for (let j = i + 1; j < results.length && res.gap > 0; j++) {
+                            const laterItem = results[j];
+                            
+                            if (laterItem.reservedNative <= 0) continue;
+                            
+                            // 判斷轉換率和是否可拿
+                            let conversionRate = 1;
+                            let canTake = false;
+                            
+                            if (res.category === 'univ') {
+                                canTake = true;
+                                conversionRate = (laterItem.category === 'univ') ? 1 : 2;
+                            } else if (laterItem.category === 'univ') {
+                                canTake = true;
+                                conversionRate = 1;
+                            } else if (res.category !== laterItem.category) {
+                                canTake = true;
+                                conversionRate = 2;
+                            }
+                            
+                            if (!canTake) continue;
+                            
+                            // 關鍵判斷：只能從「即使保留步驟1資源也無法完成」的後續商品拿
+                            // 如果後續商品保留步驟1資源後可以完成，就不拿
+                            const laterItemCurrentGap = laterItem.gap;
+                            const laterItemTotalNeed = laterItem.cost;
+                            const laterItemWithReserved = laterItemTotalNeed - laterItem.reservedNative; // 如果保留步驟1，還缺多少
+                            
+                            // 估算後續商品的可用資源（不包括步驟1）
+                            let estimatedAvailable = 0;
+                            
+                            if (laterItem.category === 'univ') {
+                                estimatedAvailable += pools.uReward.val; // 步驟2
+                            } else if (laterItem.category === effectiveTargetAttr) {
+                                estimatedAvailable += pools.fTarget.val; // 步驟3 (1:1)
+                            }
+                            
+                            // 步驟4: 其他屬性可以2:1轉換
+                            const attrRemaining = ['fire', 'water', 'wind', 'thunder']
+                                .filter(a => a !== effectiveTargetAttr && a !== laterItem.category)
+                                .reduce((sum, a) => sum + pools.aStock[a].val, 0);
+                            estimatedAvailable += Math.floor(attrRemaining / 2);
+                            
+                            // 步驟5: fOther + fTarget 2:1
+                            estimatedAvailable += Math.floor((pools.fOther.val + pools.fTarget.val) / 2);
+                            
+                            const laterCanCompleteWithReserved = estimatedAvailable >= laterItemWithReserved;
+                            
+                            // 只有在「保留步驟1資源仍無法完成」時才能拿
+                            if (laterCanCompleteWithReserved) {
+                                console.log(`    ⚠️ 商品${j + 1}保留步驟1後可完成(需${laterItemWithReserved},可用${estimatedAvailable})，不拿`);
+                                continue; // 跳過這個商品
+                            }
+                            
+                            // 後續商品即使保留也無法完成，可以拿
+                            const needed = res.gap * conversionRate;
+                            const takeAmount = Math.min(laterItem.reservedNative, needed);
+                            const gained = Math.floor(takeAmount / conversionRate);
+                            
+                            if (gained > 0) {
+                                laterItem.reservedNative -= takeAmount;
+                                laterItem.nativeUsed -= takeAmount;
+                                laterItem.gap += takeAmount;
+                                
+                                res.stolenFromOthers = (res.stolenFromOthers || 0) + takeAmount;
+                                res.gap -= gained;
+                                
+                                console.log(`    ✓ 商品${j + 1}即使保留也無法完成，拿${takeAmount}→${gained}, 缺${res.gap}`);
+                            }
+                        }
+                    }
+                    
+                    const filled = res.cost - res.gap;
+                    console.log(`  📊 結果: ${filled}/${res.cost} ${res.gap > 0 ? `❌ 還缺${res.gap}` : '✅ 完成'}`);
                 });
 
+                // ========== 完成計算 ==========
                 const finalResults = results.map(res => {
                     const filled = res.cost - res.gap;
                     res.progress = `${filled}/${res.cost}`;
@@ -1735,13 +1769,29 @@
                     return { ...res };
                 });
 
+                console.log('\n🏁 ========== 瀑布流計算結束 ==========');
+                console.log('📦 最終剩餘資源:', {
+                    uStock: pools.uStock.val,
+                    uReward: pools.uReward.val,
+                    fTarget: pools.fTarget.val,
+                    fOther: pools.fOther.val,
+                    aStock: {
+                        fire: pools.aStock.fire.val,
+                        water: pools.aStock.water.val,
+                        wind: pools.aStock.wind.val,
+                        thunder: pools.aStock.thunder.val
+                    }
+                });
+                console.log('📋 最終結果:', finalResults.map(r => `${r.name || r.label}: ${r.progress}`));
+
                 return {
                     results: finalResults,
                     remnants: {
                         univ: pools.uStock.val + pools.uReward.val,
                         fire: pools.aStock.fire.val, water: pools.aStock.water.val,
                         wind: pools.aStock.wind.val, thunder: pools.aStock.thunder.val,
-                        flexible: pools.fFlex.val
+                        flexibleTarget: pools.fTarget.val,
+                        flexibleOther: pools.fOther.val
                     }
                 };
             }, [cartQueue, calculation, inventory, targetAttr]);
