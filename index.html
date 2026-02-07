@@ -932,12 +932,12 @@
                 help_s2: "查看合成進度 (庫存與收益總覽 右側)",
                 help_d2: "若顯示可合成，代表遊戲內可以去合成並討伐了。",
                 help_s3: "優先隊列規劃 (商店規劃)",
-                help_d3: "加入想買的商品，並透過上下按鈕調整優先順序（電腦可拖拽）。系統會依序扣除資源並顯示缺口。",
+                help_d3: "加入想買的商品，並透過上下按鈕調整優先順序（電腦端可長按拖動）。系統會依序扣除資源並顯示缺口。",
                 btn_gotit: "我瞭解了",
 
                 // Priority Logic
                 prio_title: "🏆 動態購物隊列與缺口分析",
-                prio_subtitle: "由上而下依序計算，點選項目後可移動/刪除（電腦可拖拽）",
+                prio_subtitle: "由上而下依序計算，點選項目後可移動/刪除（電腦端可長按拖動）",
                 prio_header_item: "兌換項目",
                 prio_header_calc: "扣除來源",
                 prio_header_status: "狀態",
@@ -1151,7 +1151,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.5";
+        const APP_VERSION = "v3.6";
         const APP_AUTHOR = "Nikis Ray";
         
         // 輔助函數：計算傳頌總獎勵
@@ -1483,7 +1483,7 @@
                     totalGodPool, totalPeerlessPool, totalRarePool, totalCommonPoolFinal,
                     effDays, effWeeks
                 };
-            }, [currentDateInput, inventory, legendOptions]);
+            }, [currentDateInput, inventory, legendOptions, cartQueue]);
 
             // --- NEW: Waterfall Queue Calculation ---
             const priorityQueueAnalysisData = useMemo(() => {
@@ -1494,12 +1494,12 @@
                     if (firstAttrItem) effectiveTargetAttr = firstAttrItem.category;
                 }
 
-                // 分离资源池：队员残卷（目标属性）和队长残卷（非目标属性）
+                                // Pools initialization
                 let pools = {
                     uStock: { val: parseInt(inventory.univScrolls || 0) },
                     uReward: { val: Math.max(0, (calculation.grandTotalUniv || 0) - parseInt(inventory.univScrolls || 0)) },
-                    fTarget: { val: (calculation.futureMemberIncomeAttr || 0) }, // 队员残卷（目标属性，1:1）
-                    fOther: { val: (calculation.futureLeaderIncomeAttr || 0) }, // 队长残卷（非目标属性，2:1）
+                    fTarget: { val: (calculation.futureMemberIncomeAttr || 0) }, // Member Frags (Dynamic Target Attr - matches current item)
+                    fOther: { val: (calculation.futureLeaderIncomeAttr || 0) }, // Leader Frags (Non-Target Attr)
                     aStock: {
                         fire: { val: parseInt(inventory.attrFire || 0) },
                         water: { val: parseInt(inventory.attrWater || 0) },
@@ -1508,284 +1508,262 @@
                     }
                 };
 
-                // DEBUG: 輸出初始狀態
-                console.log('🔍 ========== 瀑布流計算開始 ==========');
-                console.log('📊 目標屬性:', effectiveTargetAttr);
-                console.log('💰 初始資源池:', {
-                    uStock: pools.uStock.val,
-                    uReward: pools.uReward.val,
-                    fTarget: pools.fTarget.val,
-                    fOther: pools.fOther.val,
-                    aStock: {
-                        fire: pools.aStock.fire.val,
-                        water: pools.aStock.water.val,
-                        wind: pools.aStock.wind.val,
-                        thunder: pools.aStock.thunder.val
-                    }
-                });
-                console.log('🛒 商品隊列:', cartQueue.map(item => `${item.name || item.label}(${item.cost})`));
-
                 // Initialize results
                 const results = cartQueue.map(item => ({
                     ...item,
-                    nativeUsed: 0,        // 步驟1: 現有 同屬性 (1:1)
-                    nonTargetUniv: 0,     // 步驟2: 非目標 無屬 (1:1)
-                    futureNativeUsed: 0,  // 步驟3: 後續掉落 同屬 (1:1)
-                    futureUnivUsed: 0,    // 步驟3/4: 後續掉落 無屬 (1:1)
-                    nonTargetOtherRaw: 0, // 步驟4: 非目標 不同屬 (2:1)
-                    futureOtherRaw: 0,    // 步驟5: 後續掉落 不同屬 (2:1)
-                    conversionStolenRaw: 0, // 步驟6: 需分解其他
-                    stolenFromMe: 0,      // 被分解
+                    nativeUsed: 0,        // Step A: Existing Match Stock
+                    nonTargetUniv: 0,     // Step A: Existing Univ Stock (for Attr item)
+                    futureNativeUsed: 0,  // Step C: Future Match Drops
+                    futureUnivUsed: 0,    // Step B: Future Univ Drops
+                    nonTargetOtherRaw: 0, // Step D: Existing Other Stock (Total)
+                    nonTargetOtherDetails: [], // Step D: Details [{attr: 'fire', val: 100}]
+                    futureOtherRaw: 0,    // Step E: Future Other Drops (Total)
+                    futureOtherDetails: [], // Step E: Details [{type: 'Leader', val: 100}, {type: 'Member(Wind)', val: 50}]
+                    conversionStolenRaw: 0, 
+                    stolenFromMe: 0,
                     gap: item.cost,
-                    status: 'gap',
-                    reservedNative: 0     // Phase 1 預留的現有庫存
+                    status: 'gap'
                 }));
 
-                // 分析商品欄裡有哪些屬性（用於判斷步驟3和4）
+                // Analyze attributes in cart for Step D priority (Smart Burn)
+                // We want to burn "Trash" (Non-cart) attributes first, then "Low Priority" (Late in cart) attributes.
+                // High priority attributes (Early in cart) should be saved for last.
                 const attributesInCart = {
                     fire: false, water: false, wind: false, thunder: false
                 };
-                const attributePriority = []; // 按順序記錄屬性出現的優先權
+                const attributePriority = []; // Records attribute appearance order (Priority High -> Low)
                 
-                results.forEach(res => {
-                    if (res.category !== 'univ' && !attributesInCart[res.category]) {
-                        attributesInCart[res.category] = true;
-                        attributePriority.push(res.category);
+                // CRITICAL FIX: Scan the ENTIRE cartQueue upfront to populate attributesInCart correctly.
+                // This ensures that even if "Wind" is at the end of the queue, "Univ" at the start knows it's protected.
+                if (cartQueue && cartQueue.length > 0) {
+                    cartQueue.forEach(item => {
+                        if (item.category !== 'univ' && !attributesInCart[item.category]) {
+                            attributesInCart[item.category] = true;
+                            attributePriority.push(item.category);
+                        }
+                    });
+                }
+                
+                // Helper to consume pool
+                const consume = (res, poolRef) => {
+                     if (!poolRef || poolRef.val <= 0 || res.gap <= 0) return 0;
+                     const took = Math.min(res.gap, poolRef.val);
+                     poolRef.val -= took;
+                     res.gap -= took;
+                     return took;
+                };
+                
+                // Helper to consume pool with conversion (2:1)
+                const consumeConvert = (res, poolRef) => {
+                    if (!poolRef || poolRef.val <= 0 || res.gap <= 0) return 0;
+                    const needed = res.gap * 2;
+                    const took = Math.min(poolRef.val, needed);
+                    const gain = Math.floor(took / 2);
+                    if (gain > 0) {
+                         poolRef.val -= took;
+                         res.gap -= gain;
+                         return took;
                     }
-                });
+                    return 0;
+                };
 
-                // ========== 計算開始 ==========
-                console.log('\n========== 步驟1: 按優先權分配現有庫存 ==========');
+                // ========== STRICT SEQUENTIAL ALLOCATION ==========
+                
                 results.forEach((res, i) => {
-                    console.log(`商品${i + 1}[優先權${i + 1}]: ${res.name || res.label} [${res.category}]`);
-                    
-                    // 步驟1: 現有同屬性庫存 (1:1)，依兌換順位（優先權）分配
-                    const nativePool = res.category === 'univ' ? pools.uStock : pools.aStock[res.category];
-                    if (nativePool && nativePool.val > 0 && res.gap > 0) {
-                        const took = Math.min(res.gap, nativePool.val);
-                        res.nativeUsed = took;
-                        res.reservedNative = took;
-                        res.gap -= took;
-                        nativePool.val -= took;
-                        console.log(`  ✓ 分配 ${took}, 剩餘需求=${res.gap}, 池剩餘=${nativePool.val}`);
+                    if (res.gap <= 0) return;
+
+                    // Step A: Existing Stock (Match/Neutral) (1:1)
+                    if (res.category !== 'univ') {
+                        // Match Stock
+                        const tookNative = consume(res, pools.aStock[res.category]);
+                        res.nativeUsed += tookNative;
+                        
+                        // OPTIMIZATION: Attribute items should NOT consume Univ Stock yet.
+                        // We save Univ Stock (Shared Resource) for later steps or other items.
+                        // We will consume Univ Stock in a new "Step C.2" (Fallback 1:1).
+                        // res.nonTargetUniv += consume(res, pools.uStock); 
                     } else {
-                        console.log(`  - 無可用庫存`);
-                    }
-                });
-
-                // 階段2: 按優先權執行步驟2-6（只處理能完成的商品）
-                console.log('\n========== 步驟2-6: 按優先權填充 ==========');
-                results.forEach((res, i) => {
-                    
-                    console.log(`\n--- 商品${i + 1}: ${res.name || res.label} [${res.category}] 需${res.cost}, 已分配${res.reservedNative}, 缺${res.gap} ---`);
-                    
-                    if (res.gap <= 0) { console.log(`  ✅ 步驟1已完成!`); return; }
-
-                    // 步驟2: 非目标无属性（未來通用收益 1:1）
-                    if (pools.uReward.val > 0 && res.gap > 0) {
-                        const took = Math.min(res.gap, pools.uReward.val);
-                        res.futureUnivUsed += took;
-                        res.gap -= took;
-                        pools.uReward.val -= took;
-                        console.log(`  ✓ 步驟2: 使用未來通用收益 ${took}, 剩餘gap=${res.gap}, uReward剩餘=${pools.uReward.val}`);
+                        // Univ Item: Univ Stock is Match
+                        const took = consume(res, pools.uStock);
+                        res.nativeUsed += took;
                     }
                     
-                    if (res.gap <= 0) { console.log(`  🎉 完成填充!`); return; }
+                    if (res.gap <= 0) { res.status = 'stock'; return; }
 
-                    // 步驟3: 后续掉落同属性（只有目标属性商品可以1:1使用队员残卷）
-                    if (res.category !== 'univ' && res.category === effectiveTargetAttr && pools.fTarget.val > 0 && res.gap > 0) {
-                        const took = Math.min(res.gap, pools.fTarget.val);
-                        res.futureNativeUsed += took;
-                        res.gap -= took;
-                        pools.fTarget.val -= took;
-                        console.log(`  ✓ 步驟3: 使用目標屬性殘卷fTarget ${took}, 剩餘gap=${res.gap}, fTarget剩餘=${pools.fTarget.val}`);
+                    // Step B: Future Drops (Neutral) (1:1)
+                    // Future Univ
+                    if (res.category === 'univ') {
+                        // Univ items consume Future Univ normally
+                        const tookFutureUniv = consume(res, pools.uReward);
+                        res.futureUnivUsed += tookFutureUniv;
+                    } else {
+                        // OPTIMIZATION: Attribute items skip Future Univ here.
+                        // Prioritize Future Native (Step C) first.
+                    }
+
+                    if (res.gap <= 0) { res.status = 'univ'; return; }
+
+                    // Step C: Future Drops (Match) (1:1)
+                    // Dynamic Target Logic
+                    
+                    if (res.category !== 'univ') {
+                        // For Attribute items, fTarget acts as Native Future Drops (1:1)
+                         const took = consume(res, pools.fTarget);
+                         res.futureNativeUsed += took;
+                    } else if (res.category === effectiveTargetAttr) {
+                         res.futureNativeUsed += consume(res, pools.fTarget);
                     }
                     
-                    if (res.gap <= 0) { console.log(`  🎉 完成填充!`); return; }
+                    if (res.gap <= 0) { res.status = 'univ'; return; }
 
-                    // 步驟4: 非目標 不同屬性（多餘的屬性殘卷 2:1）
-                    // "多餘的" = 步驟1分配後pools中剩餘的
+                    // Step C.2 (NEW): Attribute Items consume Universal Resources (Stock & Future) (1:1)
+                    // Now that we have exhausted Native Stock and Native Future, we can touch the Shared Universal stuff.
+                    if (res.category !== 'univ') {
+                        // 1. Univ Stock
+                        const tookUnivStock = consume(res, pools.uStock);
+                        res.nonTargetUniv += tookUnivStock;
+                        
+                        // 2. Future Univ
+                        const tookFutureUniv = consume(res, pools.uReward);
+                        res.futureUnivUsed += tookFutureUniv;
+                    }
+
+                    if (res.gap <= 0) { res.status = 'univ'; return; }
+
+                    // Step C.5 (NEW): Burn Future Trash (fOther) EARLY (2:1)
+                    // Rationale: Before burning existing stock of "Cart Attributes" (like Wind, which Item 3 needs),
+                    // we should burn "Future Trash" (fOther - Random Leader Drops) first.
+                    // This prevents Item 2 (Univ) from eating Wind Stock (Step D) when it could have just used Future Trash (Step E).
+                    // This optimizes resource usage while maintaining Strict Sequential order (Item 2 still gets filled first).
+                    
                     if (res.gap > 0) {
-                        const allAttrs = ['fire', 'water', 'wind', 'thunder'];
-                        const convertibleAttrs = allAttrs.filter(attr => 
-                            attr !== effectiveTargetAttr && 
-                            attr !== res.category &&
-                            pools.aStock[attr].val > 0  // 只看有剩餘的
-                        );
-                        
-                        // 按優先權倒序轉換（不在購物車的優先，在購物車的從低優先權開始）
-                        const conversionOrder = [];
-                        convertibleAttrs.forEach(attr => {
-                            if (!attributesInCart[attr]) {
-                                conversionOrder.push(attr);
-                            }
-                        });
-                        [...attributePriority].reverse().forEach(attr => {
-                            if (convertibleAttrs.includes(attr)) {
-                                conversionOrder.push(attr);
-                            }
-                        });
-                        
-                        if (conversionOrder.length > 0) {
-                            console.log(`  步驟4: 可轉換 [${conversionOrder.join(', ')}]`);
+                        // 1. Burn fOther (Leader Drops) - Always trash/random
+                        const tookOther = consumeConvert(res, pools.fOther);
+                        if (tookOther > 0) {
+                            res.futureOtherRaw += tookOther;
+                            res.futureOtherDetails.push({ type: 'Leader', val: tookOther });
                         }
-                        
-                        conversionOrder.forEach(attr => {
-                            if (res.gap <= 0) return;
-                            const needed = res.gap * 2;
-                            const took = Math.min(pools.aStock[attr].val, needed);
-                            const gain = Math.floor(took / 2);
-                            if (gain > 0) {
-                                res.nonTargetOtherRaw += took;
-                                res.gap -= gain;
-                                pools.aStock[attr].val -= took;
-                                console.log(`    ✓ 轉換${attr} ${took}→${gain}, 缺${res.gap}`);
-                            }
-                        });
-                    }
-                    
-                    if (res.gap <= 0) { console.log(`  🎉 完成填充!`); return; }
 
-                    // 步驟5: 后续掉落不同属性（队长残卷fOther 2:1 + 队员残卷fTarget 2:1）
-                    // 先用fOther
-                    if (pools.fOther.val > 0 && res.gap > 0) {
-                        const needed = res.gap * 2;
-                        const took = Math.min(pools.fOther.val, needed);
-                        const gain = Math.floor(took / 2);
-                        if (gain > 0) {
-                            res.futureOtherRaw += took;
-                            res.gap -= gain;
-                            pools.fOther.val -= took;
-                            console.log(`  ✓ 步驟5: 轉換隊長殘卷fOther ${took} (2:1) 獲得${gain}, 剩餘gap=${res.gap}, fOther剩餘=${pools.fOther.val}`);
-                        }
-                    }
-                    // 再用fTarget（非目標屬性商品也可以2:1轉換）
-                    // 按優先權分配，不預留
-                    if (pools.fTarget.val > 0 && res.gap > 0) {
-                        const needed = res.gap * 2;
-                        const took = Math.min(pools.fTarget.val, needed);
-                        const gain = Math.floor(took / 2);
-                        if (gain > 0) {
-                            res.futureOtherRaw += took;
-                            res.gap -= gain;
-                            pools.fTarget.val -= took;
-                            console.log(`  ✓ 步驟5: 轉換隊員殘卷fTarget ${took} (2:1) 獲得${gain}, 剩餘gap=${res.gap}, fTarget剩餘=${pools.fTarget.val}`);
-                        }
-                    }
-                    
-                    if (res.gap <= 0) { console.log(`  🎉 完成!`); return; }
+                        // 2. Burn fTarget (Member Drops) - Treat as "Future Other" 
+                        // Only if we haven't used it as "Native" in Step C.
+                        // (i.e. if we are Univ, or if we are Attr but not the Target Attr)
+                        if (res.gap > 0) {
+                             let canBurnTarget = false;
+                             if (res.category === effectiveTargetAttr) {
+                                  // Already tried in Step C (1:1). Don't burn.
+                                  canBurnTarget = false;
+                             } else {
+                                  // Univ or Mismatch Attr -> Burn it 2:1
+                                  canBurnTarget = true;
+                             }
 
-                    // 步驟6: 需分解其他（從較後順位商品的步驟1分配中拿回）
-                    // 智能判斷：如果後續商品也無法完成，優先給當前商品使用
-                    if (res.gap > 0) {
-                        console.log(`  步驟6: 嘗試從後續商品拿回...`);
-                        
-                        for (let j = i + 1; j < results.length && res.gap > 0; j++) {
-                            const laterItem = results[j];
-                            
-                            if (laterItem.reservedNative <= 0) continue;
-                            
-                            // 判斷轉換率和是否可拿
-                            let conversionRate = 1;
-                            let canTake = false;
-                            
-                            if (res.category === 'univ') {
-                                canTake = true;
-                                conversionRate = (laterItem.category === 'univ') ? 1 : 2;
-                            } else if (laterItem.category === 'univ') {
-                                canTake = true;
-                                conversionRate = 1;
-                            } else if (res.category !== laterItem.category) {
-                                canTake = true;
-                                conversionRate = 2;
-                            }
-                            
-                            if (!canTake) continue;
-                            
-                            // 關鍵判斷：只能從「即使保留步驟1資源也無法完成」的後續商品拿
-                            // 如果後續商品保留步驟1資源後可以完成，就不拿
-                            const laterItemCurrentGap = laterItem.gap;
-                            const laterItemTotalNeed = laterItem.cost;
-                            const laterItemWithReserved = laterItemTotalNeed - laterItem.reservedNative; // 如果保留步驟1，還缺多少
-                            
-                            // 估算後續商品的可用資源（不包括步驟1）
-                            let estimatedAvailable = 0;
-                            
-                            if (laterItem.category === 'univ') {
-                                estimatedAvailable += pools.uReward.val; // 步驟2
-                            } else if (laterItem.category === effectiveTargetAttr) {
-                                estimatedAvailable += pools.fTarget.val; // 步驟3 (1:1)
-                            }
-                            
-                            // 步驟4: 其他屬性可以2:1轉換
-                            const attrRemaining = ['fire', 'water', 'wind', 'thunder']
-                                .filter(a => a !== effectiveTargetAttr && a !== laterItem.category)
-                                .reduce((sum, a) => sum + pools.aStock[a].val, 0);
-                            estimatedAvailable += Math.floor(attrRemaining / 2);
-                            
-                            // 步驟5: fOther + fTarget 2:1
-                            estimatedAvailable += Math.floor((pools.fOther.val + pools.fTarget.val) / 2);
-                            
-                            const laterCanCompleteWithReserved = estimatedAvailable >= laterItemWithReserved;
-                            
-                            // 只有在「保留步驟1資源仍無法完成」時才能拿
-                            if (laterCanCompleteWithReserved) {
-                                console.log(`    ⚠️ 商品${j + 1}保留步驟1後可完成(需${laterItemWithReserved},可用${estimatedAvailable})，不拿`);
-                                continue; // 跳過這個商品
-                            }
-                            
-                            // 後續商品即使保留也無法完成，可以拿
-                            const needed = res.gap * conversionRate;
-                            const takeAmount = Math.min(laterItem.reservedNative, needed);
-                            const gained = Math.floor(takeAmount / conversionRate);
-                            
-                            if (gained > 0) {
-                                laterItem.reservedNative -= takeAmount;
-                                laterItem.nativeUsed -= takeAmount;
-                                laterItem.gap += takeAmount;
-                                
-                                res.stolenFromOthers = (res.stolenFromOthers || 0) + takeAmount;
-                                res.gap -= gained;
-                                
-                                console.log(`    ✓ 商品${j + 1}即使保留也無法完成，拿${takeAmount}→${gained}, 缺${res.gap}`);
-                            }
+                             if (canBurnTarget) {
+                                  const tookTarget = consumeConvert(res, pools.fTarget);
+                                  if (tookTarget > 0) {
+                                     res.futureOtherRaw += tookTarget;
+                                     res.futureOtherDetails.push({ type: `Member(${effectiveTargetAttr})`, val: tookTarget });
+                                  }
+                             }
                         }
                     }
-                    
-                    const filled = res.cost - res.gap;
-                    console.log(`  📊 結果: ${filled}/${res.cost} ${res.gap > 0 ? `❌ 還缺${res.gap}` : '✅ 完成'}`);
-                });
 
-                // ========== 完成計算 ==========
-                const finalResults = results.map(res => {
+                    // Step D: Existing Stock (Other/Non-Match) (2:1)
+                    // Strategy: 
+                    // 1. Burn attributes NOT in cart (Trash)
+                    // 2. Burn attributes IN cart (Low Prio) - BUT conditionally!
+                    
+                    const allAttrs = ['fire', 'water', 'wind', 'thunder'];
+                    const burnOrder = [];
+                    
+                    // 1. Non-cart attributes (Trash) - Always safe to burn
+                    allAttrs.forEach(attr => {
+                        if (!attributesInCart[attr]) burnOrder.push(attr);
+                    });
+                    
+                    // 2. Cart attributes (Low Prio -> High Prio)
+                    // We allow ALL items (including Univ) to burn cart attributes in this second phase.
+                    // This ensures Strict Sequential priority: High prio items (Item 1) get resources first,
+                    // even if it means consuming attributes needed by lower prio items (Item 2).
+                    // User can reorder items to protect specific attributes.
+                    
+                    [...attributePriority].reverse().forEach(attr => {
+                        if (!attributesInCart[attr]) return; 
+                        burnOrder.push(attr);
+                    });
+
+                    // Execute burn
+                    burnOrder.forEach(attr => {
+                        if (res.gap <= 0) return;
+                        // Skip if it's the item's own category (Step A already used it 1:1)
+                        if (res.category !== 'univ' && attr === res.category) return; 
+
+                        const pool = pools.aStock[attr];
+                        if (pool.val > 0) {
+                             const needed = res.gap * 2;
+                             const took = Math.min(pool.val, needed);
+                             const gain = Math.floor(took / 2);
+                             if (gain > 0) {
+                                  pool.val -= took;
+                                  res.gap -= gain;
+                                  res.nonTargetOtherRaw += took;
+                                  res.nonTargetOtherDetails.push({ attr, val: took });
+                             }
+                        }
+                    });
+
+                    if (res.gap <= 0) { res.status = 'convert'; return; }
+
+                    // Step E: Future Drops (Other/Non-Match) (2:1)
+                    // Note: Burning of fOther and fTarget now happens in Step C.5.
+                    
+                    // Final Status Update
+                    
+                    // Final Status Update
                     const filled = res.cost - res.gap;
                     res.progress = `${filled}/${res.cost}`;
+                    
                     if (res.gap <= 0) {
                         if (res.nativeUsed > 0 || res.futureNativeUsed > 0) res.status = 'stock';
                         else if (res.nonTargetUniv > 0 || res.futureUnivUsed > 0) res.status = 'univ';
                         else res.status = 'convert';
                     } else res.status = 'gap';
-
-                    return { ...res };
                 });
 
-                console.log('\n🏁 ========== 瀑布流計算結束 ==========');
-                console.log('📦 最終剩餘資源:', {
-                    uStock: pools.uStock.val,
-                    uReward: pools.uReward.val,
-                    fTarget: pools.fTarget.val,
-                    fOther: pools.fOther.val,
-                    aStock: {
-                        fire: pools.aStock.fire.val,
-                        water: pools.aStock.water.val,
-                        wind: pools.aStock.wind.val,
-                        thunder: pools.aStock.thunder.val
-                    }
+                // Update progress strings for all (in case some didn't enter loop or exited early)
+                results.forEach(res => {
+                    const filled = res.cost - res.gap;
+                    res.progress = `${filled}/${res.cost}`;
                 });
-                console.log('📋 最終結果:', finalResults.map(r => `${r.name || r.label}: ${r.progress}`));
+                
+                // Helper to format remaining resources
+                const getRemnantText = (pools) => {
+                    const parts = [];
+                    // Using hardcoded fallback if 'lang' or 't' is not accessible in this scope
+                    const isZh = (typeof lang !== 'undefined' && lang === 'zh');
+                    
+                    if (pools.uStock.val > 0) parts.push(`${isZh ? '通庫' : 'UnivStock'}:${pools.uStock.val}`);
+                    if (pools.uReward.val > 0) parts.push(`${isZh ? '通獎' : 'UnivReward'}:${pools.uReward.val}`);
+                    
+                    const attrLabels = isZh 
+                        ? { fire: "火", water: "水", wind: "風", thunder: "雷" }
+                        : { fire: "Fire", water: "Water", wind: "Wind", thunder: "Thndr" };
+
+                    ['fire', 'water', 'wind', 'thunder'].forEach(a => {
+                        const label = attrLabels[a];
+                        if (pools.aStock[a].val > 0) parts.push(`${label}:${pools.aStock[a].val}`);
+                    });
+                    
+                    if (pools.fTarget.val > 0) parts.push(`${isZh ? '隊員' : 'Member'}:${pools.fTarget.val}`);
+                    if (pools.fOther.val > 0) parts.push(`${isZh ? '隊長' : 'Leader'}:${pools.fOther.val}`);
+                    
+                    return parts.length > 0 ? parts.join(', ') : (isZh ? '無剩餘' : 'None');
+                };
+                
+                const remnantText = getRemnantText(pools);
 
                 return {
-                    results: finalResults,
+                    results,
+                    remnantText,
                     remnants: {
                         univ: pools.uStock.val + pools.uReward.val,
                         fire: pools.aStock.fire.val, water: pools.aStock.water.val,
@@ -1798,6 +1776,7 @@
 
             const priorityQueueAnalysis = priorityQueueAnalysisData.results;
             const queueRemnants = priorityQueueAnalysisData.remnants;
+            const queueRemnantText = priorityQueueAnalysisData.remnantText;
             // #endregion
 
 
@@ -2509,7 +2488,7 @@
                                         </div>
                                     </div>
 
-                                    <div className="flex h-full min-h-[18.75rem] max-h-[18.75rem]">
+                                    <div className="flex flex-1 h-[19.5rem] min-h-[19.5rem] max-h-[19.5rem]">
                                         {/* Control Panel (Fixed Left Sidebar) */}
                                         <div className="w-14 bg-gray-50 dark:bg-gray-900 border-r border-indigo-100 dark:border-indigo-800 flex flex-col items-center justify-center gap-3 p-1 flex-shrink-0">
                                             <button className="ctrl-btn up" onClick={handleMoveUp} disabled={selectedQueueIndex === null || selectedQueueIndex === 0}>▲</button>
@@ -2577,8 +2556,16 @@
                                                             }
                                                             if (item.nonTargetOtherRaw > 0) {
                                                                 const gain = Math.floor(item.nonTargetOtherRaw / 2);
+                                                                // Build tooltip text
+                                                                const isZh = lang === 'zh';
+                                                                const attrMap = isZh 
+                                                                    ? { fire: "火", water: "水", wind: "風", thunder: "雷" }
+                                                                    : { fire: "Fire", water: "Water", wind: "Wind", thunder: "Thndr" };
+                                                                    
+                                                                const detailText = item.nonTargetOtherDetails.map(d => `${attrMap[d.attr] || d.attr}: ${d.val}`).join(', ');
+                                                                
                                                                 resourceDetails.push({
-                                                                    label: lang === 'zh' ? '其他屬性(2:1)' : 'Other Attr(2:1)',
+                                                                    label: `${lang === 'zh' ? '其他屬性' : 'Other Attr'} (${detailText})`,
                                                                     value: `${item.nonTargetOtherRaw}→${gain}`,
                                                                     color: 'text-purple-700 dark:text-purple-400',
                                                                     bgColor: 'bg-purple-50 dark:bg-purple-900/20',
@@ -2587,8 +2574,14 @@
                                                             }
                                                             if (item.futureOtherRaw > 0) {
                                                                 const gain = Math.floor(item.futureOtherRaw / 2);
+                                                                // Build tooltip text
+                                                                const detailText = item.futureOtherDetails.map(d => {
+                                                                    const label = d.type.includes('Member') ? (lang === 'zh' ? '隊員' : 'Mem') : (lang === 'zh' ? '隊長' : 'Ldr');
+                                                                    return `${label}: ${d.val}`;
+                                                                }).join(', ');
+
                                                                 resourceDetails.push({
-                                                                    label: lang === 'zh' ? '未來其他屬性(2:1)' : 'Future Other(2:1)',
+                                                                    label: `${lang === 'zh' ? '未來其他' : 'Future Other'} (${detailText})`,
                                                                     value: `${item.futureOtherRaw}→${gain}`,
                                                                     color: 'text-orange-700 dark:text-orange-400',
                                                                     bgColor: 'bg-orange-50 dark:bg-orange-900/20',
@@ -2681,38 +2674,50 @@
 
                                 {/* Right: Summary Cards Stack */}
                                 <div className="lg:col-span-3 flex flex-col gap-4 h-full">
-                                    {/* 預估殘卷總量 */}
-                                    <div className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border-2 border-indigo-50 flex flex-col overflow-hidden">
-                                        <div className="text-indigo-900 dark:text-indigo-300 font-bold text-[0.875rem] mb-3 flex items-center gap-1 border-b border-indigo-50 pb-2">
-                                            <span>📊</span> {lang === 'zh' ? '預估殘卷總量' : 'Est. Total Scrolls'}
+                                    {/* 預估殘卷總量 + 剩餘資源 */}
+                                    <div className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border-2 border-indigo-50 flex flex-col overflow-hidden gap-3">
+                                        
+                                        {/* Total Summary */}
+                                        <div>
+                                            <div className="text-indigo-900 dark:text-indigo-300 font-bold text-[0.875rem] mb-2 flex items-center gap-1 border-b border-indigo-50 pb-1">
+                                                <span>📊</span> {lang === 'zh' ? '預估總量' : 'Est. Total'}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-100 dark:border-blue-800 flex flex-col items-center">
+                                                    <div className="text-xs text-blue-600 dark:text-blue-400 font-bold">{lang === 'zh' ? '屬性' : 'Attr'}</div>
+                                                    <div className="text-xl font-black text-blue-700 dark:text-blue-300">{(calculation.grandTotalAttr || 0).toLocaleString()}</div>
+                                                </div>
+                                                <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg border border-green-100 dark:border-green-800 flex flex-col items-center">
+                                                    <div className="text-xs text-green-600 dark:text-green-400 font-bold">{lang === 'zh' ? '通用' : 'Univ'}</div>
+                                                    <div className="text-xl font-black text-green-700 dark:text-green-400">{(calculation.grandTotalUniv || 0).toLocaleString()}</div>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800 flex items-center gap-3">
-                                                <div className="text-base text-blue-600 dark:text-blue-400 font-bold whitespace-nowrap">{lang === 'zh' ? '屬性卷' : 'Attr'}</div>
-                                                <div className="text-3xl font-black text-blue-700 dark:text-blue-300">{(calculation.grandTotalAttr || 0).toLocaleString()}</div>
+                                        {/* Remaining Resources */}
+                                        <div className="flex-1 flex flex-col min-h-0 border-t border-gray-100 pt-2 mt-1">
+                                            <div className="text-green-900 dark:text-green-300 font-bold text-[0.875rem] mb-1 flex items-center gap-1">
+                                                <span>📦</span> {lang === 'zh' ? '結算剩餘' : 'Remnant'}
                                             </div>
-
-                                            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800 flex items-center gap-3">
-                                                <div className="text-base text-green-600 dark:text-green-400 font-bold whitespace-nowrap">{lang === 'zh' ? '通用卷' : 'Univ'}</div>
-                                                <div className="text-3xl font-black text-green-700 dark:text-green-400">{(calculation.grandTotalUniv || 0).toLocaleString()}</div>
+                                            <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-700 flex-1 overflow-y-auto max-h-[120px]">
+                                                <div className="text-xs font-mono text-gray-700 dark:text-gray-300 leading-relaxed break-all">
+                                                    {queueRemnantText}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                     
                                     {/* 提示卡片 */}
                                     <div className="bg-orange-50 dark:bg-orange-900/20 p-2.5 rounded-lg border border-orange-200 dark:border-orange-700 shadow-sm">
-                                        <div className="text-[0.75rem] text-orange-800 dark:text-orange-300 font-bold flex flex-col gap-0.5">
+                                        <div className="text-[0.75rem] text-orange-800 dark:text-orange-300 font-bold leading-tight">
                                             {lang === 'zh' ? (
-                                                <React.Fragment>
-                                                    <div className="flex items-center gap-1">💡 提示：使用通用卷可以 1:1 替代屬性卷。</div>
-                                                    <div>其他屬性間可透過 2:1 轉化彌補缺口。</div>
-                                                </React.Fragment>
+                                                <div className="flex flex-wrap items-center justify-center gap-1">
+                                                    <span>通用1:1屬性 屬性2:1通用</span>
+                                                </div>
                                             ) : (
-                                                <React.Fragment>
-                                                    <div className="flex items-center gap-1">💡 Protip: Universal scrolls substitute 1:1.</div>
-                                                    <div>Attributes convert 2:1 for gaps.</div>
-                                                </React.Fragment>
+                                                <div className="flex flex-wrap items-center gap-1">
+                                                    <span>Univ 1:1 Attr; Attr 2:1 Univ</span>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
