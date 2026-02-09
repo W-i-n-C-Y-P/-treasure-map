@@ -18,7 +18,7 @@
     <style>
         /* #region CSS Styles - EVA Unit-01 Theme */
         body {
-            font-family: 'Noto Sans TC', sans-serif;
+            font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
             background-color: #f3f4f6;
             touch-action: manipulation;
             font-size: 17px;
@@ -873,7 +873,7 @@
                 exchange_all_attr: "全轉換：屬性", // Updated Text
                 exchange_all_univ: "全轉換：通用", // Updated Text
 
-                prog_title: "碎片合成進度盤點",
+                prog_title: "碎片合成進度",
                 prog_syn: "合", prog_need: "差",
 
                 sec_shop_title: "兌換商店規劃",
@@ -961,6 +961,7 @@
 
                 // New Labels
                 sec_future_breakdown: "未來預計獲取明細 (剩餘次數)",
+                note_future_exclude: "*不包含當天日常跟當周神品次數",
                 th_source: "來源",
                 th_count: "剩餘",
                 th_attr: "屬性卷",
@@ -1082,7 +1083,7 @@
 
                 // Priority Logic
                 prio_title: "🏆 Dynamic Shopping Queue",
-                prio_subtitle: "Calculated sequentially. Click to select, use arrows to reorder (desktop: drag).",
+                prio_subtitle: "Calculated sequentially. Click to select, use arrows to reorder (desktop: drag)",
                 prio_header_item: "Item",
                 prio_header_calc: "Source",
                 prio_header_status: "Status",
@@ -1106,6 +1107,7 @@
 
                 // New Labels
                 sec_future_breakdown: "Future Gain Breakdown (Rem. Counts)",
+                note_future_exclude: "*Excludes today & current week",
                 th_source: "Source",
                 th_count: "Rem.",
                 th_attr: "Attr.",
@@ -1151,7 +1153,7 @@
 
         const RANDOM_CONVERSION = { attr: 4, univ: 5, refundCommonFrag: 1, cost: 10 };
         const WEEKDAYS = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const APP_VERSION = "v3.6";
+        const APP_VERSION = "v3.7";
         const APP_AUTHOR = "Nikis Ray";
         
         // 輔助函數：計算傳頌總獎勵
@@ -1347,6 +1349,12 @@
             const countSundays = (start, end) => {
                 let count = 0;
                 let d = new Date(start); d.setHours(12, 0, 0, 0);
+                
+                // Fix: If start date is Sunday, exclude it from future estimate (assume already claimed)
+                if (d.getDay() === 0) {
+                    d.setDate(d.getDate() + 1);
+                }
+
                 while (d < end) {
                     if (d.getDay() === 0) count++;
                     d.setDate(d.getDate() + 1);
@@ -2070,31 +2078,23 @@
             return (
                 <div className="max-w-5xl xl:max-w-7xl mx-auto p-2 md:p-6 flex flex-col min-h-screen relative">
                     {/* Top Section */}
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-4 pt-2 gap-3">
+                    <div className="relative flex flex-col md:flex-row justify-between items-center mb-4 pt-2 gap-3 min-h-[3.5rem]">
                         <div className="text-[0.75rem] font-bold text-gray-500 dark:text-gray-400 font-mono flex items-center justify-center md:justify-start order-2 md:order-1 flex-shrink-0">
                             {APP_VERSION} | {APP_AUTHOR}
                         </div>
-                        <div className="text-center order-1 md:order-2 px-2">
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-green-500 to-purple-600 dark:from-purple-500 dark:via-green-400 dark:to-purple-500 bg-clip-text text-transparent mb-0 leading-tight whitespace-nowrap" style={{textShadow: theme !== 'light' ? '0 0 20px rgba(16, 185, 129, 0.5)' : 'none'}}>{t.title}</h1>
-                            <p className="text-gray-500 dark:text-purple-400 text-[0.625rem]">{t.period}</p>
+                        <div className="text-center order-1 md:order-2 px-2 md:absolute md:left-1/2 md:-translate-x-1/2 z-10">
+                            <h1 className="text-2xl font-black bg-gradient-to-r from-blue-500 via-sky-300 to-green-500 bg-clip-text text-transparent mb-0.5 leading-tight whitespace-nowrap drop-shadow-[1px_1px_0_rgba(0,0,0,0.1)] tracking-wide font-['Segoe_UI_Emoji']">{t.title}</h1>
+                            <p className="text-gray-600 dark:text-gray-300 text-xs font-bold">{t.period}</p>
                         </div>
                         <div className="flex flex-wrap gap-2 justify-center md:justify-end order-3 md:order-3 flex-grow md:flex-grow-0">
-                            <select 
-                                value={theme} 
-                                onChange={(e) => setTheme(e.target.value)}
-                                className="bg-white dark:bg-gradient-to-r dark:from-purple-900/40 dark:to-green-900/40 text-gray-700 dark:text-green-400 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(16,185,129,0.3)] text-[0.75rem] font-bold hover:bg-gray-50 dark:hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition border border-gray-200 dark:border-purple-500/50 min-h-[1.875rem] cursor-pointer"
-                            >
-                                <option value="light">🌞 淺色</option>
-                                <option value="dark">🌙 深色</option>
-                                <option value="eva-01">🤖 初號機</option>
-                                <option value="eva-00">🌊 零號機</option>
-                                <option value="solo-leveling">⚔️ 獨自升級</option>
-                            </select>
-                            <button onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')} className="bg-white dark:bg-gradient-to-r dark:from-purple-900/40 dark:to-green-900/40 text-indigo-600 dark:text-purple-400 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(147,51,234,0.3)] text-[0.75rem] font-bold hover:bg-indigo-50 dark:hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] transition border border-indigo-200 dark:border-green-500/50 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">
+                            <button onClick={() => setTheme(prev => prev === 'light' ? 'eva-00' : 'light')} className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(255,255,255,0.1)] text-[1rem] font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition border border-gray-200 dark:border-gray-600 min-h-[1.875rem] flex items-center justify-center flex-shrink-0 w-[2.5rem]">
+                                {theme === 'light' ? '🌞' : '🌙'}
+                            </button>
+                            <button onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')} className="bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(255,255,255,0.1)] text-[0.75rem] font-bold hover:bg-indigo-50 dark:hover:bg-gray-700 transition border border-indigo-200 dark:border-gray-600 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">
                                 {lang === 'zh' ? 'EN' : '中'}
                             </button>
-                            <button onClick={() => setShowHelp(true)} className="bg-white dark:bg-gradient-to-r dark:from-purple-900/40 dark:to-green-900/40 text-gray-600 dark:text-green-400 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(16,185,129,0.3)] text-[0.75rem] font-bold hover:bg-gray-50 dark:hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition border border-gray-200 dark:border-purple-500/50 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">{t.btn_help}</button>
-                            <button onClick={() => setViewMode(prev => prev === 'tabs' ? 'single' : 'tabs')} className="bg-white dark:bg-gradient-to-r dark:from-purple-900/40 dark:to-green-900/40 text-indigo-600 dark:text-purple-400 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(147,51,234,0.3)] text-[0.75rem] font-bold hover:bg-indigo-50 dark:hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] transition border border-indigo-100 dark:border-green-500/50 flex items-center gap-1 min-h-[1.875rem] flex-shrink-0 whitespace-nowrap">
+                            <button onClick={() => setShowHelp(true)} className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(255,255,255,0.1)] text-[0.75rem] font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition border border-gray-200 dark:border-gray-600 min-h-[1.875rem] flex items-center flex-shrink-0 whitespace-nowrap">{t.btn_help}</button>
+                            <button onClick={() => setViewMode(prev => prev === 'tabs' ? 'single' : 'tabs')} className="bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-full shadow-sm dark:shadow-[0_0_15px_rgba(255,255,255,0.1)] text-[0.75rem] font-bold hover:bg-indigo-50 dark:hover:bg-gray-700 transition border border-indigo-100 dark:border-gray-600 flex items-center gap-1 min-h-[1.875rem] flex-shrink-0 whitespace-nowrap">
                                 {viewMode === 'tabs' ? t.btn_tabs : t.btn_single}
                             </button>
                         </div>
@@ -2256,95 +2256,109 @@
                                     </div>
                                 </div>
 
-                                {/* Scrolls */}
-                                <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-200 dark:border-blue-700 mb-2">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="text-[0.75rem] font-bold text-gray-700 dark:text-gray-300">{t.lbl_scrolls}</label>
-                                        <button onClick={clearScrolls} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600">{t.btn_clear}</button>
-                                    </div>
-                                    <div className="grid grid-cols-5 gap-1">
-                                        <div className="input-group"><label className="color-wind">{t.attr_wind}</label><input type="number" min="0" value={inventory.attrWind} onChange={(e) => updateInv('attrWind', e.target.value)} className="border-wind focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="color-thunder">{t.attr_thunder}</label><input type="number" min="0" value={inventory.attrThunder} onChange={(e) => updateInv('attrThunder', e.target.value)} className="border-thunder focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="color-water">{t.attr_water}</label><input type="number" min="0" value={inventory.attrWater} onChange={(e) => updateInv('attrWater', e.target.value)} className="border-water focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="color-fire">{t.attr_fire}</label><input type="number" min="0" value={inventory.attrFire} onChange={(e) => updateInv('attrFire', e.target.value)} className="border-fire focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-gray-600 dark:text-gray-400">{t.attr_univ}</label><input type="number" min="0" value={inventory.univScrolls} onChange={(e) => updateInv('univScrolls', e.target.value)} onWheel={(e) => e.target.blur()} /></div>
-                                    </div>
-                                </div>
-
-                                {/* Maps (Simplified: One row for Qualities) */}
-                                <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-lg border border-orange-200 dark:border-orange-700 mb-2">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="text-[0.75rem] font-bold text-gray-700 dark:text-gray-300">{t.lbl_maps}</label>
-                                        <button onClick={clearMaps} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600">{t.btn_clear}</button>
+                                {/* Combined Inventory Card */}
+                                <div className="bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm mb-2">
+                                    {/* Scrolls Section */}
+                                    <div className="mb-2 pb-2 border-b border-gray-100 dark:border-gray-700 bg-blue-100/50 dark:bg-blue-900/20 rounded-md p-1.5">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="text-[0.75rem] font-bold text-gray-700 dark:text-gray-300">{t.lbl_scrolls}</label>
+                                            <button onClick={clearScrolls} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600">{t.btn_clear}</button>
+                                        </div>
+                                        <div className="grid grid-cols-5 gap-1">
+                                            <div className="input-group"><label className="color-wind">{t.attr_wind}</label><input type="number" min="0" value={inventory.attrWind} onChange={(e) => updateInv('attrWind', e.target.value)} className="border-wind focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
+                                            <div className="input-group"><label className="color-thunder">{t.attr_thunder}</label><input type="number" min="0" value={inventory.attrThunder} onChange={(e) => updateInv('attrThunder', e.target.value)} className="border-thunder focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
+                                            <div className="input-group"><label className="color-water">{t.attr_water}</label><input type="number" min="0" value={inventory.attrWater} onChange={(e) => updateInv('attrWater', e.target.value)} className="border-water focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
+                                            <div className="input-group"><label className="color-fire">{t.attr_fire}</label><input type="number" min="0" value={inventory.attrFire} onChange={(e) => updateInv('attrFire', e.target.value)} className="border-fire focus:ring-1" onWheel={(e) => e.target.blur()} /></div>
+                                            <div className="input-group"><label className="text-gray-600 dark:text-gray-400">{t.attr_univ}</label><input type="number" min="0" value={inventory.univScrolls} onChange={(e) => updateInv('univScrolls', e.target.value)} onWheel={(e) => e.target.blur()} /></div>
+                                        </div>
                                     </div>
 
-                                    <div className="grid grid-cols-5 gap-1">
-                                        <div className="input-group">
-                                            <label className="text-red-600 dark:text-red-400">{t.qual_god}</label>
-                                            <input type="number" min="0" value={inventory.godMaps} onChange={(e) => updateInv('godMaps', e.target.value)} className="bg-red-50 dark:bg-red-900/20" onWheel={(e) => e.target.blur()} />
+                                    {/* Maps Section */}
+                                    <div className="mb-2 pb-2 border-b border-gray-100 dark:border-gray-700 bg-orange-100/50 dark:bg-orange-900/20 rounded-md p-1.5">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="text-[0.75rem] font-bold text-gray-700 dark:text-gray-300">{t.lbl_maps}</label>
+                                            <button onClick={clearMaps} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600">{t.btn_clear}</button>
                                         </div>
-                                        <div className="input-group">
-                                            <label className="text-purple-600 dark:text-purple-400">{t.qual_peerless}</label>
-                                            <input type="number" min="0" value={inventory.peerlessMaps} onChange={(e) => updateInv('peerlessMaps', e.target.value)} className="bg-purple-50 dark:bg-purple-900/20" onWheel={(e) => e.target.blur()} />
-                                        </div>
-                                        <div className="input-group">
-                                            <label className="text-indigo-600 dark:text-indigo-400">{t.qual_rare}</label>
-                                            <input type="number" min="0" value={inventory.rareMaps} onChange={(e) => updateInv('rareMaps', e.target.value)} className="bg-indigo-50 dark:bg-indigo-900/20" onWheel={(e) => e.target.blur()} />
-                                        </div>
-                                        <div className="input-group">
-                                            <label className="text-green-600 dark:text-green-400">{t.qual_common}</label>
-                                            <input type="number" min="0" value={inventory.commonMaps} onChange={(e) => updateInv('commonMaps', e.target.value)} className="bg-green-50 dark:bg-green-900/20" onWheel={(e) => e.target.blur()} />
-                                        </div>
-                                        <div className="input-group">
-                                            <label className="text-gray-400">{/* 空白佔位 */}</label>
-                                            <input type="text" disabled className="bg-gray-100 dark:bg-gray-800 opacity-0 cursor-not-allowed" />
+                                        <div className="grid grid-cols-5 gap-1">
+                                            <div className="input-group">
+                                                <label className="text-red-600 dark:text-red-400">{t.qual_god}</label>
+                                                <input type="number" min="0" value={inventory.godMaps} onChange={(e) => updateInv('godMaps', e.target.value)} className="bg-red-50 dark:bg-red-900/20" onWheel={(e) => e.target.blur()} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label className="text-purple-600 dark:text-purple-400">{t.qual_peerless}</label>
+                                                <input type="number" min="0" value={inventory.peerlessMaps} onChange={(e) => updateInv('peerlessMaps', e.target.value)} className="bg-purple-50 dark:bg-purple-900/20" onWheel={(e) => e.target.blur()} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label className="text-indigo-600 dark:text-indigo-400">{t.qual_rare}</label>
+                                                <input type="number" min="0" value={inventory.rareMaps} onChange={(e) => updateInv('rareMaps', e.target.value)} className="bg-indigo-50 dark:bg-indigo-900/20" onWheel={(e) => e.target.blur()} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label className="text-green-600 dark:text-green-400">{t.qual_common}</label>
+                                                <input type="number" min="0" value={inventory.commonMaps} onChange={(e) => updateInv('commonMaps', e.target.value)} className="bg-green-50 dark:bg-green-900/20" onWheel={(e) => e.target.blur()} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label className="text-gray-400"></label>
+                                                <input type="text" disabled className="bg-gray-50 dark:bg-gray-800 opacity-0 cursor-not-allowed" />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Frags */}
-                                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-lg border border-indigo-200 dark:border-indigo-700">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="text-[0.75rem] font-bold text-gray-700 dark:text-gray-300">{t.lbl_frags}</label>
-                                        <button onClick={clearFrags} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600">{t.btn_clear}</button>
+                                    {/* Frags Section */}
+                                    <div className="bg-indigo-100/50 dark:bg-indigo-900/20 rounded-md p-1.5 mb-2">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="text-[0.75rem] font-bold text-gray-700 dark:text-gray-300">{t.lbl_frags}</label>
+                                            <button onClick={clearFrags} className="text-[0.625rem] text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-1 rounded shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600">{t.btn_clear}</button>
+                                        </div>
+                                        <div className="grid grid-cols-5 gap-1">
+                                            <div className="input-group"><label className="text-red-600 dark:text-red-400">{t.qual_god}</label><input type="number" min="0" value={inventory.godFrags} onChange={(e) => updateInv('godFrags', e.target.value)} className="bg-red-50 dark:bg-red-900/20" onWheel={(e) => e.target.blur()} /></div>
+                                            <div className="input-group"><label className="text-purple-600 dark:text-purple-400">{t.qual_peerless}</label><input type="number" min="0" value={inventory.peerlessFrags} onChange={(e) => updateInv('peerlessFrags', e.target.value)} className="bg-purple-50 dark:bg-purple-900/20" onWheel={(e) => e.target.blur()} /></div>
+                                            <div className="input-group"><label className="text-indigo-600 dark:text-indigo-400">{t.qual_rare}</label><input type="number" min="0" value={inventory.rareFrags} onChange={(e) => updateInv('rareFrags', e.target.value)} className="bg-indigo-50 dark:bg-indigo-900/20" onWheel={(e) => e.target.blur()} /></div>
+                                            <div className="input-group"><label className="text-green-600 dark:text-green-400">{t.qual_common}</label><input type="number" min="0" value={inventory.commonFrags} onChange={(e) => updateInv('commonFrags', e.target.value)} className="bg-green-50 dark:bg-green-900/20" onWheel={(e) => e.target.blur()} /></div>
+                                            <div className="input-group"><label className="text-yellow-600 dark:text-yellow-400">{t.qual_random}</label><input type="number" min="0" value={inventory.randomFrags} onChange={(e) => updateInv('randomFrags', e.target.value)} className="bg-yellow-50 dark:bg-yellow-900/20" onWheel={(e) => e.target.blur()} /></div>
+                                        </div>
                                     </div>
-                                    <div className="grid grid-cols-5 gap-1">
-                                        <div className="input-group"><label className="text-red-600 dark:text-red-400">{t.qual_god}</label><input type="number" min="0" value={inventory.godFrags} onChange={(e) => updateInv('godFrags', e.target.value)} className="bg-red-50 dark:bg-red-900/20" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-purple-600 dark:text-purple-400">{t.qual_peerless}</label><input type="number" min="0" value={inventory.peerlessFrags} onChange={(e) => updateInv('peerlessFrags', e.target.value)} className="bg-purple-50 dark:bg-purple-900/20" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-indigo-600 dark:text-indigo-400">{t.qual_rare}</label><input type="number" min="0" value={inventory.rareFrags} onChange={(e) => updateInv('rareFrags', e.target.value)} className="bg-indigo-50 dark:bg-indigo-900/20" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-green-600 dark:text-green-400">{t.qual_common}</label><input type="number" min="0" value={inventory.commonFrags} onChange={(e) => updateInv('commonFrags', e.target.value)} className="bg-green-50 dark:bg-green-900/20" onWheel={(e) => e.target.blur()} /></div>
-                                        <div className="input-group"><label className="text-yellow-600 dark:text-yellow-400">{t.qual_random}</label><input type="number" min="0" value={inventory.randomFrags} onChange={(e) => updateInv('randomFrags', e.target.value)} className="bg-yellow-50 dark:bg-yellow-900/20" onWheel={(e) => e.target.blur()} /></div>
-                                    </div>
-                                </div>
 
-                                {/* 碎片合成進度盤點 - 卡片樣式 */}
-                                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border-2 border-indigo-200 dark:border-indigo-700 shadow-sm mt-2">
-                                    <h3 className="font-bold text-indigo-700 dark:text-indigo-400 mb-2 text-sm border-b border-indigo-200 dark:border-indigo-700 pb-1.5">{t.prog_title}</h3>
-                                    <div className="grid grid-cols-5 gap-1 text-[0.625rem]">
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-red-50 dark:bg-red-900/20 rounded border border-red-100 dark:border-red-800">
-                                            <span className="text-red-900 dark:text-red-300 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_god}</span>
-                                            <span className="text-red-600 dark:text-red-400 text-[0.55rem]">({calculation.totalGodPool})</span>
-                                            <span className="text-red-600 dark:text-red-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.godStatus.maps}/{t.prog_need} {calculation.godStatus.needed}</span>
+                                    {/* Fragment Synthesis Progress (Merged) */}
+                                    <div className="pt-2 border-t border-gray-200 dark:border-gray-700 px-1.5">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="text-[0.75rem] font-bold text-indigo-700 dark:text-indigo-400">{t.prog_title}</label>
                                         </div>
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-100 dark:border-purple-800">
-                                            <span className="text-purple-900 dark:text-purple-300 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_peerless}</span>
-                                            <span className="text-purple-600 dark:text-purple-400 text-[0.55rem]">({calculation.totalPeerlessPool})</span>
-                                            <span className="text-purple-600 dark:text-purple-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.peerlessStatus.maps}/{t.prog_need} {calculation.peerlessStatus.needed}</span>
-                                        </div>
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded border border-indigo-100 dark:border-indigo-800">
-                                            <span className="text-indigo-900 dark:text-indigo-300 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_rare}</span>
-                                            <span className="text-indigo-600 dark:text-indigo-400 text-[0.55rem]">({calculation.totalRarePool})</span>
-                                            <span className="text-indigo-600 dark:text-indigo-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.rareStatus.maps}/{t.prog_need} {calculation.rareStatus.needed}</span>
-                                        </div>
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-green-50 dark:bg-green-900/20 rounded border border-green-100 dark:border-green-800">
-                                            <span className="text-green-900 dark:text-green-300 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_common}</span>
-                                            <span className="text-green-600 dark:text-green-400 text-[0.55rem]">({calculation.totalCommonPoolFinal})</span>
-                                            <span className="text-green-600 dark:text-green-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.commonStatus.maps}/{t.prog_need} {calculation.commonStatus.needed}</span>
-                                        </div>
-                                        <div className="flex flex-row items-center justify-center flex-wrap gap-x-1 gap-y-0.5 px-1.5 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-100 dark:border-yellow-800">
-                                            <span className="text-yellow-900 dark:text-yellow-200 font-bold text-[0.6rem] whitespace-nowrap">{t.qual_random}</span>
-                                            <span className="text-yellow-600 dark:text-yellow-400 text-[0.55rem]">({calculation.totalRandomPool})</span>
-                                            <span className="text-yellow-600 dark:text-yellow-400 text-[0.55rem] whitespace-nowrap">{t.prog_syn} {calculation.randomStatus.maps}/{t.prog_need} {calculation.randomStatus.needed}</span>
+                                        <div className="grid grid-cols-5 gap-1 text-xs">
+                                            <div className="flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 bg-red-50 dark:bg-red-900/20 rounded border border-red-100 dark:border-red-800">
+                                                <span className="text-red-900 dark:text-red-300 font-bold text-xs whitespace-nowrap mb-0.5">{t.qual_god}</span>
+                                                <div className="flex flex-row flex-wrap justify-center items-center gap-x-1 leading-none">
+                                                    <span className="text-red-600 dark:text-red-400 text-xs">({calculation.totalGodPool})</span>
+                                                    <span className="text-red-600 dark:text-red-400 text-xs whitespace-nowrap">{t.prog_syn} {calculation.godStatus.maps}/{t.prog_need} {calculation.godStatus.needed}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-100 dark:border-purple-800">
+                                                <span className="text-purple-900 dark:text-purple-300 font-bold text-xs whitespace-nowrap mb-0.5">{t.qual_peerless}</span>
+                                                <div className="flex flex-row flex-wrap justify-center items-center gap-x-1 leading-none">
+                                                    <span className="text-purple-600 dark:text-purple-400 text-xs">({calculation.totalPeerlessPool})</span>
+                                                    <span className="text-purple-600 dark:text-purple-400 text-xs whitespace-nowrap">{t.prog_syn} {calculation.peerlessStatus.maps}/{t.prog_need} {calculation.peerlessStatus.needed}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded border border-indigo-100 dark:border-indigo-800">
+                                                <span className="text-indigo-900 dark:text-indigo-300 font-bold text-xs whitespace-nowrap mb-0.5">{t.qual_rare}</span>
+                                                <div className="flex flex-row flex-wrap justify-center items-center gap-x-1 leading-none">
+                                                    <span className="text-indigo-600 dark:text-indigo-400 text-xs">({calculation.totalRarePool})</span>
+                                                    <span className="text-indigo-600 dark:text-indigo-400 text-xs whitespace-nowrap">{t.prog_syn} {calculation.rareStatus.maps}/{t.prog_need} {calculation.rareStatus.needed}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 bg-green-50 dark:bg-green-900/20 rounded border border-green-100 dark:border-green-800">
+                                                <span className="text-green-900 dark:text-green-300 font-bold text-xs whitespace-nowrap mb-0.5">{t.qual_common}</span>
+                                                <div className="flex flex-row flex-wrap justify-center items-center gap-x-1 leading-none">
+                                                    <span className="text-green-600 dark:text-green-400 text-xs">({calculation.totalCommonPoolFinal})</span>
+                                                    <span className="text-green-600 dark:text-green-400 text-xs whitespace-nowrap">{t.prog_syn} {calculation.commonStatus.maps}/{t.prog_need} {calculation.commonStatus.needed}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-100 dark:border-yellow-800">
+                                                <span className="text-yellow-900 dark:text-yellow-200 font-bold text-xs whitespace-nowrap mb-0.5">{t.qual_random}</span>
+                                                <div className="flex flex-row flex-wrap justify-center items-center gap-x-1 leading-none">
+                                                    <span className="text-yellow-600 dark:text-yellow-400 text-xs">({calculation.totalRandomPool})</span>
+                                                    <span className="text-yellow-600 dark:text-yellow-400 text-xs whitespace-nowrap">{t.prog_syn} {calculation.randomStatus.maps}/{t.prog_need} {calculation.randomStatus.needed}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -2367,17 +2381,17 @@
                                                     <span className="text-right text-green-600 dark:text-green-400">{t.th_univ}</span>
                                                 </div>
                                                 <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 px-1 rounded">
-                                                    <div className="text-gray-600 dark:text-gray-400 font-bold">{t.lbl_member_frag}</div>
+                                                    <div className="text-gray-600 dark:text-gray-400 font-bold whitespace-nowrap tracking-tight">{t.lbl_member_frag}</div>
                                                     <div className="text-right text-blue-600 dark:text-blue-400 font-bold">{(calculation.memberIncomeAttr || 0).toLocaleString()}</div>
                                                     <div className="text-right text-green-600 dark:text-green-400 font-bold">{(calculation.memberIncomeUniv || 0).toLocaleString()}</div>
                                                 </div>
-                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900/20 px-1 rounded">
-                                                    <div className="text-gray-600 dark:text-gray-400 font-bold">{t.lbl_leader_frag}</div>
+                                                <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 px-1 rounded">
+                                                    <div className="text-gray-600 dark:text-gray-400 font-bold whitespace-nowrap tracking-tight">{t.lbl_leader_frag}</div>
                                                     <div className="text-right text-blue-600 dark:text-blue-400">{(calculation.leaderIncomeAttr || 0).toLocaleString()}</div>
                                                     <div className="text-right text-green-600 dark:text-green-400">{(calculation.leaderIncomeUniv || 0).toLocaleString()}</div>
                                                 </div>
                                                 <div className="grid grid-cols-[1fr,60px,60px] gap-2 items-center py-1 border-b border-gray-200 dark:border-gray-700 bg-indigo-50 dark:bg-indigo-900/20 px-1 rounded">
-                                                    <div className="text-gray-600 dark:text-gray-400 font-bold">{t.lbl_univ_frag}</div>
+                                                    <div className="text-gray-600 dark:text-gray-400 font-bold whitespace-nowrap tracking-tight">{t.lbl_univ_frag}</div>
                                                     <div className="text-right text-blue-600 dark:text-blue-400">-</div>
                                                     <div className="text-right text-green-600 dark:text-green-400">{(calculation.univBase || 0).toLocaleString()}</div>
                                                 </div>
@@ -2410,7 +2424,10 @@
 
                                 {/* 未來預計獲取明細 - 移到第二個位置 */}
                                 <div className="card p-4 border-t-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm">
-                                    <div className="section-title text-green-700 dark:text-green-400 text-[0.875rem] font-bold mb-2">{t.sec_future_breakdown}</div>
+                                    <div className="section-title text-green-700 dark:text-green-400 text-[0.875rem] font-bold mb-2 flex justify-between items-baseline">
+                                        <span>{t.sec_future_breakdown}</span>
+                                        <span className="text-[0.7rem] font-normal opacity-80">{t.note_future_exclude}</span>
+                                    </div>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-[0.75rem]">
                                             <thead>
@@ -2634,7 +2651,7 @@
                                                                         <div className="flex flex-col items-center gap-0.5">
                                                                             <span className="font-mono font-bold text-sm text-gray-700 dark:text-gray-300">{item.progress}</span>
                                                                             {item.gap > 0 && (
-                                                                                <span className="text-[0.625rem] text-red-500 font-medium">{t.shop_gap} {item.gap}</span>
+                                                                                <span className="text-[0.75rem] text-red-500 font-medium">{t.shop_gap} {item.gap}</span>
                                                                             )}
                                                                         </div>
                                                                     </td>
